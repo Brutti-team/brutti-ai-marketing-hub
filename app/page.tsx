@@ -1,3 +1,5 @@
+import MarketingRequestForm from "./marketing-request-form";
+
 const requests = [
   {
     name: "Facebook Brand Awareness Post",
@@ -89,11 +91,11 @@ export default function Home() {
             <p className="hero-kicker">BRUTTI content system</p>
             <h2>Your marketing workflow is running.</h2>
             <p>
-              Create a request in Notion, let the AI prepare the content, then
-              review and approve it here.
+              Send a request from this hub, let Make and the AI prepare the
+              content, then review and approve it in Notion.
             </p>
             <div className="hero-actions">
-              <a className="primary-button" href="#requests">
+              <a className="primary-button" href="#request-form">
                 + New marketing request
               </a>
               <a className="secondary-button" href="#content">
@@ -142,6 +144,21 @@ export default function Home() {
               <small>BRUTTI catalogue</small>
             </div>
           </article>
+        </section>
+
+        <section className="panel form-panel" id="request-form">
+          <div className="panel-heading form-heading">
+            <div>
+              <p className="eyebrow">Connected to Make</p>
+              <h3>Create a marketing request</h3>
+              <p>
+                Complete the brief below. Make will forward it into the BRUTTI
+                Marketing Requests workflow.
+              </p>
+            </div>
+            <span className="connection-badge"><i /> Secure connection</span>
+          </div>
+          <MarketingRequestForm />
         </section>
 
         <section className="dashboard-grid">
