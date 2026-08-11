@@ -41,12 +41,18 @@ export const facebookGeneratedContent = [
 ] as const;
 
 export const facebookAnalytics = {
+  accountName: "BRUTTI",
+  username: "brutti.my",
+  category: "Furniture",
+  registrationDate: "11 Oct 2020",
+  profileUrl: "facebook.com/brutti.my",
   sourcePeriod: "11 Oct 2020 – 8 Jun 2026",
   groupActivityPeriod: "7 Apr 2025 – 23 May 2026",
   verifiedAt: "11 Aug 2026",
   followers: 12001,
   following: 88,
   incomingReactionRows: 728,
+  historicalReactionRows: 1613,
   uniqueReactors: 390,
   reactionPeriod: "21 Sep 2022 – 6 Jun 2026",
   reactionBreakdown: [
@@ -56,6 +62,7 @@ export const facebookAnalytics = {
     { name: "Wow", rows: 1 },
   ],
   profilePostRows: 3907,
+  editedPostRows: 102,
   profileActivityPeriod: "11 Oct 2020 – 8 Jun 2026",
   commentRows: 1245,
   bruttiAuthoredComments: 1217,
@@ -71,6 +78,23 @@ export const facebookAnalytics = {
   groups: 6,
   productMentions: 519,
   attachments: 2177,
+  unavailableKpis: [
+    "Reach",
+    "Impressions",
+    "Post views / watch time",
+    "Link clicks",
+    "Follower growth timeline",
+    "Engagement rate",
+  ],
+  sourceWorkbooks: [
+    "BRUTTI Followers and Following Data",
+    "Brutti Profile Data",
+    "Brutti Social Media Data",
+    "Facebook Data Extract — 20 files",
+    "Facebook JSON Data Extract",
+    "Facebook Media Saved Data — 8 files",
+    "Your Post Audiences",
+  ],
   monthly: [
     { month: "Apr 2025", rows: 528, unique: 101 },
     { month: "May 2025", rows: 687, unique: 130 },
