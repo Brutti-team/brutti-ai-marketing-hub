@@ -41,8 +41,29 @@ export const facebookGeneratedContent = [
 ] as const;
 
 export const facebookAnalytics = {
-  sourcePeriod: "7 Apr 2025 – 23 May 2026",
+  sourcePeriod: "11 Oct 2020 – 8 Jun 2026",
+  groupActivityPeriod: "7 Apr 2025 – 23 May 2026",
   verifiedAt: "11 Aug 2026",
+  followers: 12001,
+  following: 88,
+  incomingReactionRows: 728,
+  uniqueReactors: 390,
+  reactionPeriod: "21 Sep 2022 – 6 Jun 2026",
+  reactionBreakdown: [
+    { name: "Love", rows: 359 },
+    { name: "Like", rows: 322 },
+    { name: "Haha", rows: 46 },
+    { name: "Wow", rows: 1 },
+  ],
+  profilePostRows: 3907,
+  profileActivityPeriod: "11 Oct 2020 – 8 Jun 2026",
+  commentRows: 1245,
+  bruttiAuthoredComments: 1217,
+  photoFiles: 4950,
+  videoFiles: 2112,
+  reelRows: 157,
+  pageInvites: 355,
+  uniqueSourceFiles: 7,
   groupPostRows: 5164,
   uniquePosts: 1234,
   pendingRows: 303,
@@ -105,7 +126,10 @@ export const systemFiles = [
   { label: "Facebook marketing requests", status: "7 records embedded" },
   { label: "Facebook generated content", status: "4 drafts embedded" },
   { label: "Product database", status: "88 products · photos pending" },
-  { label: "Facebook analytics", status: "Verified snapshot" },
+  { label: "Facebook followers", status: "12,001 exported records" },
+  { label: "Facebook reactions", status: "728 incoming records" },
+  { label: "Facebook media archive", status: "7,062 photo + video files" },
+  { label: "Facebook analytics", status: "7 unique source files verified" },
 ] as const;
 
 export const links = {
