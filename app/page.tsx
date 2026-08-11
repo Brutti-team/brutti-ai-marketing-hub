@@ -1,4 +1,5 @@
 import MarketingRequestForm from "./marketing-request-form";
+import { BRUTTI_LOGO_DATA_URL } from "./brutti-logo-data";
 
 const requests = [
   {
@@ -33,7 +34,11 @@ export default function Home() {
     <main className="app-shell">
       <aside className="sidebar" aria-label="Main navigation">
         <div className="brand-mark" aria-label="BRUTTI">
-          <span className="brand-symbol">B</span>
+          <img
+            className="brand-logo"
+            src={BRUTTI_LOGO_DATA_URL}
+            alt="BRUTTI logo"
+          />
           <span>
             <strong>BRUTTI</strong>
             <small>AI Marketing Hub</small>
@@ -104,7 +109,13 @@ export default function Home() {
             </div>
           </div>
           <div className="workflow-orbit" aria-label="Notion to AI workflow active">
-            <div className="orbit-core">AI</div>
+            <div className="orbit-core">
+              <img
+                className="hero-logo"
+                src={BRUTTI_LOGO_DATA_URL}
+                alt="BRUTTI"
+              />
+            </div>
             <span className="orbit-tag notion-tag">Notion</span>
             <span className="orbit-tag make-tag">Make</span>
             <span className="orbit-status">Live</span>

@@ -63,17 +63,14 @@ a {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.brand-symbol {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+.brand-logo {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: Georgia, serif;
-  font-size: 22px;
-  background: #f5efe2;
-  color: #263128;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
 .brand-mark strong,
@@ -332,6 +329,14 @@ h1 {
   font-family: Georgia, serif;
   font-size: 25px;
   box-shadow: 0 14px 38px rgba(8, 18, 12, 0.25);
+  overflow: hidden;
+}
+
+.hero-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .orbit-tag,
