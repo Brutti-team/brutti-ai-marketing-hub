@@ -1,0 +1,23 @@
+{
+  "name": "BRUTTI AI Marketing Hub",
+  "short_name": "BRUTTI AI",
+  "description": "Internal marketing workspace for BRUTTI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e7",
+  "theme_color": "#1f3128",
+  "icons": [
+    {
+      "src": "/api/icon?v=brutti",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/api/icon?v=brutti",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
