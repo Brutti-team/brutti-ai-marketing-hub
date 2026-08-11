@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import MarketingRequestForm from "./marketing-request-form";
+import ProductDatabase from "./product-database";
 import { BRUTTI_LOGO_DATA_URL } from "./brutti-logo-data";
 import {
   facebookGeneratedContent,
@@ -214,19 +215,7 @@ export default function HubDashboard() {
           </section>
         )}
 
-        {activeView === "products" && (
-          <section className="panel">
-            <div className="panel-heading">
-              <div><p className="eyebrow">Product database</p><h3>BRUTTI product files</h3></div>
-              <a href={links.driveRoot} target="_blank" rel="noreferrer">Open Google Drive ↗</a>
-            </div>
-            <div className="empty-state">
-              <span className="empty-icon">▦</span>
-              <h4>Basic product records are kept in the BRUTTI file structure.</h4>
-              <p>Front-view, side-view and customer product photos are intentionally marked as pending until you upload them.</p>
-            </div>
-          </section>
-        )}
+        {activeView === "products" && <ProductDatabase />}
 
         {activeView === "calendar" && (
           <section className="panel">
