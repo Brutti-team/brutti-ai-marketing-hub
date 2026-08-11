@@ -902,3 +902,19 @@ export const productCategories = Array.from(
   new Set(bruttiProducts.map((product) => product.category))
 ).sort((a, b) => a.localeCompare(b));
 
+// Only high-confidence visual matches from the confirmed BRUTTI image library
+// are shown in the catalogue. Products without a mapping deliberately retain
+// the pending-image state until their match is verified.
+export const productImageMap: Record<number, string> = {
+  2: "/products/dangsanak-table.webp",
+  15: "/products/puloudopuan-2.webp",
+  25: "/products/monocolo.webp",
+  28: "/products/ahtam-xl.webp",
+  47: "/products/day-bed.webp",
+  49: "/products/kinosusuan.webp",
+  50: "/products/loft-bed.webp",
+  51: "/products/ayyash.webp",
+  57: "/products/barn-door.webp",
+  61: "/products/mogidadamot-2.webp",
+};
+

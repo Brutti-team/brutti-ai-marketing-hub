@@ -149,7 +149,7 @@ export const faqSignals = [
 export const systemFiles = [
   { label: "Facebook marketing requests", status: "7 records embedded" },
   { label: "Facebook generated content", status: "4 drafts embedded" },
-  { label: "Product database", status: "88 products · photos pending" },
+  { label: "Product database", status: "88 products · 10 confirmed photos" },
   { label: "Facebook followers", status: "12,001 exported records" },
   { label: "Facebook reactions", status: "728 incoming records" },
   { label: "Facebook media archive", status: "7,062 photo + video files" },

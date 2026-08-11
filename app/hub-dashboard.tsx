@@ -127,7 +127,7 @@ export default function HubDashboard() {
               <article className="metric-card"><span className="metric-icon moss">F</span><div><p>Facebook followers</p><strong>{facebookAnalytics.followers.toLocaleString()}</strong><small>Exported follower records</small></div></article>
               <article className="metric-card"><span className="metric-icon amber">♡</span><div><p>Incoming reactions</p><strong>{facebookAnalytics.incomingReactionRows.toLocaleString()}</strong><small>{facebookAnalytics.uniqueReactors} unique accounts</small></div></article>
               <article className="metric-card"><span className="metric-icon clay">✓</span><div><p>Automation</p><strong>On</strong><small>Request submission via Make</small></div></article>
-              <article className="metric-card"><span className="metric-icon ink">▦</span><div><p>Products</p><strong>88</strong><small>Details available; photos pending</small></div></article>
+              <article className="metric-card"><span className="metric-icon ink">▦</span><div><p>Products</p><strong>88</strong><small>Details available; 10 photos confirmed</small></div></article>
             </section>
 
             <section className="dashboard-grid">

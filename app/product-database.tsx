@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   bruttiProducts,
   productCategories,
+  productImageMap,
   productSource,
 } from "./brutti-product-data";
 
@@ -36,6 +37,7 @@ export default function ProductDatabase() {
       !missingValue(product.dimensions) &&
       !missingValue(product.colour)
   ).length;
+  const confirmedImageCount = Object.keys(productImageMap).length;
 
   return (
     <section className="panel product-panel">
@@ -44,8 +46,8 @@ export default function ProductDatabase() {
           <p className="eyebrow">Verified Notion records</p>
           <h3>BRUTTI product catalogue</h3>
           <p>
-            Full product details from the official Product Database. Images are
-            intentionally left pending until the product photo library is ready.
+            Full product details from the official Product Database, now with
+            confirmed product images where a high-confidence visual match is available.
           </p>
         </div>
         <span className="snapshot-label">Embedded in website</span>
@@ -54,7 +56,7 @@ export default function ProductDatabase() {
       <div className="product-summary" aria-label="Product database summary">
         <div><strong>{bruttiProducts.length}</strong><span>Active products</span></div>
         <div><strong>{productCategories.length}</strong><span>Categories</span></div>
-        <div><strong>{completeCount}</strong><span>Complete core details</span></div>
+        <div><strong>{confirmedImageCount}</strong><span>Confirmed images</span></div>
         <div><strong>{bruttiProducts.length - completeCount}</strong><span>Need data review</span></div>
       </div>
 
@@ -87,9 +89,19 @@ export default function ProductDatabase() {
           {products.map((product) => (
             <article className="product-card" key={product.id}>
               <div className="product-card-top">
-                <div className="product-photo-placeholder" aria-label="Product image pending">
-                  <span>Image pending</span>
-                </div>
+                {productImageMap[product.id] ? (
+                  <div className="product-photo">
+                    <img
+                      src={productImageMap[product.id]}
+                      alt={`${product.name} product photo`}
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div className="product-photo-placeholder" aria-label="Product image pending">
+                    <span>Image pending</span>
+                  </div>
+                )}
                 <div>
                   <small>Product {String(product.id).padStart(2, "0")}</small>
                   <h4>{product.name}</h4>
