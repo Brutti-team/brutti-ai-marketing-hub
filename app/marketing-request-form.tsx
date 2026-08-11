@@ -5,7 +5,7 @@ import { FormEvent, useState } from "react";
 const initialForm = {
   name: "",
   platform: "Facebook",
-  contentType: "Social media post",
+  contentType: "Facebook Post",
   productName: "",
   objective: "",
   keyMessage: "",
@@ -70,11 +70,8 @@ export default function MarketingRequestForm() {
             onChange={(event) => updateField("platform", event.target.value)}
           >
             <option>Facebook</option>
-            <option>Instagram</option>
-            <option>TikTok</option>
-            <option>Threads</option>
-            <option>WhatsApp</option>
           </select>
+          <small className="field-note">Facebook only for now</small>
         </label>
 
         <label className="field">
@@ -84,11 +81,10 @@ export default function MarketingRequestForm() {
             value={form.contentType}
             onChange={(event) => updateField("contentType", event.target.value)}
           >
-            <option>Social media post</option>
-            <option>Caption</option>
-            <option>Video script</option>
+            <option>Facebook Post</option>
             <option>Promotion</option>
             <option>Customer reply</option>
+            <option>Complaint reply</option>
           </select>
         </label>
 
