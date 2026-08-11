@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import MarketingRequestForm from "./marketing-request-form";
 import ProductDatabase from "./product-database";
+import ContentManager from "./content-manager";
+import CalendarManager from "./calendar-manager";
 import { BRUTTI_LOGO_DATA_URL } from "./brutti-logo-data";
 import {
   facebookAnalytics,
-  facebookCalendar,
-  facebookGeneratedContent,
   facebookRequests,
   faqSignals,
   systemFiles,
@@ -50,16 +50,6 @@ function RequestsList({ requests, compact = false }: { requests: FacebookRequest
   );
 }
 
-function CopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-  async function copy() {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
-  return <button className="copy-button" onClick={copy}>{copied ? "Copied ✓" : "Copy"}</button>;
-}
-
 export default function HubDashboard() {
   const [activeView, setActiveView] = useState<View>("overview");
   const [localRequests, setLocalRequests] = useState<FacebookRequest[]>(() => {
@@ -84,8 +74,6 @@ export default function HubDashboard() {
   }, []);
 
   const allRequests = useMemo(() => [...localRequests, ...facebookRequests], [localRequests]);
-  const reviewCount = allRequests.filter((item) => item.status === "Review").length;
-
   function goTo(view: View) {
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -169,31 +157,11 @@ export default function HubDashboard() {
           </>
         )}
 
-        {activeView === "content" && (
-          <section className="panel">
-            <div className="panel-heading"><div><p className="eyebrow">AI output</p><h3>Generated Facebook content</h3></div><span className="snapshot-label">Ready to copy and review</span></div>
-            <div className="content-cards">
-              {facebookGeneratedContent.map((item) => (
-                <article className="content-card" key={item.title}>
-                  <div className="content-card-head"><span className="platform-icon facebook">F</span><div><strong>{item.title}</strong><small>Facebook · AI generated</small></div><span className="status-pill review">{item.status}</span></div>
-                  <p className="preserve-lines">{item.content}</p><div className="content-actions"><CopyButton value={item.content} /></div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
+        {activeView === "content" && <ContentManager />}
 
         {activeView === "products" && <ProductDatabase />}
 
-        {activeView === "calendar" && (
-          <section className="panel">
-            <div className="panel-heading"><div><p className="eyebrow">Recommended draft plan</p><h3>Facebook weekly content calendar</h3></div><span className="snapshot-label">Edit the brief before publishing</span></div>
-            <div className="calendar-grid">
-              {facebookCalendar.map((item) => <article className="calendar-card" key={item.day}><span>{item.day}</span><strong>{item.theme}</strong><p>{item.product}</p><small>{item.format}</small><em>{item.status}</em></article>)}
-            </div>
-            <p className="data-note">This planner is a recommended Facebook-only draft based on BRUTTI products, content pillars and FAQ signals. Nothing is published automatically.</p>
-          </section>
-        )}
+        {activeView === "calendar" && <CalendarManager />}
 
         {activeView === "reports" && (
           <>
