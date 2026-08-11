@@ -1131,6 +1131,244 @@ h1 {
   opacity: 0.65;
 }
 
+.snapshot-note,
+.data-note,
+.mini-note {
+  margin: 16px 0 0;
+  color: #7b847e;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.snapshot-label {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #d7ded7;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #f0f3ef;
+  color: var(--moss);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.preserve-lines {
+  white-space: pre-line;
+}
+
+.content-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.copy-button {
+  border: 1px solid #ccd7ce;
+  border-radius: 9px;
+  background: #f2f5f1;
+  color: var(--moss);
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.calendar-card {
+  display: flex;
+  min-height: 188px;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 13px;
+  background: #faf8f2;
+}
+
+.calendar-card > span {
+  color: var(--clay);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.calendar-card strong {
+  margin-top: 14px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.calendar-card p {
+  margin: 8px 0;
+  color: #5f6a62;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.calendar-card small {
+  color: #8b918c;
+  font-size: 9px;
+}
+
+.calendar-card em {
+  align-self: flex-start;
+  margin-top: auto;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #ece6d8;
+  color: #806f4e;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.analytics-summary > div {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 16px;
+  background: #faf8f2;
+}
+
+.analytics-summary strong,
+.analytics-summary span {
+  display: block;
+}
+
+.analytics-summary strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 25px;
+}
+
+.analytics-summary span {
+  margin-top: 4px;
+  color: #758078;
+  font-size: 9px;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.report-block {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  background: #fffefa;
+}
+
+.report-block h4 {
+  margin: 0 0 15px;
+  font-size: 12px;
+}
+
+.bar-list {
+  display: grid;
+  gap: 8px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+}
+
+.bar-row i {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: #6f8f79;
+}
+
+.bar-row strong {
+  text-align: right;
+}
+
+.rank-list {
+  display: grid;
+  gap: 9px;
+}
+
+.rank-list > div {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #eeeae1;
+  padding-bottom: 8px;
+}
+
+.rank-list span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e8eee8;
+  color: var(--moss);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.rank-list p,
+.rank-list strong {
+  margin: 0;
+  font-size: 9px;
+}
+
+.rank-list p {
+  color: #556158;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-cloud span {
+  border-radius: 999px;
+  padding: 7px 9px;
+  background: #eef2ec;
+  color: #46604f;
+  font-size: 9px;
+}
+
+.limitation-panel {
+  border-color: #e3d7c1;
+  background: #fffaf0;
+}
+
+.limitation-panel h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.limitation-panel p {
+  margin: 0;
+  color: #756a57;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
 footer {
   margin-top: 20px;
   padding: 4px 2px;
@@ -1145,6 +1383,10 @@ footer {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -1208,6 +1450,12 @@ footer {
   .workflow-orbit {
     display: none;
   }
+
+  .calendar-grid,
+  .analytics-summary,
+  .report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 520px) {
@@ -1256,5 +1504,11 @@ footer {
   .status-pill {
     grid-column: 2;
     justify-self: start;
+  }
+
+  .calendar-grid,
+  .analytics-summary,
+  .report-grid {
+    grid-template-columns: 1fr;
   }
 }

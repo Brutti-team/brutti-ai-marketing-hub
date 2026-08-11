@@ -1,6 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { bruttiProducts } from "./brutti-product-data";
+import type { FacebookRequest } from "./brutti-facebook-data";
+
+const LOCAL_REQUESTS_KEY = "brutti-marketing-requests";
 
 const initialForm = {
   name: "",
@@ -39,9 +43,32 @@ export default function MarketingRequestForm() {
         throw new Error(result.error || "Request could not be sent.");
       }
 
+      const requestRecord: FacebookRequest = {
+        name: form.name,
+        product: form.productName || "General BRUTTI brand",
+        objective: form.objective,
+        status: "New",
+        time: new Intl.DateTimeFormat("en-MY", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(new Date()),
+        hasContent: false,
+      };
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(LOCAL_REQUESTS_KEY) || "[]") as FacebookRequest[];
+        localStorage.setItem(LOCAL_REQUESTS_KEY, JSON.stringify([requestRecord, ...saved].slice(0, 30)));
+        window.dispatchEvent(new Event("brutti-request-created"));
+      } catch {
+        // The Make submission succeeded even if browser storage is unavailable.
+      }
+
       setForm(initialForm);
       setState("success");
-      setMessage("Request sent to Make successfully.");
+      setMessage("Request sent successfully and added to the website request history.");
     } catch (error) {
       setState("error");
       setMessage(error instanceof Error ? error.message : "Request could not be sent.");
@@ -90,12 +117,16 @@ export default function MarketingRequestForm() {
 
         <label className="field">
           <span>Product name</span>
-          <input
+          <select
             name="productName"
             value={form.productName}
             onChange={(event) => updateField("productName", event.target.value)}
-            placeholder="BRUTTI product name"
-          />
+          >
+            <option value="">General BRUTTI brand</option>
+            {bruttiProducts.map((product) => (
+              <option key={product.id} value={product.name}>{product.name}</option>
+            ))}
+          </select>
         </label>
 
         <label className="field">

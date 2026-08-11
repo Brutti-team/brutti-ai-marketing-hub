@@ -48,9 +48,7 @@ export default function ProductDatabase() {
             intentionally left pending until the product photo library is ready.
           </p>
         </div>
-        <a href={productSource.url} target="_blank" rel="noreferrer">
-          Open Notion ↗
-        </a>
+        <span className="snapshot-label">Embedded in website</span>
       </div>
 
       <div className="product-summary" aria-label="Product database summary">
