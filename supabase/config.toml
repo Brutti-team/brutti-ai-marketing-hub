@@ -1,0 +1,4 @@
+project_id = "brutti-ai-marketing-hub"
+
+[functions.marketing-api]
+verify_jwt = true
