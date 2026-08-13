@@ -31,6 +31,7 @@ jobs:
         run: npm run check
       - name: Build
         run: npm run build
+        # Public endpoint only; credentials remain in Apps Script Properties.
         env:
           VITE_APPS_SCRIPT_URL: https://script.google.com/macros/s/AKfycbw64UCd3C6UeI8TsRhNGoUdgHjyCmqSEmaUtOYb6-aXwz4VM2toIchuI3hnwpXqQA8-/exec
       - name: Upload Pages artifact
