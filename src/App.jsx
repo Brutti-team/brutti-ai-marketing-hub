@@ -11,17 +11,16 @@ import {
 } from './data'
 import {
   callMarketingApi,
-  cloudConfigured,
-  deleteCloudContent,
-  deleteCloudPlan,
-  getSession,
+  clearWorkspaceKey,
+  deleteGoogleContent,
+  deleteGooglePlan,
+  googleConfigured,
+  hasWorkspaceKey,
   loadWorkspace,
-  saveCloudContent,
-  saveCloudPlan,
-  sendMagicLink,
-  signOut,
-  watchSession,
-} from './lib/cloud'
+  saveGoogleContent,
+  saveGooglePlan,
+  setWorkspaceKey,
+} from './lib/googleWorkspace'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -92,7 +91,7 @@ function Logo() {
   )
 }
 
-function Sidebar({ page, setPage, open, setOpen, cloudActive }) {
+function Sidebar({ page, setPage, open, setOpen, workspaceActive }) {
   const navigate = (id) => { setPage(id); setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   return (
     <>
@@ -109,8 +108,8 @@ function Sidebar({ page, setPage, open, setOpen, cloudActive }) {
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card">
-            <div className="system-card-head"><span className="pulse-dot"/><strong>{cloudActive ? 'Secure cloud active' : 'Local workspace active'}</strong></div>
-            <p>{cloudActive ? 'AI and shared data use authenticated backend access.' : 'Connect Supabase to activate AI and shared integrations.'}</p>
+            <div className="system-card-head"><span className="pulse-dot"/><strong>{workspaceActive ? 'Google workspace active' : 'Local workspace active'}</strong></div>
+            <p>{workspaceActive ? 'AI, Sheets and Drive use the secured Apps Script backend.' : 'Connect the internal Google workspace to activate shared operations.'}</p>
           </div>
           <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div>
         </div>
@@ -119,11 +118,11 @@ function Sidebar({ page, setPage, open, setOpen, cloudActive }) {
   )
 }
 
-function Topbar({ setOpen, cloudActive }) {
+function Topbar({ setOpen, workspaceActive }) {
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><span className={`status-chip ${cloudActive ? 'connected' : 'local'}`}><span/>{cloudActive ? 'Cloud connected' : 'Local mode'}</span><span className="topbar-date">Updated 13 Aug 2026</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">Updated 13 Aug 2026</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -193,7 +192,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
   )
 }
 
-function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generating, cloudActive }) {
+function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generating, workspaceActive }) {
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   return (
     <div className="generator-layout">
@@ -205,8 +204,8 @@ function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generatin
         <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Warm & confident</option><option>Practical</option><option>Proud & purposeful</option><option>Helpful</option><option>Casual</option></select></label></div>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Add only confirmed product details, campaign direction or source notes."/></label>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
-        <button className="button primary wide" type="submit" disabled={generating}><Icon name="sparkles"/>{generating ? 'AI is generating…' : cloudActive ? 'Generate with BRUTTI AI' : 'Generate local preview'}</button>
-        <p className="form-disclaimer"><Icon name="alert" size={14}/>{cloudActive ? 'Live OpenAI generation uses verified facts and still requires human approval.' : 'Local preview only. Sign in after Supabase is connected to activate live AI.'}</p>
+        <button className="button primary wide" type="submit" disabled={generating}><Icon name="sparkles"/>{generating ? 'AI is generating…' : workspaceActive ? 'Generate with BRUTTI AI' : 'Generate local preview'}</button>
+        <p className="form-disclaimer"><Icon name="alert" size={14}/>{workspaceActive ? 'OpenAI runs through Apps Script using verified facts and still requires human approval.' : 'Local preview only. Connect the internal Google workspace to activate live AI.'}</p>
       </form>
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
@@ -217,7 +216,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generatin
   )
 }
 
-function ContentStudio({ content, deleteContent, generator, setGenerator, output, generate, saveDraft, openContent, generating, cloudActive }) {
+function ContentStudio({ content, deleteContent, generator, setGenerator, output, generate, saveDraft, openContent, generating, workspaceActive }) {
   const [tab, setTab] = useState('generator')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
@@ -226,7 +225,7 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
     <div className="page">
       <PageHeader eyebrow="AI CONTENT WORKSPACE" title="Content Studio" description="Generate, edit and move content through a review-first publishing workflow." />
       <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>AI Generator</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
-      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} saveDraft={saveDraft} generating={generating} cloudActive={cloudActive}/> : (
+      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} saveDraft={saveDraft} generating={generating} workspaceActive={workspaceActive}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
           <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>AI check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
@@ -293,19 +292,19 @@ function ProductLibrary({ onUseProduct }) {
   )
 }
 
-function AssetLibrary({ toast, cloudActive, driveActive }) {
+function AssetLibrary({ toast, workspaceActive, driveActive }) {
   const fallbackAssets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference']
   const [driveAssets, setDriveAssets] = useState([])
   useEffect(() => {
-    if (!cloudActive || !driveActive) return
+    if (!workspaceActive || !driveActive) return
     callMarketingApi('list_drive_assets')
       .then((result) => setDriveAssets(result.files || []))
       .catch((error) => toast(error.message))
-  }, [cloudActive, driveActive, toast])
+  }, [workspaceActive, driveActive, toast])
   const assets = driveAssets.length ? driveAssets.map((asset) => asset.name) : fallbackAssets
   return (
     <div className="page">
-      <PageHeader eyebrow="CREATIVE SOURCE FILES" title="Asset Library" description="Track approved product and brand assets prepared for future Drive synchronisation." actions={<button className="button secondary" onClick={() => toast('Upload requires the Google Drive API connection.')}><Icon name="plus"/>Add asset</button>} />
+      <PageHeader eyebrow="CREATIVE SOURCE FILES" title="Asset Library" description="Read approved product and brand assets from the BRUTTI AI MARKETING SYSTEM folder in Google Drive." actions={<button className="button secondary" onClick={() => toast('Upload new assets through the controlled Google Drive folder.')}><Icon name="plus"/>Add asset</button>} />
       <div className="asset-summary"><article><strong>{assets.length}</strong><span>{driveAssets.length ? 'Drive assets loaded' : 'Confirmed references'}</span></article><article><strong>{driveAssets.length}</strong><span>Direct Drive files connected</span></article><article><strong>{driveActive ? 'Ready' : 'Pending'}</strong><span>Secure Drive connection</span></article></div>
       <section className="panel asset-panel"><div className="library-toolbar"><div className="search-box"><Icon name="search"/><input placeholder="Search assets…"/></div><span className={`status-chip ${driveActive ? 'connected' : 'pending'}`}><span/>{driveActive ? 'Drive connected' : 'Drive sync pending'}</span></div><div className="asset-grid">{assets.map((asset,index) => <article key={asset}><div className={`asset-preview asset-${index%4}`}><Icon name="image" size={28}/><span>{String(index+1).padStart(2,'0')}</span></div><div><strong>{asset}</strong><p>{driveAssets.length ? 'Google Drive asset' : 'Reference record · product asset'}</p><div><StatusPill>{driveAssets.length ? 'Connected' : 'Verified name'}</StatusPill><button onClick={() => toast(driveAssets.length ? 'Drive file is available through the secured backend.' : 'File preview will be available after Drive sync.')}><Icon name="chevron"/></button></div></div></article>)}</div></section>
     </div>
@@ -343,46 +342,44 @@ function Analytics() {
   )
 }
 
-function Settings({ toast, resetWorkspace, session, integrations, onRefreshIntegrations }) {
-  const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const cloudActive = Boolean(session)
+function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefreshIntegrations, onConnect, onDisconnect }) {
+  const [accessKey, setAccessKey] = useState('')
+  const [connecting, setConnecting] = useState(false)
   const connections = [
-    { name:'OpenAI', detail:'Live generation and brand-safety review', status:integrations.openai ? 'Connected' : 'Not connected', icon:'sparkles' },
-    { name:'Notion database', detail:'BRUTTI MARKETING REQUESTS · controlled sync', status:integrations.notion ? 'Connected' : 'Not connected', icon:'file' },
-    { name:'Google Drive', detail:'Official logo, product photos and brand assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
+    { name:'Google Sheets', detail:'Content Library, Daily Planner and Integration Log', status:integrations.sheets ? 'Connected' : 'Not connected', icon:'file' },
+    { name:'Google Drive', detail:'BRUTTI AI MARKETING SYSTEM and approved assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
+    { name:'OpenAI API', detail:'Content generation, review and planning through Apps Script', status:integrations.openai ? 'Connected' : 'Not connected', icon:'sparkles' },
     { name:'Meta / Facebook', detail:'Approved publishing; insights remain empty until data exists', status:integrations.meta ? 'Connected' : 'Not connected', icon:'chart' },
   ]
-  const requestLink = async (event) => {
+  const connect = async (event) => {
     event.preventDefault()
-    setSending(true)
+    setConnecting(true)
     try {
-      await sendMagicLink(email)
-      toast('Secure sign-in link sent. Check your email.')
-      setEmail('')
+      await onConnect(accessKey)
+      setAccessKey('')
     } catch (error) {
       toast(error.message)
     } finally {
-      setSending(false)
+      setConnecting(false)
     }
   }
   return (
     <div className="page">
-      <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="See exactly which parts are local and which require authenticated services." />
+      <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="Connect the internal Google backend without exposing API keys in GitHub or the browser." />
       <section className="panel cloud-access-panel">
-        <div className="panel-heading"><div><span className="eyebrow">SECURE ACCESS</span><h3>{cloudActive ? 'Cloud workspace connected' : cloudConfigured ? 'Sign in to the BRUTTI workspace' : 'Supabase project required'}</h3></div><span className={`status-chip ${cloudActive ? 'connected' : 'pending'}`}><span/>{cloudActive ? 'Authenticated' : 'Setup required'}</span></div>
-        {cloudActive ? <div className="cloud-session"><div><strong>{session.user.email}</strong><p>Shared content, planner data and server-side integrations are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={() => signOut().catch((error) => toast(error.message))}>Sign out</button></div></div> : cloudConfigured ? <form className="cloud-login-form" onSubmit={requestLink}><label>Staff email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com"/></label><button className="button primary" disabled={sending}>{sending ? 'Sending…' : 'Send secure sign-in link'}</button></form> : <p className="settings-copy">Add the public Supabase URL and anon key during deployment. Secret OpenAI, Notion, Drive and Meta credentials stay in the backend only.</p>}
+        <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3>{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
+        {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and server-side AI are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as the GitHub variable VITE_APPS_SCRIPT_URL. OpenAI and Meta credentials stay in Apps Script Properties only.</p>}
       </section>
-      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className={`status-chip ${cloudActive ? 'connected' : 'local'}`}><span/>{cloudActive ? 'Cloud mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' ? `${connection.name} is ready.` : `${connection.name} still needs backend credentials.`)}>Check</button></article>)}</div></section>
+      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
       <div className="settings-grid">
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WORKFLOW RULES</span><h3>Review-first controls</h3></div></div><div className="setting-row"><div><strong>Human approval required</strong><p>Content must be approved before scheduling or publishing.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Block unsupported facts</strong><p>Flag prices, promotions, delivery dates and KPI without sources.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Facebook-only operations</strong><p>Other platforms remain disabled until data and connections exist.</p></div><span className="switch on"><i/></span></div></section>
-        <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{cloudActive ? 'CLOUD DATA' : 'LOCAL DATA'}</span><h3>{cloudActive ? 'Shared workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{cloudActive ? 'Content and planner edits are stored in Supabase and shared across authenticated staff.' : 'Until Supabase is connected, content and planner edits stay in this browser only.'}</p>{!cloudActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Official logo pending</strong><p>Replace this monogram after the approved Drive asset is connected.</p></div></div></section>
+        <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{workspaceActive ? 'GOOGLE DATA' : 'LOCAL DATA'}</span><h3>{workspaceActive ? 'Shared internal workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{workspaceActive ? 'Content and planner edits are stored in BRUTTI Google Sheets. Assets remain in the existing Google Drive structure.' : 'Until Apps Script is connected, content and planner edits stay in this browser only.'}</p>{!workspaceActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Drive-first assets</strong><p>Official logo and product files remain in their approved BRUTTI Drive folders.</p></div></div></section>
       </div>
     </div>
   )
 }
 
-function ContentEditor({ item, onClose, onSave, onPublish, toast, cloudActive }) {
+function ContentEditor({ item, onClose, onSave, onPublish, toast, workspaceActive }) {
   const [draft, setDraft] = useState(item)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
   const act = (stage, message) => { const next = { ...draft, stage, aiReview: stage === 'Approved' || stage === 'Published' ? 'AI Approved' : 'Human Review Required', updatedAt: '13 Aug 2026, just now' }; setDraft(next); onSave(next); toast(message) }
@@ -395,7 +392,7 @@ function ContentEditor({ item, onClose, onSave, onPublish, toast, cloudActive })
         <div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option></select></label><label>Workflow stage<select value={draft.stage} onChange={update('stage')}>{[...pipelineStages,'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></label></div>
         <label>Content<textarea rows="12" value={draft.copy} onChange={update('copy')}/></label>
         <div className="modal-guardrail"><Icon name="alert"/><span>Check price, availability, delivery dates, dimensions and claims before approval.</span></div>
-        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? cloudActive ? onPublish(draft) : toast('Meta publishing needs the cloud backend and Meta credentials.') : toast('Approve this content before publishing.')}>Publish to Facebook</button></div></div>
+        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? workspaceActive ? onPublish(draft) : toast('Meta publishing needs the Google Apps Script backend and Meta credentials.') : toast('Approve this content before publishing.')}>Publish to Facebook</button></div></div>
       </div>
     </div>
   )
@@ -429,10 +426,9 @@ function App() {
   const toastTimer = useRef(null)
   const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Warm & confident', brief:'', includeHashtags:true })
   const [output, setOutput] = useState('')
-  const [session, setSession] = useState(null)
-  const [integrations, setIntegrations] = useState({ openai:false, notion:false, drive:false, meta:false })
+  const [workspaceActive, setWorkspaceActive] = useState(false)
+  const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
   const [generating, setGenerating] = useState(false)
-  const cloudActive = Boolean(session)
 
   const toast = useCallback((message) => {
     setToastMessage(message)
@@ -443,8 +439,8 @@ function App() {
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
 
   const refreshIntegrations = useCallback(async () => {
-    if (!session) {
-      setIntegrations({ openai:false, notion:false, drive:false, meta:false })
+    if (!hasWorkspaceKey()) {
+      setIntegrations({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
       return
     }
     try {
@@ -452,27 +448,46 @@ function App() {
     } catch (error) {
       toast(error.message)
     }
-  }, [session, toast])
-
-  useEffect(() => {
-    if (!cloudConfigured) return undefined
-    let mounted = true
-    getSession().then((next) => mounted && setSession(next)).catch((error) => toast(error.message))
-    const unsubscribe = watchSession((next) => mounted && setSession(next))
-    return () => { mounted = false; unsubscribe() }
   }, [toast])
 
   useEffect(() => {
-    if (!session) return
-    loadWorkspace()
-      .then((workspace) => {
-        if (workspace.content.length) setContent(workspace.content)
-        if (workspace.plans.length) setPlans(workspace.plans)
+    if (!googleConfigured || !hasWorkspaceKey()) return undefined
+    let mounted = true
+    Promise.all([callMarketingApi('integration_status'), loadWorkspace()])
+      .then(([status, workspace]) => {
+        if (!mounted) return
+        setIntegrations(status)
+        setContent(workspace.content || [])
+        setPlans(workspace.plans || [])
+        setWorkspaceActive(true)
       })
-      .catch((error) => toast(error.message))
-    refreshIntegrations()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session])
+      .catch((error) => { clearWorkspaceKey(); toast(error.message) })
+    return () => { mounted = false }
+  }, [setContent, setPlans, toast])
+
+  const connectWorkspace = async (accessKey) => {
+    setWorkspaceKey(accessKey)
+    try {
+      const [status, workspace] = await Promise.all([callMarketingApi('integration_status'), loadWorkspace()])
+      setIntegrations(status)
+      setContent(workspace.content || [])
+      setPlans(workspace.plans || [])
+      setWorkspaceActive(true)
+      toast('BRUTTI Google workspace connected.')
+    } catch (error) {
+      clearWorkspaceKey()
+      throw error
+    }
+  }
+
+  const disconnectWorkspace = () => {
+    clearWorkspaceKey()
+    setWorkspaceActive(false)
+    setIntegrations({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
+    setContent(initialContent)
+    setPlans(initialPlans)
+    toast('Google workspace disconnected. Local preview mode restored.')
+  }
 
   const localPreview = () => {
     const productLine = generator.product === 'General / No Product' ? '' : ` untuk ${generator.product}`
@@ -487,9 +502,9 @@ function App() {
 
   const generate = async () => {
     if (!generator.title.trim() || !generator.brief.trim()) { toast('Add a title and verified facts first.'); return }
-    if (!cloudActive) {
+    if (!workspaceActive) {
       setOutput(localPreview())
-      toast('Local preview generated. Connect and sign in for live AI.')
+      toast('Local preview generated. Connect the Google workspace for live AI.')
       return
     }
     setGenerating(true)
@@ -506,12 +521,11 @@ function App() {
 
   const saveGeneratedDraft = async () => {
     if (!output) return
-    let item = { id:cloudActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:'Human Review Required', stage:'AI Generated', updatedAt:'13 Aug 2026, just now', copy:output }
+    let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:'Human Review Required', stage:'AI Generated', updatedAt:'13 Aug 2026, just now', copy:output }
     try {
-      if (cloudActive) item = await saveCloudContent(item)
-      if (cloudActive && integrations.notion) await callMarketingApi('sync_notion', { contentId:item.id })
+      if (workspaceActive) item = await saveGoogleContent(item)
       setContent((items) => [item, ...items])
-      toast(cloudActive ? 'Draft saved to the shared cloud library.' : 'Draft saved in this browser.')
+      toast(workspaceActive ? 'Draft saved to the BRUTTI Google Sheet.' : 'Draft saved in this browser.')
       setOutput('')
     } catch (error) {
       toast(error.message)
@@ -521,17 +535,17 @@ function App() {
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
   const openNewPlan = (date = '2026-08-19', idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || '2026-08-19', channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
   const savePlan = async (plan) => {
-    let next = plan.id ? plan : {...plan,id:cloudActive ? crypto.randomUUID() : Date.now()}
+    let next = plan.id ? plan : {...plan,id:workspaceActive ? crypto.randomUUID() : Date.now()}
     try {
-      if (cloudActive) next = await saveCloudPlan(next)
+      if (workspaceActive) next = await saveGooglePlan(next)
       setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? next : item) : [...items, next])
       setActivePlan(null)
-      toast(cloudActive ? 'Planner saved to the shared cloud.' : 'Planner updated locally.')
+      toast(workspaceActive ? 'Planner saved to BRUTTI DAILY CONTENT PLANNER.' : 'Planner updated locally.')
     } catch (error) { toast(error.message) }
   }
   const deletePlan = async (id) => {
     try {
-      if (cloudActive) await deleteCloudPlan(id)
+      if (workspaceActive) await deleteGooglePlan(id)
       setPlans((items) => items.filter((item) => item.id !== id))
       setActivePlan(null)
       toast('Plan deleted.')
@@ -539,24 +553,23 @@ function App() {
   }
   const saveContent = async (item) => {
     try {
-      const next = cloudActive ? await saveCloudContent(item) : item
-      if (cloudActive && integrations.notion) await callMarketingApi('sync_notion', { contentId:next.id })
+      const next = workspaceActive ? await saveGoogleContent(item) : item
       setContent((items) => items.map((current) => current.id === item.id ? next : current))
       setActiveContent(next)
     } catch (error) { toast(error.message) }
   }
   const deleteContent = async (id) => {
     try {
-      if (cloudActive) await deleteCloudContent(id)
+      if (workspaceActive) await deleteGoogleContent(id)
       setContent((items) => items.filter((item) => item.id !== id))
       toast('Content deleted.')
     } catch (error) { toast(error.message) }
   }
   const publishContent = async (item) => {
     try {
-      await saveCloudContent({...item, stage:'Approved'})
+      await saveGoogleContent({...item, stage:'Approved'})
       const result = await callMarketingApi('publish_meta', { contentId:item.id })
-      const published = {...item, stage:'Published', aiReview:'AI Approved', updatedAt:'13 Aug 2026, just now'}
+      const published = {...item, stage:'Published', aiReview:'AI Approved', publishLink:result.publishLink || '', updatedAt:'13 Aug 2026, just now'}
       setContent((items) => items.map((current) => current.id === item.id ? published : current))
       setActiveContent(null)
       toast(`Published to Facebook successfully: ${result.postId}`)
@@ -568,22 +581,22 @@ function App() {
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} generating={generating} cloudActive={cloudActive} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} generating={generating} workspaceActive={workspaceActive} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} />,
-    assets: <AssetLibrary toast={toast} cloudActive={cloudActive} driveActive={integrations.drive} />,
+    assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
     analytics: <Analytics />,
-    settings: <Settings toast={toast} resetWorkspace={resetWorkspace} session={session} integrations={integrations} onRefreshIntegrations={refreshIntegrations} />,
+    settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output, session, integrations, generating])
+  }), [page, content, plans, generator, output, workspaceActive, integrations, generating])
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} cloudActive={cloudActive}/>
-      <div className="app-main"><Topbar setOpen={setSidebarOpen} cloudActive={cloudActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{cloudActive ? 'Secure cloud workspace · Human-approved publishing' : 'Local fallback · Connect backend for live AI'}</span></footer></div>
-      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} cloudActive={cloudActive}/> : null}
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive}/>
+      <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google internal workspace · Human-approved publishing' : 'Local fallback · Connect Google for live AI'}</span></footer></div>
+      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
     </div>
