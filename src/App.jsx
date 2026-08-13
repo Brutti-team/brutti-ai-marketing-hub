@@ -9,6 +9,19 @@ import {
   promptLibrary,
   verifiedSnapshot,
 } from './data'
+import {
+  callMarketingApi,
+  cloudConfigured,
+  deleteCloudContent,
+  deleteCloudPlan,
+  getSession,
+  loadWorkspace,
+  saveCloudContent,
+  saveCloudPlan,
+  sendMagicLink,
+  signOut,
+  watchSession,
+} from './lib/cloud'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -79,7 +92,7 @@ function Logo() {
   )
 }
 
-function Sidebar({ page, setPage, open, setOpen }) {
+function Sidebar({ page, setPage, open, setOpen, cloudActive }) {
   const navigate = (id) => { setPage(id); setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   return (
     <>
@@ -96,8 +109,8 @@ function Sidebar({ page, setPage, open, setOpen }) {
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card">
-            <div className="system-card-head"><span className="pulse-dot"/><strong>Local workspace active</strong></div>
-            <p>Notion, Make and Meta require live API connections.</p>
+            <div className="system-card-head"><span className="pulse-dot"/><strong>{cloudActive ? 'Secure cloud active' : 'Local workspace active'}</strong></div>
+            <p>{cloudActive ? 'AI and shared data use authenticated backend access.' : 'Connect Supabase to activate AI and shared integrations.'}</p>
           </div>
           <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div>
         </div>
@@ -106,11 +119,11 @@ function Sidebar({ page, setPage, open, setOpen }) {
   )
 }
 
-function Topbar({ setOpen }) {
+function Topbar({ setOpen, cloudActive }) {
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><span className="status-chip local"><span/>Demo data</span><span className="topbar-date">Updated 13 Aug 2026</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><span className={`status-chip ${cloudActive ? 'connected' : 'local'}`}><span/>{cloudActive ? 'Cloud connected' : 'Local mode'}</span><span className="topbar-date">Updated 13 Aug 2026</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -180,7 +193,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
   )
 }
 
-function GeneratorForm({ form, setForm, onGenerate, output, saveDraft }) {
+function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generating, cloudActive }) {
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   return (
     <div className="generator-layout">
@@ -192,8 +205,8 @@ function GeneratorForm({ form, setForm, onGenerate, output, saveDraft }) {
         <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Warm & confident</option><option>Practical</option><option>Proud & purposeful</option><option>Helpful</option><option>Casual</option></select></label></div>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Add only confirmed product details, campaign direction or source notes."/></label>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
-        <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate local AI preview</button>
-        <p className="form-disclaimer"><Icon name="alert" size={14}/>Preview uses a safe local template. Connect an AI endpoint for live generation.</p>
+        <button className="button primary wide" type="submit" disabled={generating}><Icon name="sparkles"/>{generating ? 'AI is generating…' : cloudActive ? 'Generate with BRUTTI AI' : 'Generate local preview'}</button>
+        <p className="form-disclaimer"><Icon name="alert" size={14}/>{cloudActive ? 'Live OpenAI generation uses verified facts and still requires human approval.' : 'Local preview only. Sign in after Supabase is connected to activate live AI.'}</p>
       </form>
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
@@ -204,17 +217,16 @@ function GeneratorForm({ form, setForm, onGenerate, output, saveDraft }) {
   )
 }
 
-function ContentStudio({ content, setContent, generator, setGenerator, output, generate, saveDraft, openContent }) {
+function ContentStudio({ content, deleteContent, generator, setGenerator, output, generate, saveDraft, openContent, generating, cloudActive }) {
   const [tab, setTab] = useState('generator')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
-  const deleteContent = (id) => setContent((items) => items.filter((item) => item.id !== id))
   return (
     <div className="page">
       <PageHeader eyebrow="AI CONTENT WORKSPACE" title="Content Studio" description="Generate, edit and move content through a review-first publishing workflow." />
       <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>AI Generator</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
-      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} saveDraft={saveDraft}/> : (
+      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} saveDraft={saveDraft} generating={generating} cloudActive={cloudActive}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
           <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>AI check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
@@ -281,13 +293,21 @@ function ProductLibrary({ onUseProduct }) {
   )
 }
 
-function AssetLibrary({ toast }) {
-  const assets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference']
+function AssetLibrary({ toast, cloudActive, driveActive }) {
+  const fallbackAssets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference']
+  const [driveAssets, setDriveAssets] = useState([])
+  useEffect(() => {
+    if (!cloudActive || !driveActive) return
+    callMarketingApi('list_drive_assets')
+      .then((result) => setDriveAssets(result.files || []))
+      .catch((error) => toast(error.message))
+  }, [cloudActive, driveActive, toast])
+  const assets = driveAssets.length ? driveAssets.map((asset) => asset.name) : fallbackAssets
   return (
     <div className="page">
       <PageHeader eyebrow="CREATIVE SOURCE FILES" title="Asset Library" description="Track approved product and brand assets prepared for future Drive synchronisation." actions={<button className="button secondary" onClick={() => toast('Upload requires the Google Drive API connection.')}><Icon name="plus"/>Add asset</button>} />
-      <div className="asset-summary"><article><strong>10</strong><span>Confirmed references</span></article><article><strong>0</strong><span>Direct Drive files connected</span></article><article><strong>Pending</strong><span>Official logo import</span></article></div>
-      <section className="panel asset-panel"><div className="library-toolbar"><div className="search-box"><Icon name="search"/><input placeholder="Search assets…"/></div><span className="status-chip pending"><span/>Drive sync pending</span></div><div className="asset-grid">{assets.map((asset,index) => <article key={asset}><div className={`asset-preview asset-${index%4}`}><Icon name="image" size={28}/><span>{String(index+1).padStart(2,'0')}</span></div><div><strong>{asset}</strong><p>Reference record · product asset</p><div><StatusPill>Verified name</StatusPill><button onClick={() => toast('File preview will be available after Drive sync.')}><Icon name="chevron"/></button></div></div></article>)}</div></section>
+      <div className="asset-summary"><article><strong>{assets.length}</strong><span>{driveAssets.length ? 'Drive assets loaded' : 'Confirmed references'}</span></article><article><strong>{driveAssets.length}</strong><span>Direct Drive files connected</span></article><article><strong>{driveActive ? 'Ready' : 'Pending'}</strong><span>Secure Drive connection</span></article></div>
+      <section className="panel asset-panel"><div className="library-toolbar"><div className="search-box"><Icon name="search"/><input placeholder="Search assets…"/></div><span className={`status-chip ${driveActive ? 'connected' : 'pending'}`}><span/>{driveActive ? 'Drive connected' : 'Drive sync pending'}</span></div><div className="asset-grid">{assets.map((asset,index) => <article key={asset}><div className={`asset-preview asset-${index%4}`}><Icon name="image" size={28}/><span>{String(index+1).padStart(2,'0')}</span></div><div><strong>{asset}</strong><p>{driveAssets.length ? 'Google Drive asset' : 'Reference record · product asset'}</p><div><StatusPill>{driveAssets.length ? 'Connected' : 'Verified name'}</StatusPill><button onClick={() => toast(driveAssets.length ? 'Drive file is available through the secured backend.' : 'File preview will be available after Drive sync.')}><Icon name="chevron"/></button></div></div></article>)}</div></section>
     </div>
   )
 }
@@ -323,26 +343,46 @@ function Analytics() {
   )
 }
 
-function Settings({ toast, resetWorkspace }) {
+function Settings({ toast, resetWorkspace, session, integrations, onRefreshIntegrations }) {
+  const [email, setEmail] = useState('')
+  const [sending, setSending] = useState(false)
+  const cloudActive = Boolean(session)
   const connections = [
-    { name:'Notion database', detail:'BRUTTI MARKETING REQUESTS · bidirectional sync', status:'Not connected', icon:'file' },
-    { name:'Make automation', detail:'Generate content and update request status', status:'Not connected', icon:'wand' },
-    { name:'Google Drive', detail:'Official logo, product photos and brand assets', status:'Not connected', icon:'image' },
-    { name:'Meta / Facebook', detail:'Direct publishing and verified performance data', status:'Not connected', icon:'chart' },
+    { name:'OpenAI', detail:'Live generation and brand-safety review', status:integrations.openai ? 'Connected' : 'Not connected', icon:'sparkles' },
+    { name:'Notion database', detail:'BRUTTI MARKETING REQUESTS · controlled sync', status:integrations.notion ? 'Connected' : 'Not connected', icon:'file' },
+    { name:'Google Drive', detail:'Official logo, product photos and brand assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
+    { name:'Meta / Facebook', detail:'Approved publishing; insights remain empty until data exists', status:integrations.meta ? 'Connected' : 'Not connected', icon:'chart' },
   ]
+  const requestLink = async (event) => {
+    event.preventDefault()
+    setSending(true)
+    try {
+      await sendMagicLink(email)
+      toast('Secure sign-in link sent. Check your email.')
+      setEmail('')
+    } catch (error) {
+      toast(error.message)
+    } finally {
+      setSending(false)
+    }
+  }
   return (
     <div className="page">
       <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="See exactly which parts are local and which require authenticated services." />
-      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className="status-chip local"><span/>Local demo mode</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(`${connection.name} requires API credentials and backend configuration.`)}>Setup guide</button></article>)}</div></section>
+      <section className="panel cloud-access-panel">
+        <div className="panel-heading"><div><span className="eyebrow">SECURE ACCESS</span><h3>{cloudActive ? 'Cloud workspace connected' : cloudConfigured ? 'Sign in to the BRUTTI workspace' : 'Supabase project required'}</h3></div><span className={`status-chip ${cloudActive ? 'connected' : 'pending'}`}><span/>{cloudActive ? 'Authenticated' : 'Setup required'}</span></div>
+        {cloudActive ? <div className="cloud-session"><div><strong>{session.user.email}</strong><p>Shared content, planner data and server-side integrations are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={() => signOut().catch((error) => toast(error.message))}>Sign out</button></div></div> : cloudConfigured ? <form className="cloud-login-form" onSubmit={requestLink}><label>Staff email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com"/></label><button className="button primary" disabled={sending}>{sending ? 'Sending…' : 'Send secure sign-in link'}</button></form> : <p className="settings-copy">Add the public Supabase URL and anon key during deployment. Secret OpenAI, Notion, Drive and Meta credentials stay in the backend only.</p>}
+      </section>
+      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className={`status-chip ${cloudActive ? 'connected' : 'local'}`}><span/>{cloudActive ? 'Cloud mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' ? `${connection.name} is ready.` : `${connection.name} still needs backend credentials.`)}>Check</button></article>)}</div></section>
       <div className="settings-grid">
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WORKFLOW RULES</span><h3>Review-first controls</h3></div></div><div className="setting-row"><div><strong>Human approval required</strong><p>Content must be approved before scheduling or publishing.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Block unsupported facts</strong><p>Flag prices, promotions, delivery dates and KPI without sources.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Facebook-only operations</strong><p>Other platforms remain disabled until data and connections exist.</p></div><span className="switch on"><i/></span></div></section>
-        <section className="panel"><div className="panel-heading"><div><span className="eyebrow">LOCAL DATA</span><h3>Browser workspace</h3></div></div><p className="settings-copy">Content and planner edits are stored in this browser. They do not update Notion or Facebook yet.</p><button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button><div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Official logo pending</strong><p>Replace this monogram after the approved Drive asset is connected.</p></div></div></section>
+        <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{cloudActive ? 'CLOUD DATA' : 'LOCAL DATA'}</span><h3>{cloudActive ? 'Shared workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{cloudActive ? 'Content and planner edits are stored in Supabase and shared across authenticated staff.' : 'Until Supabase is connected, content and planner edits stay in this browser only.'}</p>{!cloudActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Official logo pending</strong><p>Replace this monogram after the approved Drive asset is connected.</p></div></div></section>
       </div>
     </div>
   )
 }
 
-function ContentEditor({ item, onClose, onSave, toast }) {
+function ContentEditor({ item, onClose, onSave, onPublish, toast, cloudActive }) {
   const [draft, setDraft] = useState(item)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
   const act = (stage, message) => { const next = { ...draft, stage, aiReview: stage === 'Approved' || stage === 'Published' ? 'AI Approved' : 'Human Review Required', updatedAt: '13 Aug 2026, just now' }; setDraft(next); onSave(next); toast(message) }
@@ -355,7 +395,7 @@ function ContentEditor({ item, onClose, onSave, toast }) {
         <div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option></select></label><label>Workflow stage<select value={draft.stage} onChange={update('stage')}>{[...pipelineStages,'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></label></div>
         <label>Content<textarea rows="12" value={draft.copy} onChange={update('copy')}/></label>
         <div className="modal-guardrail"><Icon name="alert"/><span>Check price, availability, delivery dates, dimensions and claims before approval.</span></div>
-        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved locally.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' || draft.stage === 'Scheduled' ? act('Published','Marked as published. No Facebook post was sent.') : toast('Approve this content before marking it published.')}>Mark Published</button></div></div>
+        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? cloudActive ? onPublish(draft) : toast('Meta publishing needs the cloud backend and Meta credentials.') : toast('Approve this content before publishing.')}>Publish to Facebook</button></div></div>
       </div>
     </div>
   )
@@ -389,6 +429,10 @@ function App() {
   const toastTimer = useRef(null)
   const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Warm & confident', brief:'', includeHashtags:true })
   const [output, setOutput] = useState('')
+  const [session, setSession] = useState(null)
+  const [integrations, setIntegrations] = useState({ openai:false, notion:false, drive:false, meta:false })
+  const [generating, setGenerating] = useState(false)
+  const cloudActive = Boolean(session)
 
   const toast = useCallback((message) => {
     setToastMessage(message)
@@ -398,8 +442,39 @@ function App() {
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
 
-  const generate = () => {
-    if (!generator.title.trim() || !generator.brief.trim()) { toast('Add a title and verified facts first.'); return }
+  const refreshIntegrations = useCallback(async () => {
+    if (!session) {
+      setIntegrations({ openai:false, notion:false, drive:false, meta:false })
+      return
+    }
+    try {
+      setIntegrations(await callMarketingApi('integration_status'))
+    } catch (error) {
+      toast(error.message)
+    }
+  }, [session, toast])
+
+  useEffect(() => {
+    if (!cloudConfigured) return undefined
+    let mounted = true
+    getSession().then((next) => mounted && setSession(next)).catch((error) => toast(error.message))
+    const unsubscribe = watchSession((next) => mounted && setSession(next))
+    return () => { mounted = false; unsubscribe() }
+  }, [toast])
+
+  useEffect(() => {
+    if (!session) return
+    loadWorkspace()
+      .then((workspace) => {
+        if (workspace.content.length) setContent(workspace.content)
+        if (workspace.plans.length) setPlans(workspace.plans)
+      })
+      .catch((error) => toast(error.message))
+    refreshIntegrations()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session])
+
+  const localPreview = () => {
     const productLine = generator.product === 'General / No Product' ? '' : ` untuk ${generator.product}`
     const facts = generator.brief.trim().replace(/\s+/g, ' ')
     const outputs = {
@@ -407,45 +482,108 @@ function App() {
       English: `A purposeful space starts with choices that support the way it is used.\n\n${facts}${productLine ? ` This is the direction behind ${generator.product}.` : ''}\n\nContact BRUTTI for verified product information.`,
       'BM + English': `Ruang yang baik bermula dengan pilihan yang praktikal.\n\n${facts}${productLine ? ` This is the idea behind ${generator.product}.` : ''}\n\nHubungi BRUTTI untuk verified product information.`,
     }
-    setOutput(`${outputs[generator.language]}${generator.includeHashtags ? '\n\n#BRUTTI #ProudlySabahan #PurposefullyCrafted' : ''}`)
-    toast('Preview generated. Please review every fact.')
+    return `${outputs[generator.language]}${generator.includeHashtags ? '\n\n#BRUTTI #ProudlySabahan #PurposefullyCrafted' : ''}`
   }
 
-  const saveGeneratedDraft = () => {
+  const generate = async () => {
+    if (!generator.title.trim() || !generator.brief.trim()) { toast('Add a title and verified facts first.'); return }
+    if (!cloudActive) {
+      setOutput(localPreview())
+      toast('Local preview generated. Connect and sign in for live AI.')
+      return
+    }
+    setGenerating(true)
+    try {
+      const result = await callMarketingApi('generate_content', generator)
+      setOutput(result.copy)
+      toast('Live AI draft generated. Human approval is still required.')
+    } catch (error) {
+      toast(error.message)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const saveGeneratedDraft = async () => {
     if (!output) return
-    const item = { id:Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:'Human Review Required', stage:'AI Generated', updatedAt:'13 Aug 2026, just now', copy:output }
-    setContent((items) => [item, ...items])
-    toast('Draft saved to the Content Library.')
-    setOutput('')
+    let item = { id:cloudActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:'Human Review Required', stage:'AI Generated', updatedAt:'13 Aug 2026, just now', copy:output }
+    try {
+      if (cloudActive) item = await saveCloudContent(item)
+      if (cloudActive && integrations.notion) await callMarketingApi('sync_notion', { contentId:item.id })
+      setContent((items) => [item, ...items])
+      toast(cloudActive ? 'Draft saved to the shared cloud library.' : 'Draft saved in this browser.')
+      setOutput('')
+    } catch (error) {
+      toast(error.message)
+    }
   }
 
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
   const openNewPlan = (date = '2026-08-19', idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || '2026-08-19', channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
-  const savePlan = (plan) => { setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? plan : item) : [...items, {...plan,id:Date.now()}]); setActivePlan(null); toast('Planner updated locally.') }
-  const deletePlan = (id) => { setPlans((items) => items.filter((item) => item.id !== id)); setActivePlan(null); toast('Plan deleted.') }
-  const saveContent = (item) => { setContent((items) => items.map((current) => current.id === item.id ? item : current)); setActiveContent(item) }
+  const savePlan = async (plan) => {
+    let next = plan.id ? plan : {...plan,id:cloudActive ? crypto.randomUUID() : Date.now()}
+    try {
+      if (cloudActive) next = await saveCloudPlan(next)
+      setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? next : item) : [...items, next])
+      setActivePlan(null)
+      toast(cloudActive ? 'Planner saved to the shared cloud.' : 'Planner updated locally.')
+    } catch (error) { toast(error.message) }
+  }
+  const deletePlan = async (id) => {
+    try {
+      if (cloudActive) await deleteCloudPlan(id)
+      setPlans((items) => items.filter((item) => item.id !== id))
+      setActivePlan(null)
+      toast('Plan deleted.')
+    } catch (error) { toast(error.message) }
+  }
+  const saveContent = async (item) => {
+    try {
+      const next = cloudActive ? await saveCloudContent(item) : item
+      if (cloudActive && integrations.notion) await callMarketingApi('sync_notion', { contentId:next.id })
+      setContent((items) => items.map((current) => current.id === item.id ? next : current))
+      setActiveContent(next)
+    } catch (error) { toast(error.message) }
+  }
+  const deleteContent = async (id) => {
+    try {
+      if (cloudActive) await deleteCloudContent(id)
+      setContent((items) => items.filter((item) => item.id !== id))
+      toast('Content deleted.')
+    } catch (error) { toast(error.message) }
+  }
+  const publishContent = async (item) => {
+    try {
+      await saveCloudContent({...item, stage:'Approved'})
+      const result = await callMarketingApi('publish_meta', { contentId:item.id })
+      const published = {...item, stage:'Published', aiReview:'AI Approved', updatedAt:'13 Aug 2026, just now'}
+      setContent((items) => items.map((current) => current.id === item.id ? published : current))
+      setActiveContent(null)
+      toast(`Published to Facebook successfully: ${result.postId}`)
+    } catch (error) { toast(error.message) }
+  }
   const useProduct = (product) => { setGenerator((form) => ({...form, product, title:`${product} – Product Highlight`, type:'Product Highlight'})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
   const usePrompt = (item) => { setGenerator((form) => ({...form, title:item.title, type:item.type.includes('Facebook') ? 'Brand Awareness' : form.type, brief:item.description})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${item.title} prompt loaded into Content Studio.`) }
   const resetWorkspace = () => { setContent(initialContent); setPlans(initialPlans); toast('Local demo data restored.') }
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} setContent={setContent} generator={generator} setGenerator={setGenerator} output={output} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} generating={generating} cloudActive={cloudActive} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} />,
-    assets: <AssetLibrary toast={toast} />,
+    assets: <AssetLibrary toast={toast} cloudActive={cloudActive} driveActive={integrations.drive} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
     analytics: <Analytics />,
-    settings: <Settings toast={toast} resetWorkspace={resetWorkspace} />,
+    settings: <Settings toast={toast} resetWorkspace={resetWorkspace} session={session} integrations={integrations} onRefreshIntegrations={refreshIntegrations} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output])
+  }), [page, content, plans, generator, output, session, integrations, generating])
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen}/>
-      <div className="app-main"><Topbar setOpen={setSidebarOpen}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>Local demo · No live publishing · Verified inputs only</span></footer></div>
-      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast}/> : null}
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} cloudActive={cloudActive}/>
+      <div className="app-main"><Topbar setOpen={setSidebarOpen} cloudActive={cloudActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{cloudActive ? 'Secure cloud workspace · Human-approved publishing' : 'Local fallback · Connect backend for live AI'}</span></footer></div>
+      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} cloudActive={cloudActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
     </div>
