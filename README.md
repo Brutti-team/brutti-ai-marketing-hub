@@ -1,29 +1,48 @@
-# BRUTTI AI Marketing Hub — Live-style clone
+# BRUTTI AI Marketing Hub
 
-This is a standalone recreation of the BRUTTI AI Marketing Hub interface visible at the supplied ChatGPT Site URL, built from scratch as HTML/CSS/JavaScript. It is not the original private source code of that deployed site.
+An AI-first internal marketing workspace for BRUTTI, a Sabah-based custom furniture and interior brand.
 
-## Run locally
-1. Open this folder in VS Code.
-2. Open `index.html` directly, or run a local server such as VS Code Live Server.
-3. No build step is required.
+## What this version includes
 
-## Files
-- `index.html` — interface and screens
-- `styles.css` — responsive styling
-- `app.js` — sample data and interactions
+- Premium responsive dashboard using BRUTTI's forest-green, cream and terracotta direction
+- Content Studio with BM, English and bilingual local preview generation
+- Content Library with Edit, Approve, Reject and Mark Published actions
+- Review pipeline: Idea → Draft → AI Generated → Review → Approved → Scheduled → Published → Archived
+- Campaign Planner with add, edit and delete controls
+- Brand, Product and Asset libraries
+- AI Prompt Library covering writing, video, customer service and creative tasks
+- Verified Facebook activity snapshot without fabricated Meta KPI
+- Browser persistence for content and planner changes
+- Explicit integration states for Notion, Make, Google Drive and Meta/Facebook
 
-## Included
-- Overview / Facebook content workspace
-- Stats matching the verified snapshot displayed on the live site
-- Recent Facebook requests
-- Facebook Requests table with search/filter
-- Generated Content review/edit/approve modal
-- Product browser
-- Weekly Planner
-- Verified website data screen
-- Settings / connection status
-- New Facebook request modal
-- Responsive desktop/mobile layout
+## Accuracy and integration boundaries
 
-## Important
-The Notion, Make, Google Drive and Facebook integrations shown are UI/demo states only in this static build. Connect API/backend endpoints in `app.js` when you are ready to use real data.
+This repository currently runs as a frontend application. Content and planner changes are stored in the browser and do not yet update Notion, Make, Google Drive or Facebook.
+
+The following require authenticated backend/API connections before they can be treated as live:
+
+- Notion bidirectional database sync
+- Make automation execution and status callbacks
+- Google Drive asset retrieval
+- Direct Facebook publishing
+- Live Meta Insights KPI
+
+The interface does not fabricate prices, promotions, availability, delivery dates, specifications or social-performance KPI. Generated copy remains review-first.
+
+## Local development
+
+```bash
+npm install
+npm run dev
+```
+
+Validation:
+
+```bash
+npm run check
+npm run build
+```
+
+## Deployment
+
+The included GitHub Actions workflow builds the Vite app and deploys `dist` to GitHub Pages whenever `main` is updated.
