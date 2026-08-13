@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="BRUTTI AI Marketing System — Facebook content workspace" />
+  <title>BRUTTI AI Marketing Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <div class="brand-logo">B</div>
+        <div class="brand-copy">
+          <strong>BRUTTI</strong>
+          <span>AI Marketing Hub</span>
+        </div>
+        <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
+      </div>
+
+      <nav class="side-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview">
+          <span class="nav-icon">⌂</span><span>Overview</span>
+        </button>
+        <button class="nav-item" data-view="requests">
+          <span class="nav-icon">＋</span><span>Facebook Requests</span>
+          <span class="nav-count">7</span>
+        </button>
+        <button class="nav-item" data-view="generated">
+          <span class="nav-icon">✦</span><span>Generated Content</span>
+          <span class="nav-count">4</span>
+        </button>
+        <button class="nav-item" data-view="products">
+          <span class="nav-icon">▦</span><span>Products</span>
+          <span class="nav-count">88</span>
+        </button>
+        <button class="nav-item" data-view="planner">
+          <span class="nav-icon">□</span><span>Weekly Planner</span>
+        </button>
+        <button class="nav-item" data-view="data">
+          <span class="nav-icon">◫</span><span>Website Data</span>
+        </button>
+      </nav>
+
+      <div class="side-divider"></div>
+      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+
+      <div class="sidebar-footer">
+        <div class="mini-status"><span class="status-dot"></span><div><b>Make submission connected</b><small>Facebook · checks every 15 minutes</small></div></div>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+          <div class="mobile-brand">BRUTTI <span>AI Marketing Hub</span></div>
+        </div>
+        <div class="top-status"><span class="status-dot"></span><div><strong>Make submission connected</strong><small>Facebook · checks every 15 minutes</small></div></div>
+      </header>
+
+      <main class="main-content">
+        <section class="view active" id="overview">
+          <div class="page-kicker">BRUTTI AI Marketing System</div>
+          <div class="page-title-row">
+            <div><h1>Overview</h1><span class="soft-pill">Facebook only</span></div>
+          </div>
+
+          <section class="hero-card">
+            <div class="hero-copy">
+              <div class="eyebrow">Facebook content workspace</div>
+              <h2>Plan, generate and review in one place.</h2>
+              <p>Send a Facebook brief, view the AI drafts, browse products, plan the week and check verified Facebook activity without leaving this website.</p>
+              <div class="hero-actions">
+                <button class="btn primary" id="newRequestBtn">+ New Facebook request</button>
+                <button class="btn secondary" data-open="generated">Review generated content</button>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <div class="hero-orbit orbit-1"></div><div class="hero-orbit orbit-2"></div>
+              <div class="hero-center"><span>✦</span><strong>BRUTTI</strong><small>AI workspace</small></div>
+              <div class="chip chip-a">Notion</div><div class="chip chip-b">Make</div><div class="chip chip-c">Connected</div>
+            </div>
+          </section>
+
+          <div class="stat-grid">
+            <article class="stat-card"><div class="stat-icon fb">f</div><div><span>Facebook followers</span><strong>12,001</strong><small>Exported follower records</small></div></article>
+            <article class="stat-card"><div class="stat-icon">♡</div><div><span>Incoming reactions</span><strong>728</strong><small>390 unique accounts</small></div></article>
+            <article class="stat-card"><div class="stat-icon check">✓</div><div><span>Automation</span><strong class="text-value">On</strong><small>Request submission via Make</small></div></article>
+            <article class="stat-card"><div class="stat-icon">▦</div><div><span>Products</span><strong>88</strong><small>Details available; 10 photos confirmed</small></div></article>
+          </div>
+
+          <section class="content-card">
+            <div class="section-head"><div><span class="section-kicker">Workflow</span><h3>Recent Facebook requests</h3></div><button class="text-btn" data-open="requests">View all →</button></div>
+            <div class="request-list" id="recentRequests"></div>
+          </section>
+
+          <section class="content-card snapshot-card">
+            <div class="section-head"><div><span class="section-kicker">Website data</span><h3>Verified snapshot</h3></div><span class="verified-badge">✓ Verified 11 Aug 2026</span></div>
+            <div class="snapshot-grid" id="snapshotGrid"></div>
+            <p class="snapshot-note">Notion and Google Drive checked on 11 Aug 2026.</p>
+          </section>
+        </section>
+
+        <section class="view" id="requests">
+          <div class="page-kicker">Workflow</div><div class="page-title-row"><div><h1>Facebook Requests</h1><p>Submit and track Facebook content briefs.</p></div><button class="btn primary" id="newRequestBtn2">+ New request</button></div>
+          <section class="content-card"><div class="toolbar"><div class="search-wrap">⌕<input id="requestSearch" placeholder="Search requests…"></div><select id="requestFilter"><option value="all">All requests</option><option value="Review">Review</option><option value="Draft">Draft</option></select></div><div class="table-wrap"><table><thead><tr><th>Request</th><th>Product</th><th>Objective</th><th>Date</th><th>Status</th></tr></thead><tbody id="requestTable"></tbody></table></div></section>
+        </section>
+
+        <section class="view" id="generated">
+          <div class="page-kicker">AI drafts</div><div class="page-title-row"><div><h1>Generated Content</h1><p>Review, edit and approve generated Facebook copy.</p></div></div>
+          <div class="draft-grid" id="draftGrid"></div>
+        </section>
+
+        <section class="view" id="products">
+          <div class="page-kicker">BRUTTI database</div><div class="page-title-row"><div><h1>Products</h1><p>Product details available to the AI content workflow.</p></div><span class="soft-pill">88 products</span></div>
+          <section class="content-card"><div class="toolbar"><div class="search-wrap">⌕<input id="productSearch" placeholder="Search products…"></div><span class="muted-text">10 confirmed photos</span></div><div class="product-grid" id="productGrid"></div></section>
+        </section>
+
+        <section class="view" id="planner">
+          <div class="page-kicker">Planning</div><div class="page-title-row"><div><h1>Weekly Planner</h1><p>Organise Facebook content for the week.</p></div><button class="btn primary" id="addPlanBtn">+ Add content</button></div>
+          <section class="week-grid" id="weekGrid"></section>
+        </section>
+
+        <section class="view" id="data">
+          <div class="page-kicker">Website data</div><div class="page-title-row"><div><h1>Verified Snapshot</h1><p>Embedded and verified marketing source data.</p></div><span class="verified-badge">✓ Verified 11 Aug 2026</span></div>
+          <div class="data-grid" id="dataGrid"></div>
+        </section>
+
+        <section class="view" id="settings">
+          <div class="page-kicker">Configuration</div><div class="page-title-row"><div><h1>Settings</h1><p>Connection and workspace preferences.</p></div></div>
+          <section class="content-card settings-card">
+            <div class="setting-row"><div><strong>Facebook workspace</strong><p>Only Facebook content is enabled in this version.</p></div><span class="toggle on"><span></span></span></div>
+            <div class="setting-row"><div><strong>Make automation</strong><p>Request submission checks every 15 minutes.</p></div><span class="connected-label"><span class="status-dot"></span>Connected</span></div>
+            <div class="setting-row"><div><strong>Notion database</strong><p>Marketing requests, generated content and products.</p></div><span class="connected-label"><span class="status-dot"></span>Connected</span></div>
+            <div class="setting-row"><div><strong>Human review</strong><p>Generated content remains review-first before publishing.</p></div><span class="toggle on"><span></span></span></div>
+          </section>
+        </section>
+      </main>
+
+      <footer>BRUTTI AI Marketing System <span>Website workspace · Facebook only · Snapshot verified 11 Aug 2026</span></footer>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="requestModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head"><div><span class="section-kicker">New brief</span><h3>New Facebook request</h3></div><button class="icon-btn" data-close-modal>×</button></div>
+      <form id="requestForm">
+        <label>Request title<input id="requestTitle" required placeholder="e.g. Facebook Product Highlight"></label>
+        <label>Product<select id="requestProduct"></select></label>
+        <div class="form-two"><label>Content type<select id="requestType"><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Promotion</option></select></label><label>Language<select id="requestLanguage"><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label></div>
+        <label>Brief / direction<textarea id="requestBrief" rows="4" placeholder="What should the AI focus on?"></textarea></label>
+        <div class="modal-actions"><button type="button" class="btn secondary" data-close-modal>Cancel</button><button type="submit" class="btn primary">Submit Facebook request</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="reviewModal" aria-hidden="true"><div class="modal review-modal"><div class="modal-head"><div><span class="section-kicker">Generated content</span><h3 id="reviewTitle">Review content</h3></div><button class="icon-btn" data-close-review>×</button></div><div id="reviewMeta" class="review-meta"></div><textarea id="reviewText" class="review-text"></textarea><div class="modal-actions"><button class="btn secondary" id="copyDraftBtn">Copy</button><button class="btn secondary" id="saveDraftBtn">Save edits</button><button class="btn primary" id="approveDraftBtn">Approve</button></div></div></div>
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
