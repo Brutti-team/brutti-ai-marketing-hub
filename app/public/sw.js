@@ -1,10 +1,8 @@
-const CACHE_NAME = 'brutti-hub-shell-v1'
+const CACHE_NAME = 'brutti-hub-shell-v2'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
   `${APP_SCOPE}manifest.webmanifest`,
-  `${APP_SCOPE}icons/brutti-app-icon-192.svg`,
-  `${APP_SCOPE}icons/brutti-app-icon-512.svg`,
 ]
 
 self.addEventListener('install', (event) => {
