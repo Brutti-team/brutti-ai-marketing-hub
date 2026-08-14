@@ -1,0 +1,40 @@
+name: Align BRUTTI planner A-W
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/align-planner-aw.yml
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Align backend planner schema
+        run: python scripts/align_planner_aw.py
+      - name: Validate Apps Script syntax
+        run: |
+          cp apps-script/Code.gs /tmp/brutti-backend.js
+          node --check /tmp/brutti-backend.js
+      - name: Verify A-W mapping
+        run: |
+          grep -q "'Sync Error', 'Name'" apps-script/Code.gs
+          grep -q "values\[21\]" apps-script/Code.gs
+          grep -q "row\[22\]" apps-script/Code.gs
+          grep -q "plannerSchemaMatches" apps-script/Code.gs
+      - name: Cleanup
+        run: |
+          rm -f .github/workflows/align-planner-aw.yml
+          rm -f scripts/align_planner_aw.py
+          rmdir scripts 2>/dev/null || true
+      - name: Commit alignment
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Align planner backend with A-W mirror"
+          git push
