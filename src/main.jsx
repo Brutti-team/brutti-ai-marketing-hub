@@ -9,6 +9,7 @@ import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnha
 import ProductImageEnhancer from './ProductImageEnhancer.jsx'
 import ProductImageMappingRepair from './ProductImageMappingRepair.jsx'
 import WorkspaceReadinessEnhancer from './WorkspaceReadinessEnhancer.jsx'
+import HistoricalAnalyticsEnhancer from './HistoricalAnalyticsEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -19,6 +20,7 @@ import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
 import './product-image-integration.css'
+import './historical-analytics.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,6 +33,7 @@ createRoot(document.getElementById('root')).render(
     <ProductImageEnhancer />
     <ProductImageMappingRepair />
     <WorkspaceReadinessEnhancer />
+    <HistoricalAnalyticsEnhancer />
   </StrictMode>,
 )
 
