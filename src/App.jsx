@@ -310,8 +310,49 @@ function polishDirectionText(value, language) {
   return polished.split(/(?<=[.!?])\s+/).map(sentenceCase).join(' ')
 }
 
+function splitVerifiedFacts(value, language) {
+  const polished = polishDirectionText(value, language)
+  return polished
+    .replace(/[.!?]+$/g, '')
+    .split(/\s*(?:,|;|&|\bdan\b|\band\b)\s*/i)
+    .map((fact) => fact.trim())
+    .filter(Boolean)
+}
+
+function expandFactLine(fact, language) {
+  if (language === 'en') return sentenceCase(fact)
+  const lower = fact.toLowerCase()
+  if (/foldable|boleh dilipat/.test(lower)) return 'Foldable pula tu, jadi senang ja mau lipat dan simpan.'
+  if (/senang dibawa|mudah dibawa/.test(lower)) return 'Mau bawa dari satu tempat ke tempat lain pun senang.'
+  if (/banyak (?:jenis |pilihan )?warna|pelbagai warna/.test(lower)) return 'Pilihan warna pun banyak, boleh pilih mana yang paling ngam dengan style kamu.'
+  return sentenceCase(fact)
+}
+
+const bruttiSupportLines = {
+  bm: {
+    'Brand Awareness': ['Kami share ni supaya kamurang boleh kenal BRUTTI dengan lebih dekat.', 'Yang penting, semuanya mesti ngam dengan keperluan sebenar kamu.', 'Kamu pula suka style yang macam mana?'],
+    'Product Highlight': ['Kalau kamu suka benda yang practical, yang ni boleh kasi masuk dalam list.', 'Senang cerita, pilih mana yang paling ngam dengan keperluan kamu.', 'Kamu paling suka yang mana satu?'],
+    Educational: ['Simple ja kan, tapi benda macam ni memang berguna juga bah.', 'Boleh simpan dulu tip ni untuk rujukan nanti.', 'Kalau ada cara lain, kasi share juga sama kami.'],
+    'Behind the Scenes': ['Satu-satu kami kasi jalan sampai siap.', 'Banyak proses dia, tapi itu yang bikin hasil tu lebih bermakna.', 'Kamurang suka ka tinguk content belakang tabir macam ni?'],
+    'Customer Story': ['Setiap customer memang ada keperluan yang lain-lain.', 'Dari situ barula kami susun direction yang paling ngam.', 'Kamu pun ada idea untuk ruang sendiri ka?'],
+    Promotion: ['Kalau ngam dengan apa yang kamu cari, boleh kasi masuk dalam list dulu.', 'Semak detail yang team bagi sebelum confirm ya.', 'Jangan malu-malu mau tanya kalau ada yang kurang jelas.'],
+  },
+  en: {
+    'Brand Awareness': ['We are sharing this so you can get to know BRUTTI better.', 'The important thing is choosing what suits your real needs.', 'What kind of style works best for you?'],
+    'Product Highlight': ['If practical pieces are your thing, keep this one on your list.', 'Choose the option that best matches what you need.', 'Which option would you choose?'],
+    Educational: ['It is a simple tip, but it can still be useful.', 'Save this for your next planning session.', 'Share your own approach with us too.'],
+    'Behind the Scenes': ['The team works through each step until it is ready.', 'There is a process behind every finished piece.', 'Would you like to see more behind-the-scenes content?'],
+    'Customer Story': ['Every customer brings a different need.', 'That direction helps the team plan the next step.', 'Do you have an idea for your own space?'],
+    Promotion: ['Keep this on your list if it matches what you need.', 'Check the verified details before confirming.', 'Message the team if anything needs clarification.'],
+  },
+}
+
+const bruttiGeneralLines = {
+  bm: ['Kami kasi susun ayat ni supaya senang kamurang baca.', 'Tidak payah kasi complicated, yang penting jelas dan ngam.', 'Kalau kamu mau tahu detail lain, boleh tanya team dulu ya.'],
+  en: ['We kept this simple so it is easy to read.', 'It does not need to be complicated as long as the direction is clear.', 'Ask the team if you need any other verified details.'],
+}
+
 function buildSmartDraft(form, mode = 'balanced', variation = 0) {
-  const facts = polishDirectionText(form.brief, form.language)
   const product = form.product === 'General / No Product' ? '' : form.product
   const index = Math.abs(variation) % 3
   const selectOpener = (language) => {
@@ -329,13 +370,23 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
     const pieces = [selectOpener(language)]
     const productLine = language === 'bm' ? productLineBm : productLineEn
     if (productLine && mode !== 'shorten') pieces.push(productLine)
-    pieces.push(facts)
+    const facts = splitVerifiedFacts(form.brief, language === 'en' ? 'English' : form.language)
+      .map((fact) => expandFactLine(fact, language))
+    pieces.push(...facts)
+    const support = bruttiSupportLines[language][form.type] || bruttiSupportLines[language]['Brand Awareness']
+    const supportPool = [...support, ...bruttiGeneralLines[language]]
+    let supportIndex = index
+    while (pieces.filter(Boolean).length < 6 && supportIndex < index + supportPool.length) {
+      const line = supportPool[supportIndex % supportPool.length]
+      if (!pieces.includes(line)) pieces.push(line)
+      supportIndex += 1
+    }
     pieces.push(selectCta(language))
-    return pieces.filter(Boolean).join('\n\n')
+    return pieces.filter(Boolean).slice(0, 7).join('\n')
   }
   const bm = buildLanguage('bm')
   const en = buildLanguage('en')
-  const bilingual = `${selectOpener('bm')}\n\n${facts}\n\n${selectCta('bm')}\n\n${selectOpener('en')}\n\n${selectCta('en')}`
+  const bilingual = `${bm}\n\n${en}`
   const draft = form.language === 'English' ? en : form.language === 'BM + English' ? bilingual : bm
   const addHashtags = form.includeHashtags || mode === 'hashtags'
   const hashtags = index === 1 ? '#BRUTTI #ProudlySabahan #FurnitureSabah' : index === 2 ? '#BRUTTI #PurposefullyCrafted #CustomFurnitureSabah' : '#BRUTTI #ProudlySabahan #BikinSampaiJadi'
@@ -347,13 +398,14 @@ function getRuleChecks(copy, verifiedFacts) {
   const facts = verifiedFacts.toLowerCase()
   const claimTerms = ['rm', '%', 'discount', 'diskaun', 'free delivery', 'penghantaran percuma', 'reach', 'views', 'followers', 'sold', 'stok terhad', 'limited stock', 'no. 1', 'terbaik']
   const unsupported = claimTerms.some((term) => text.includes(term) && !facts.includes(term))
-  const paragraphs = copy.split(/\n\s*\n/).filter(Boolean)
+  const contentLines = copy.split('\n').map((line) => line.trim()).filter((line) => line && !line.startsWith('#'))
   const hashtags = copy.match(/#[\p{L}\p{N}_]+/gu) || []
   const hypeTerms = ['game changer', 'revolusi', 'sempurna untuk semua', 'pasti puas hati', 'luar biasa']
   const hypeFree = !hypeTerms.some((term) => text.includes(term)) && (copy.match(/!/g) || []).length <= 2
   return [
     { label:'Verified facts supplied', pass:Boolean(verifiedFacts.trim()) },
-    { label:'Brutti Facebook style aligned', pass:hypeFree && paragraphs.length >= 2 && paragraphs.length <= 7 },
+    { label:'Brutti Facebook style aligned', pass:hypeFree },
+    { label:'Caption length (minimum 7 lines)', pass:contentLines.length >= 7 },
     { label:'Natural Brutti CTA', pass:/hubungi|contact|mesej|message|bincang|speak with|whatsapp|roger|kasi tau|komen|share|simpan/i.test(copy) },
     { label:'Hashtags controlled (maximum 5)', pass:hashtags.length <= 5 },
     { label:'No unsupported price, promotion or KPI', pass:!unsupported },
@@ -386,7 +438,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
     <div className="generator-layout">
       <form className="generator-form" onSubmit={(event) => { event.preventDefault(); onGenerate() }}>
         <div className="form-section-head"><span>01</span><div><strong>Content direction</strong><p>Only use facts you can verify.</p></div></div>
-        <p className="form-disclaimer"><Icon name="check" size={14}/>Default voice: Brutti Sabahan Casual — santai, natural dan tidak dipaksa. Perkataan seperti ni, ja, nda, bah, kasi dan mau akan dikekalkan bila sesuai.</p>
+        <p className="form-disclaimer"><Icon name="check" size={14}/>Default voice: Brutti Sabahan Casual — santai, natural dan minimum 7 baris isi. Perkataan seperti ni, ja, nda, bah, kasi dan mau akan dikekalkan bila sesuai.</p>
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
         <div className="two-fields"><label>Platform<select value={form.platform} onChange={update('platform')}><option>Facebook</option><option disabled>Instagram — not connected</option><option disabled>TikTok — not connected</option><option disabled>Threads — not connected</option></select></label><label>Content type<select value={form.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option><option>Promotion</option></select></label></div>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productNames.map((name) => <option key={name}>{name}</option>)}</select></label>
@@ -401,7 +453,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
         <div className="output-toolbar"><div><span className="eyebrow">FREE ASSIST OUTPUT</span><strong>{output ? form.title : 'Your structured draft will appear here'}</strong></div>{output ? <StatusPill>Human Review Required</StatusPill> : <StatusPill>Free Mode Ready</StatusPill>}</div>
-        {output ? <><label className="output-editor-label">Editable Facebook caption<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><section className="smart-rewrite-panel"><div className="smart-rewrite-head"><div><span className="eyebrow">FREE SMART REWRITE</span><strong>Asah caption ikut suara Brutti</strong></div><span>Brutti Sabahan Casual · No API</span></div><div className="rewrite-actions"><button className={rewriteMode === 'engaging' ? 'active' : ''} onClick={() => rewrite('engaging')}>More engaging</button><button className={rewriteMode === 'casual' ? 'active' : ''} onClick={() => rewrite('casual')}>More casual</button><button className={rewriteMode === 'professional' ? 'active' : ''} onClick={() => rewrite('professional')}>More professional</button><button className={rewriteMode === 'shorten' ? 'active' : ''} onClick={() => rewrite('shorten')}>Shorten</button><button className={rewriteMode === 'hook' ? 'active' : ''} onClick={() => rewrite('hook')}>New hook</button><button className={rewriteMode === 'cta' ? 'active' : ''} onClick={() => rewrite('cta')}>New CTA</button><button className={rewriteMode === 'hashtags' ? 'active' : ''} onClick={() => rewrite('hashtags')}>Refresh hashtags</button></div><div className="variation-row"><span>Brutti Sabahan variations</span>{[0,1,2].map((index) => <button className={rewriteMode === 'balanced' && variation === index ? 'active' : ''} key={index} onClick={() => rewrite('balanced', index)}>Version {index + 1}</button>)}</div></section><div className="output-actions assist-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy caption</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Smart Rewrite is ready.</h3><p>Add verified facts to generate a relaxed Sabahan-style BRUTTI Facebook caption, then refine its hook, tone, length, CTA and hashtags without leaving this website.</p></div>}
+        {output ? <><label className="output-editor-label">Editable Facebook caption · minimum 7 lines<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="18"/></label><section className="smart-rewrite-panel"><div className="smart-rewrite-head"><div><span className="eyebrow">FREE SMART REWRITE</span><strong>Asah caption ikut suara Brutti</strong></div><span>Brutti Sabahan Casual · No API</span></div><div className="rewrite-actions"><button className={rewriteMode === 'engaging' ? 'active' : ''} onClick={() => rewrite('engaging')}>More engaging</button><button className={rewriteMode === 'casual' ? 'active' : ''} onClick={() => rewrite('casual')}>More casual</button><button className={rewriteMode === 'professional' ? 'active' : ''} onClick={() => rewrite('professional')}>More professional</button><button className={rewriteMode === 'shorten' ? 'active' : ''} onClick={() => rewrite('shorten')}>Shorter lines</button><button className={rewriteMode === 'hook' ? 'active' : ''} onClick={() => rewrite('hook')}>New hook</button><button className={rewriteMode === 'cta' ? 'active' : ''} onClick={() => rewrite('cta')}>New CTA</button><button className={rewriteMode === 'hashtags' ? 'active' : ''} onClick={() => rewrite('hashtags')}>Refresh hashtags</button></div><div className="variation-row"><span>Brutti Sabahan variations</span>{[0,1,2].map((index) => <button className={rewriteMode === 'balanced' && variation === index ? 'active' : ''} key={index} onClick={() => rewrite('balanced', index)}>Version {index + 1}</button>)}</div></section><div className="output-actions assist-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy caption</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Smart Rewrite is ready.</h3><p>Add verified facts to generate a minimum 7-line BRUTTI Facebook caption, then refine its hook, tone, CTA and hashtags without leaving this website.</p></div>}
       </div>
     </div>
   )
