@@ -169,7 +169,7 @@ function enhanceProductCards(page) {
 }
 
 function productSelectOn(page) {
-  return [...document.querySelectorAll('label')]
+  return [...page.querySelectorAll('label')]
     .find((label) => /^Product/i.test(label.textContent || ''))
     ?.querySelector('select') || null
 }
