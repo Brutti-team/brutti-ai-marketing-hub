@@ -8,6 +8,7 @@ import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import ProductImageEnhancer from './ProductImageEnhancer.jsx'
 import ProductImageMappingRepair from './ProductImageMappingRepair.jsx'
+import WorkspaceReadinessEnhancer from './WorkspaceReadinessEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -29,6 +30,7 @@ createRoot(document.getElementById('root')).render(
     <DailyContentRecommendationEnhancer />
     <ProductImageEnhancer />
     <ProductImageMappingRepair />
+    <WorkspaceReadinessEnhancer />
   </StrictMode>,
 )
 
