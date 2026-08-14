@@ -1,0 +1,81 @@
+/* Final contrast pass for Social Impact Data Readiness. */
+
+html[data-theme='dark'] .social-enterprise-intelligence,
+html[data-theme='dark'] .social-impact-story-builder {
+  color: #f2f5f3;
+}
+
+html[data-theme='dark'] .sei-heading h3,
+html[data-theme='dark'] .sei-impact-head h4,
+html[data-theme='dark'] .sei-pattern-grid article strong,
+html[data-theme='dark'] .sei-impact-list strong,
+html[data-theme='dark'] .sei-starter-grid button strong {
+  color: #f2f5f3;
+}
+
+html[data-theme='dark'] .sei-heading p,
+html[data-theme='dark'] .sei-pattern-grid article p,
+html[data-theme='dark'] .sei-impact-list span,
+html[data-theme='dark'] .sei-starter-grid button small,
+html[data-theme='dark'] .sei-data-rule {
+  color: #c6d0ca;
+}
+
+html[data-theme='dark'] .sei-pattern-grid article > span,
+html[data-theme='dark'] .sei-starter-grid button > span,
+html[data-theme='dark'] .sei-impact-head > span,
+html[data-theme='dark'] .sei-status {
+  color: #b9c6be;
+}
+
+html[data-theme='dark'] .sei-impact-readiness {
+  background: #17201b;
+  border-color: #35433b;
+}
+
+html[data-theme='dark'] .sei-impact-list > div {
+  background: #1e2822;
+  border-color: #3a4940;
+  color: #f2f5f3;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .sei-impact-list > div:hover {
+  background: #222e27;
+}
+
+html[data-theme='dark'] .sei-pattern-grid article,
+html[data-theme='dark'] .sei-starter-grid button {
+  background: #1c2620;
+  border-color: #37463d;
+}
+
+html[data-theme='dark'] .sei-impact-head > span,
+html[data-theme='dark'] .sei-status {
+  background: #222e27;
+  border-color: #3a4b40;
+}
+
+html[data-theme='dark'] .sei-data-rule {
+  background: #2d261d;
+  border: 1px solid #4f4231;
+}
+
+html[data-theme='dark'] .sei-data-rule strong {
+  color: #f0dfc0;
+}
+
+html[data-theme='light'] .sei-impact-list > div,
+html:not([data-theme='dark']) .sei-impact-list > div {
+  color: #202522;
+}
+
+html[data-theme='light'] .sei-impact-list strong,
+html:not([data-theme='dark']) .sei-impact-list strong {
+  color: #202522;
+}
+
+html[data-theme='light'] .sei-impact-list span,
+html:not([data-theme='dark']) .sei-impact-list span {
+  color: #667069;
+}
