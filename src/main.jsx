@@ -6,6 +6,7 @@ import Phase3RankingEnhancer from './Phase3RankingEnhancer.jsx'
 import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
+import ProductImageEnhancer from './ProductImageEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -15,6 +16,7 @@ import './accessibility-theme.css'
 import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
+import './product-image-integration.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -24,5 +26,6 @@ createRoot(document.getElementById('root')).render(
     <Core7MarketingTools />
     <AccessibilityThemeEnhancer />
     <DailyContentRecommendationEnhancer />
+    <ProductImageEnhancer />
   </StrictMode>,
 )
