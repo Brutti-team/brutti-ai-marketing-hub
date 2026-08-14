@@ -43,8 +43,6 @@ function doPost(e) {
       delete_content: () => deleteContent_(payload.id),
       save_plan: () => savePlan_(payload.plan),
       delete_plan: () => deletePlan_(payload.id),
-      generate_content: () => generateContent_(payload),
-      review_content: () => reviewContent_(payload),
       list_drive_assets: listDriveAssets_,
       publish_meta: () => publishMeta_(payload.contentId)
     };
@@ -70,7 +68,6 @@ function integrationStatus_() {
     appsScript: true,
     sheets: Boolean(properties.getProperty('PLANNER_SPREADSHEET_ID')),
     drive: Boolean(properties.getProperty('DRIVE_FOLDER_ID')),
-    openai: Boolean(properties.getProperty('OPENAI_API_KEY') && properties.getProperty('OPENAI_MODEL')),
     meta: Boolean(properties.getProperty('META_PAGE_ID') && properties.getProperty('META_PAGE_ACCESS_TOKEN'))
   };
 }
@@ -176,69 +173,6 @@ function deletePlan_(id) {
     logEvent_('delete_plan', String(id), 'Success', 'Planner row deleted');
     return { id: String(id) };
   });
-}
-
-function generateContent_(input) {
-  const properties = scriptProperties_();
-  const apiKey = properties.getProperty('OPENAI_API_KEY');
-  const model = properties.getProperty('OPENAI_MODEL');
-  if (!apiKey || !model) throw new Error('OpenAI API is not configured in Apps Script Properties.');
-  if (!input.title || !input.brief) throw new Error('A title and verified facts are required.');
-
-  const instructions = [
-    'You are the BRUTTI internal marketing assistant for a Sabah-based custom furniture and interior brand.',
-    'Use only facts supplied in the request. Never invent prices, discounts, stock, delivery dates, dimensions, materials, warranties, sustainability claims, testimonials, or performance KPI.',
-    'Write naturally, avoid repetitive hype, use one clear CTA, and return only the finished draft.',
-    'Every result is a draft that requires human approval before publishing.'
-  ].join(' ');
-  const prompt = [
-    'Title: ' + clean_(input.title),
-    'Platform: ' + clean_(input.platform || 'Facebook'),
-    'Content type: ' + clean_(input.type || 'Brand Awareness'),
-    'Product: ' + clean_(input.product || 'General / No Product'),
-    'Language: ' + clean_(input.language || 'Bahasa Melayu'),
-    'Tone: ' + clean_(input.tone || 'Warm & confident'),
-    'Verified facts and direction: ' + clean_(input.brief),
-    'Include hashtags: ' + (input.includeHashtags ? 'Yes, use a short relevant set.' : 'No.')
-  ].join('\n');
-  const response = openAIRequest_(apiKey, model, instructions, prompt);
-  const copy = responseText_(response);
-  if (!copy) throw new Error('OpenAI returned an empty draft.');
-  logEvent_('generate_content', '', 'Success', input.title);
-  return { copy: copy, model: model, reviewRequired: true };
-}
-
-function reviewContent_(input) {
-  const properties = scriptProperties_();
-  const apiKey = properties.getProperty('OPENAI_API_KEY');
-  const model = properties.getProperty('OPENAI_MODEL');
-  if (!apiKey || !model) throw new Error('OpenAI API is not configured in Apps Script Properties.');
-  const instructions = 'Review BRUTTI marketing copy. Flag unsupported prices, promotions, availability, delivery dates, specifications, materials, warranties, sustainability claims, testimonials, and KPI. Return concise JSON with status, issues, and recommendation.';
-  const response = openAIRequest_(apiKey, model, instructions, clean_(input.copy || ''));
-  return { review: responseText_(response), model: model };
-}
-
-function openAIRequest_(apiKey, model, instructions, input) {
-  const response = UrlFetchApp.fetch('https://api.openai.com/v1/responses', {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { Authorization: 'Bearer ' + apiKey },
-    payload: JSON.stringify({ model: model, instructions: instructions, input: input }),
-    muteHttpExceptions: true
-  });
-  const status = response.getResponseCode();
-  const body = JSON.parse(response.getContentText() || '{}');
-  if (status < 200 || status >= 300) throw new Error((body.error && body.error.message) || 'OpenAI API request failed (' + status + ').');
-  return body;
-}
-
-function responseText_(response) {
-  if (response.output_text) return response.output_text;
-  const parts = [];
-  (response.output || []).forEach(item => (item.content || []).forEach(content => {
-    if (content.type === 'output_text' && content.text) parts.push(content.text);
-  }));
-  return parts.join('\n').trim();
 }
 
 function listDriveAssets_() {
