@@ -13,6 +13,7 @@ import './box-polish.css'
 import './accessibility-theme.css'
 import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
+import './dark-mode-readable-mint.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

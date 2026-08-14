@@ -1,0 +1,345 @@
+/* Final dark-mode readability pass: brighter mint/cream palette, larger helper text, clearer nested surfaces. */
+
+html[data-theme='dark'] {
+  --dm-accent: #c9ead7;
+  --dm-accent-strong: #e4f7ec;
+  --dm-accent-soft: #9fc6ad;
+  --dm-cream-bright: #f7f5ee;
+  --dm-grey-bright: #d7e0da;
+  --dm-grey-mid: #b8c7bf;
+  --dm-box: #1b2721;
+  --dm-box-2: #223129;
+  --dm-box-3: #293a31;
+  --dm-border-strong: #5f7b6b;
+  --dm-border-soft: #40564a;
+}
+
+/* Remove peach/red as the primary dark-mode accent. */
+html[data-theme='dark'] .eyebrow,
+html[data-theme='dark'] .workspace-label,
+html[data-theme='dark'] .hero-label,
+html[data-theme='dark'] .text-button,
+html[data-theme='dark'] .core7-prompt-group-head strong,
+html[data-theme='dark'] .phase2-card-label,
+html[data-theme='dark'] .phase3-group-head span,
+html[data-theme='dark'] .phase3-item > div span,
+html[data-theme='dark'] .campaign-index,
+html[data-theme='dark'] .source-row.header,
+html[data-theme='dark'] .source-row.header span {
+  color: var(--dm-accent) !important;
+}
+
+html[data-theme='dark'] .guardrail-note svg,
+html[data-theme='dark'] .analytics-notice svg,
+html[data-theme='dark'] .source-notice svg,
+html[data-theme='dark'] .form-disclaimer svg,
+html[data-theme='dark'] .modal-guardrail svg {
+  color: var(--dm-accent-strong) !important;
+}
+
+/* General dark-mode text readability. */
+html[data-theme='dark'] .page,
+html[data-theme='dark'] .page p,
+html[data-theme='dark'] .page li,
+html[data-theme='dark'] .page small,
+html[data-theme='dark'] .settings-copy,
+html[data-theme='dark'] .save-location,
+html[data-theme='dark'] .content-meta,
+html[data-theme='dark'] .core7-section-copy,
+html[data-theme='dark'] .source-row:not(.header) > span {
+  color: var(--dm-grey-bright);
+}
+
+html[data-theme='dark'] .page h1,
+html[data-theme='dark'] .page h2,
+html[data-theme='dark'] .page h3,
+html[data-theme='dark'] .page h4,
+html[data-theme='dark'] .page strong,
+html[data-theme='dark'] label {
+  color: var(--dm-cream-bright);
+}
+
+/* Content Studio: increase the small text visible in the latest screenshot. */
+html[data-theme='dark'] .brief-polish-row {
+  gap: 14px;
+  align-items: center;
+}
+
+html[data-theme='dark'] .brief-polish-row button {
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--dm-box-2);
+  border: 1px solid var(--dm-border-strong);
+  color: var(--dm-accent-strong);
+  font-size: 14px !important;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+html[data-theme='dark'] .brief-polish-row button:hover {
+  background: var(--dm-box-3);
+  border-color: #86aa96;
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .brief-polish-row > span {
+  color: var(--dm-grey-bright) !important;
+  font-size: 13.5px !important;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+html[data-theme='dark'] .checkbox-row {
+  gap: 10px;
+  color: var(--dm-cream-bright) !important;
+  font-size: 15px !important;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+html[data-theme='dark'] .checkbox-row input {
+  width: 19px;
+  height: 19px;
+  min-height: 19px;
+  accent-color: #a7d7bb;
+}
+
+html[data-theme='dark'] .form-disclaimer {
+  color: var(--dm-grey-bright) !important;
+  font-size: 15px !important;
+  font-weight: 550;
+  line-height: 1.65;
+}
+
+html[data-theme='dark'] .form-disclaimer svg {
+  flex: 0 0 auto;
+}
+
+html[data-theme='dark'] .assist-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+html[data-theme='dark'] .assist-steps span {
+  min-height: 64px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--dm-box-2) !important;
+  border: 1px solid var(--dm-border-soft) !important;
+  border-radius: 14px;
+  color: var(--dm-grey-bright) !important;
+  font-size: 13.5px !important;
+  font-weight: 650;
+  line-height: 1.4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+}
+
+html[data-theme='dark'] .assist-steps b {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--dm-accent);
+  color: #102118;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+html[data-theme='dark'] .button.primary.wide {
+  min-height: 52px;
+  font-size: 15px !important;
+  font-weight: 800;
+  background: #d9eee0;
+  color: #102118;
+  border: 1px solid #eaf7ee;
+}
+
+/* Make nested surfaces clearly distinct from the page background. */
+html[data-theme='dark'] .generator-form,
+html[data-theme='dark'] .generator-output,
+html[data-theme='dark'] .panel,
+html[data-theme='dark'] .stat-card,
+html[data-theme='dark'] .product-card,
+html[data-theme='dark'] .core7-system-panel,
+html[data-theme='dark'] .core7-brand-panel,
+html[data-theme='dark'] .core7-prompt-panel,
+html[data-theme='dark'] .source-table-panel {
+  background: #18221d;
+  border-color: #486154;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.025);
+}
+
+html[data-theme='dark'] .smart-rewrite-panel,
+html[data-theme='dark'] .core7-prompt-groups > section,
+html[data-theme='dark'] .core7-brand-grid article,
+html[data-theme='dark'] .core7-prompt-grid article,
+html[data-theme='dark'] .compact-plan-list > div,
+html[data-theme='dark'] .phase2-card,
+html[data-theme='dark'] .phase3-group,
+html[data-theme='dark'] .phase3-criteria span,
+html[data-theme='dark'] .phase2-rules span {
+  background: var(--dm-box) !important;
+  border-color: var(--dm-border-soft) !important;
+}
+
+/* Status badges: bright mint/cream, not dark green text. */
+html[data-theme='dark'] .status-pill,
+html[data-theme='dark'] .source-count,
+html[data-theme='dark'] .core7-inline-status,
+html[data-theme='dark'] .verified-label,
+html[data-theme='dark'] .core7-system-list article > span,
+html[data-theme='dark'] .status-chip {
+  background: #26382f !important;
+  border-color: #557464 !important;
+  color: var(--dm-accent-strong) !important;
+}
+
+html[data-theme='dark'] .status-pill.review,
+html[data-theme='dark'] .status-pill.human-review-required,
+html[data-theme='dark'] .status-pill.partial-sync,
+html[data-theme='dark'] .status-pill.reference-count {
+  background: #2d3932 !important;
+  border-color: #60776b !important;
+  color: #eef5f0 !important;
+}
+
+/* Replace warm/peach notice boxes with neutral mint-sage surfaces. */
+html[data-theme='dark'] .guardrail-note,
+html[data-theme='dark'] .analytics-notice,
+html[data-theme='dark'] .source-notice,
+html[data-theme='dark'] .phase2-footnote,
+html[data-theme='dark'] .phase3-note,
+html[data-theme='dark'] .modal-guardrail {
+  background: #223129 !important;
+  border: 1px solid #5a7565 !important;
+  color: var(--dm-cream-bright) !important;
+}
+
+html[data-theme='dark'] .guardrail-note p,
+html[data-theme='dark'] .guardrail-note strong,
+html[data-theme='dark'] .analytics-notice strong,
+html[data-theme='dark'] .source-notice strong,
+html[data-theme='dark'] .phase2-footnote,
+html[data-theme='dark'] .phase2-footnote strong,
+html[data-theme='dark'] .phase3-note,
+html[data-theme='dark'] .modal-guardrail span {
+  color: var(--dm-cream-bright) !important;
+}
+
+html[data-theme='dark'] .analytics-notice p,
+html[data-theme='dark'] .source-notice p {
+  color: var(--dm-grey-bright) !important;
+}
+
+/* Output empty state and toolbar. */
+html[data-theme='dark'] .generator-output {
+  background: linear-gradient(180deg, #18241e 0%, #141d19 100%);
+}
+
+html[data-theme='dark'] .output-toolbar strong,
+html[data-theme='dark'] .empty-output h3,
+html[data-theme='dark'] .smart-rewrite-head strong,
+html[data-theme='dark'] .variation-row span {
+  color: var(--dm-cream-bright) !important;
+}
+
+html[data-theme='dark'] .empty-output p,
+html[data-theme='dark'] .smart-rewrite-head > span {
+  color: var(--dm-grey-bright) !important;
+}
+
+html[data-theme='dark'] .sparkle-ring {
+  background: #22352c;
+  border-color: #5c7c6a;
+  color: var(--dm-accent-strong);
+  box-shadow: 0 0 0 18px rgba(201,234,215,0.055), 0 0 0 36px rgba(201,234,215,0.025);
+}
+
+/* Rewrite controls use mint focus, not peach. */
+html[data-theme='dark'] .rewrite-actions button,
+html[data-theme='dark'] .variation-row button {
+  background: var(--dm-box-2);
+  border-color: var(--dm-border-soft);
+  color: var(--dm-grey-bright);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+html[data-theme='dark'] .rewrite-actions button:hover,
+html[data-theme='dark'] .variation-row button:hover,
+html[data-theme='dark'] .rewrite-actions button.active,
+html[data-theme='dark'] .variation-row button.active {
+  background: #31483b;
+  border-color: #7aa98e;
+  color: #ffffff;
+}
+
+/* Analytics table header and content. */
+html[data-theme='dark'] .source-table {
+  border-color: #5a7365;
+  background: #17221c;
+}
+
+html[data-theme='dark'] .source-row {
+  background: #1c2922;
+  border-color: #496154;
+}
+
+html[data-theme='dark'] .source-row:nth-child(odd):not(.header) {
+  background: #213029;
+}
+
+html[data-theme='dark'] .source-row.header {
+  background: #293b32;
+}
+
+/* System Mode labels and descriptions. */
+html[data-theme='dark'] .core7-system-list article > div > strong {
+  color: var(--dm-cream-bright) !important;
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+html[data-theme='dark'] .core7-system-list article > div > p {
+  color: var(--dm-grey-bright) !important;
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.55;
+}
+
+/* Secondary buttons and outlines. */
+html[data-theme='dark'] .button.secondary,
+html[data-theme='dark'] .button.ghost-light {
+  background: var(--dm-box-2);
+  border-color: #657f70;
+  color: var(--dm-cream-bright);
+}
+
+html[data-theme='dark'] .button.secondary:hover,
+html[data-theme='dark'] .button.ghost-light:hover {
+  background: #30453a;
+  border-color: #8fb3a0;
+  color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  html[data-theme='dark'] .assist-steps {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-theme='dark'] .brief-polish-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  html[data-theme='dark'] .brief-polish-row > span {
+    max-width: none;
+  }
+}
