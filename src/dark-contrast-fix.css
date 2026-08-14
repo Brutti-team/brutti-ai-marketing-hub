@@ -1,0 +1,142 @@
+/* Dark-mode contrast fixes loaded last.
+   Keep brand identity while preventing light-on-light text in dark mode. */
+
+html[data-theme='dark'] .hero-panel {
+  background: linear-gradient(135deg, #16372b 0%, #10281f 100%);
+  color: #f7fbf8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='dark'] .hero-content h2 {
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme='dark'] .hero-content p {
+  color: #d7e2dc;
+}
+
+html[data-theme='dark'] .hero-label {
+  color: #f0b69d;
+}
+
+html[data-theme='dark'] .hero-panel .button.cream {
+  background: #eef6f1;
+  color: #12372a;
+  border-color: #eef6f1;
+}
+
+html[data-theme='dark'] .hero-panel .button.cream:hover {
+  background: #dcebe2;
+}
+
+html[data-theme='dark'] .hero-panel .button.ghost-light {
+  color: #f5faf7;
+  border-color: rgba(245, 250, 247, 0.5);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme='dark'] .hero-panel .button.ghost-light:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme='dark'] .hero-art {
+  background: linear-gradient(140deg, rgba(255,255,255,.015), rgba(226,146,112,.08));
+}
+
+html[data-theme='dark'] .art-card {
+  background: rgba(16, 40, 31, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f3f8f5;
+}
+
+html[data-theme='dark'] .art-card span {
+  color: #f0b69d;
+}
+
+html[data-theme='dark'] .brand-hero,
+html[data-theme='dark'] .ai-banner {
+  background: linear-gradient(120deg, #16372b 0%, #10281f 100%);
+  color: #f7fbf8;
+}
+
+html[data-theme='dark'] .brand-hero h2,
+html[data-theme='dark'] .ai-banner h2 {
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .ai-banner p {
+  color: #d0ddd5;
+}
+
+html[data-theme='dark'] .assistant-rules {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme='dark'] .assistant-rules span {
+  color: #d9e4dd;
+}
+
+html[data-theme='dark'] .avatar,
+html[data-theme='dark'] .core7-drive-icon {
+  background: #173b2e;
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .stat-icon,
+html[data-theme='dark'] .prompt-icon,
+html[data-theme='dark'] .prompt-section-head > span {
+  background: #223029;
+  color: #cde2d5;
+}
+
+html[data-theme='dark'] .stat-card span,
+html[data-theme='dark'] .stat-card small,
+html[data-theme='dark'] .calendar-item small,
+html[data-theme='dark'] .calendar-item span,
+html[data-theme='dark'] .campaign-list p,
+html[data-theme='dark'] .campaign-list small,
+html[data-theme='dark'] .compact-plan-list small,
+html[data-theme='dark'] .product-card-body > div > span,
+html[data-theme='dark'] .product-card-body p,
+html[data-theme='dark'] .asset-grid p,
+html[data-theme='dark'] .form-disclaimer,
+html[data-theme='dark'] .content-meta,
+html[data-theme='dark'] .assist-steps {
+  color: #b9c5be;
+}
+
+html[data-theme='dark'] .pipeline-step span,
+html[data-theme='dark'] .review-queue small,
+html[data-theme='dark'] .upcoming-row small,
+html[data-theme='dark'] .recommendation-list p,
+html[data-theme='dark'] .guardrail-note p {
+  color: #bdc9c2;
+}
+
+html[data-theme='dark'] .pipeline-step strong,
+html[data-theme='dark'] .review-queue strong,
+html[data-theme='dark'] .upcoming-row strong,
+html[data-theme='dark'] .recommendation-list strong,
+html[data-theme='dark'] .guardrail-note strong {
+  color: #f0f5f2;
+}
+
+html[data-theme='dark'] .add-day {
+  color: #c5d0c9;
+}
+
+html[data-theme='dark'] .add-day:hover {
+  color: #f2f7f4;
+  border-color: #6b8174;
+  background: #202923;
+}
+
+html[data-theme='dark'] button:focus-visible,
+html[data-theme='dark'] input:focus-visible,
+html[data-theme='dark'] select:focus-visible,
+html[data-theme='dark'] textarea:focus-visible {
+  outline-color: rgba(226, 146, 112, 0.7);
+}
