@@ -1,0 +1,73 @@
+html:not([data-theme='dark']) .analytics-light-readable {
+  background: #fffefb;
+  border: 1px solid rgba(18, 55, 42, 0.12);
+  box-shadow: 0 8px 22px rgba(18, 55, 42, 0.04);
+}
+
+html:not([data-theme='dark']) .analytics-light-readable .eyebrow,
+html:not([data-theme='dark']) .analytics-light-readable small,
+html:not([data-theme='dark']) .analytics-light-readable label,
+html:not([data-theme='dark']) .analytics-light-readable span,
+html:not([data-theme='dark']) .analytics-light-readable p {
+  color: #5c6b63;
+}
+
+html:not([data-theme='dark']) .analytics-light-readable h2,
+html:not([data-theme='dark']) .analytics-light-readable h3,
+html:not([data-theme='dark']) .analytics-light-readable h4,
+html:not([data-theme='dark']) .analytics-light-readable strong,
+html:not([data-theme='dark']) .analytics-light-readable th,
+html:not([data-theme='dark']) .analytics-light-readable td {
+  color: #18382c;
+}
+
+html:not([data-theme='dark']) .analytics-light-readable [class*='badge'],
+html:not([data-theme='dark']) .analytics-light-readable [class*='pill'],
+html:not([data-theme='dark']) .analytics-light-readable .status-pill {
+  background: #f2f5f1;
+  border-color: rgba(18, 55, 42, 0.12);
+  color: #355043;
+}
+
+html:not([data-theme='dark']) .analytics-light-readable table,
+html:not([data-theme='dark']) .analytics-light-readable tr,
+html:not([data-theme='dark']) .analytics-light-readable td,
+html:not([data-theme='dark']) .analytics-light-readable th {
+  border-color: rgba(18, 55, 42, 0.1);
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel {
+  background: linear-gradient(180deg, #fffefb 0%, #fafbf8 100%);
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel .eyebrow,
+html:not([data-theme='dark']) .analytics-distribution-panel small,
+html:not([data-theme='dark']) .analytics-distribution-panel label,
+html:not([data-theme='dark']) .analytics-distribution-panel span {
+  color: #57655c;
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel h2,
+html:not([data-theme='dark']) .analytics-distribution-panel h3,
+html:not([data-theme='dark']) .analytics-distribution-panel strong {
+  color: #16362a;
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel [class*='badge'],
+html:not([data-theme='dark']) .analytics-distribution-panel [class*='pill'],
+html:not([data-theme='dark']) .analytics-distribution-panel .status-pill {
+  background: #eef3ee;
+  color: #355043;
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel div[class*='bar'],
+html:not([data-theme='dark']) .analytics-distribution-panel div[class*='track'],
+html:not([data-theme='dark']) .analytics-distribution-panel div[class*='progress'] {
+  box-shadow: inset 0 0 0 1px rgba(18, 55, 42, 0.04);
+}
+
+html:not([data-theme='dark']) .analytics-distribution-panel div[class*='bar']:not([style*='width: 0']),
+html:not([data-theme='dark']) .analytics-distribution-panel div[class*='fill'],
+html:not([data-theme='dark']) .analytics-distribution-panel div[style*='background'] {
+  color: #16362a;
+}
