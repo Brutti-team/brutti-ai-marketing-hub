@@ -11,6 +11,7 @@ import WorkspaceReadinessEnhancer from './WorkspaceReadinessEnhancer.jsx'
 import HistoricalAnalyticsEnhancer from './HistoricalAnalyticsEnhancer.jsx'
 import MetaDeferredEnhancer from './MetaDeferredEnhancer.jsx'
 import AnalyticsCopyPolish from './AnalyticsCopyPolish.jsx'
+import SocialEnterpriseIntelligenceEnhancer from './SocialEnterpriseIntelligenceEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -22,6 +23,7 @@ import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
 import './product-image-integration.css'
 import './historical-analytics.css'
+import './social-enterprise-intelligence.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -36,6 +38,7 @@ createRoot(document.getElementById('root')).render(
     <HistoricalAnalyticsEnhancer />
     <MetaDeferredEnhancer />
     <AnalyticsCopyPolish />
+    <SocialEnterpriseIntelligenceEnhancer />
   </StrictMode>,
 )
 
