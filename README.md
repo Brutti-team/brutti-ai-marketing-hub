@@ -7,6 +7,7 @@ An internal marketing workspace for BRUTTI, a Sabah-based custom furniture and i
 The production website does not call a paid AI API and does not require staff to open a separate AI platform. Instead it provides a no-cost assisted workflow:
 
 - generate a structured Facebook draft from BRUTTI templates and verified facts
+- polish rough Bahasa Melayu wording into a clearer Brutti-style direction before caption generation, with one-click undo
 - refine captions inside the website with More Engaging, Casual, Professional, Shorten, New Hook, New CTA and Refresh Hashtags controls
 - provide three Brutti-style variations for every verified direction
 - run rule-based checks for Brutti Facebook style, readability, CTA, hashtag discipline and unsupported claims
