@@ -5,6 +5,7 @@ import Phase2AuditEnhancer from './Phase2AuditEnhancer.jsx'
 import Phase3RankingEnhancer from './Phase3RankingEnhancer.jsx'
 import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
+import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -22,5 +23,6 @@ createRoot(document.getElementById('root')).render(
     <Phase3RankingEnhancer />
     <Core7MarketingTools />
     <AccessibilityThemeEnhancer />
+    <DailyContentRecommendationEnhancer />
   </StrictMode>,
 )
