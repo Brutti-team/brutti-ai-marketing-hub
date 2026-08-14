@@ -1,0 +1,73 @@
+.historical-facebook-reports {
+  margin-top: 24px;
+}
+
+.historical-report-head {
+  margin-bottom: 16px;
+}
+
+.historical-report-head h2 {
+  margin: 5px 0 8px;
+}
+
+.historical-report-head p {
+  max-width: 820px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.historical-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.historical-data-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.historical-metric-list {
+  display: grid;
+  gap: 0;
+}
+
+.historical-metric-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+
+.historical-metric-list > div:first-child {
+  border-top: 0;
+}
+
+.historical-metric-list span {
+  color: var(--muted);
+}
+
+.historical-metric-list strong {
+  font-size: 1.12rem;
+}
+
+.historical-limit-note {
+  margin-top: 18px;
+}
+
+[data-theme='dark'] .historical-data-badge {
+  border-color: #4c6556;
+}
+
+@media (max-width: 820px) {
+  .historical-report-grid {
+    grid-template-columns: 1fr;
+  }
+}
