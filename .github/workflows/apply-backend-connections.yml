@@ -1,0 +1,44 @@
+name: Apply BRUTTI backend connections
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-backend-connections.yml
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply backend connection upgrade
+        run: python scripts/backend_connection_upgrade.py
+      - name: Validate Apps Script syntax
+        run: |
+          cp apps-script/Code.gs /tmp/brutti-backend.js
+          node --check /tmp/brutti-backend.js
+      - name: Verify resource mapping
+        run: |
+          grep -q "10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ" apps-script/Code.gs
+          grep -q "1V3AIjXMqIWU5mi6tG2m4UzDGv1rhBqgO" apps-script/Code.gs
+          grep -q "17klllaMxznv8IiRUwggEVUsbQ_qcSNFU" apps-script/Code.gs
+          grep -q "3b35a38f-1fa4-8034-bfc4-f9fad18eed8b" apps-script/Code.gs
+          grep -q "aa9bba50-17fd-4d27-9bbb-82a2247424d4" apps-script/Code.gs
+          grep -q "test_integrations" apps-script/Code.gs
+          grep -q "DRIVE_ASSET_FOLDER_ID" apps-script/Code.gs
+      - name: Cleanup patch machinery
+        run: |
+          rm -f .github/workflows/apply-backend-connections.yml
+          rm -f scripts/backend_connection_upgrade.py
+          rmdir scripts 2>/dev/null || true
+      - name: Commit upgraded backend
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Connect Brutti backend resources"
+          git push
