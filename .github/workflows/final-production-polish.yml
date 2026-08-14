@@ -15,8 +15,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Fix patch string escaping
-        run: python -c "from pathlib import Path; p=Path('scripts/final_polish.py'); s=p.read_text(); old=\"smart_draft = '''\"; assert old in s; p.write_text(s.replace(old, \"smart_draft = r'''\", 1))"
+      - name: Fix patch replacement escaping
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/final_polish.py')
+          s = p.read_text()
+          s = s.replace("smart_draft = '''", "smart_draft = r'''", 1)
+          old = "updated, n = pattern.subn(replacement + '\\n\\n', text, count=1)"
+          new = "updated, n = pattern.subn(lambda _match: replacement + '\\n\\n', text, count=1)"
+          if old not in s:
+              raise SystemExit('replace_block implementation not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
       - name: Apply final polish
         run: python scripts/final_polish.py
       - name: Setup Node
