@@ -13,6 +13,7 @@ import MetaDeferredEnhancer from './MetaDeferredEnhancer.jsx'
 import AnalyticsCopyPolish from './AnalyticsCopyPolish.jsx'
 import SocialEnterpriseIntelligenceEnhancer from './SocialEnterpriseIntelligenceEnhancer.jsx'
 import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
+import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')).render(
     <AnalyticsCopyPolish />
     <SocialEnterpriseIntelligenceEnhancer />
     <NotificationCenterEnhancer />
+    <ProductCatalogQualityEnhancer />
   </StrictMode>,
 )
 
