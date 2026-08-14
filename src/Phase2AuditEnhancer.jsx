@@ -135,7 +135,9 @@ export default function Phase2AuditEnhancer() {
     const sync = () => {
       const pages = [...root.querySelectorAll('.page')]
       const activePage = pages.find((page) => page.offsetParent !== null) || pages[0] || null
-      const title = activePage?.querySelector('h1')?.textContent?.trim() || ''
+      const title = activePage?.classList.contains('dashboard-page')
+        ? 'Dashboard'
+        : activePage?.querySelector('h1')?.textContent?.trim() || ''
 
       setPageNode((current) => current === activePage ? current : activePage)
       setPageTitle((current) => current === title ? current : title)
