@@ -148,6 +148,19 @@ function setText(node, value) {
   if (node && node.textContent !== value) node.textContent = value
 }
 
+function setLabelText(label, value) {
+  if (!label) return
+  const textNodes = [...label.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE)
+  if (!textNodes.length) {
+    label.appendChild(document.createTextNode(value))
+    return
+  }
+  textNodes.forEach((node, index) => {
+    const nextValue = index === 0 ? value : ''
+    if (node.textContent !== nextValue) node.textContent = nextValue
+  })
+}
+
 function setFirstTextNode(button, value) {
   if (!button) return
   const textNode = [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)
@@ -239,9 +252,7 @@ export default function DailyContentRecommendationEnhancer() {
       const recommendation = dailyRecommendations[new Date().getDay()]
       const weekday = new Date().toLocaleDateString('en-MY', { weekday: 'long' })
       const label = hero.querySelector('.hero-label')
-      const labelText = label ? [...label.childNodes].find((node) => node.nodeType === Node.TEXT_NODE) : null
-      const recommendationLabel = `TODAY'S RECOMMENDATION · ${weekday}`
-      if (labelText && labelText.textContent !== recommendationLabel) labelText.textContent = recommendationLabel
+      setLabelText(label, `TODAY'S RECOMMENDATION · ${weekday}`)
 
       setText(hero.querySelector('.hero-content h2'), recommendation.idea)
       setText(hero.querySelector('.hero-content p'), `Why this content? ${recommendation.reason}`)
