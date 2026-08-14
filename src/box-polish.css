@@ -1,0 +1,413 @@
+/* Visual tidy-up for core cards, prompt starters, planner lists and audit panels */
+
+.core7-brand-panel,
+.core7-prompt-panel,
+.core7-system-panel,
+.core7-drive-required,
+.campaign-section,
+.plan-list-section,
+.phase2-audit-panel,
+.phase3-ranking-panel {
+  padding: 22px 24px;
+}
+
+.core7-studio-extras {
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.core7-brand-panel .panel-heading,
+.core7-prompt-panel .panel-heading,
+.core7-system-panel .panel-heading,
+.core7-drive-required .panel-heading,
+.phase2-audit-head,
+.phase3-ranking-head {
+  align-items: flex-start;
+}
+
+.core7-inline-status,
+.phase2-status,
+.phase3-status {
+  min-height: 34px;
+  padding: 7px 12px;
+  background: rgba(247, 243, 234, 0.92);
+  border-color: rgba(18, 55, 42, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.core7-brand-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.core7-brand-grid article {
+  min-height: 0;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 254, 250, 0.98), rgba(247, 243, 234, 0.78));
+  box-shadow: 0 8px 22px rgba(18, 55, 42, 0.04);
+}
+
+.core7-brand-grid article strong {
+  margin-bottom: 4px;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+}
+
+.core7-brand-grid article p,
+.core7-section-copy,
+.core7-drive-required p,
+.core7-system-list p,
+.phase2-audit-head p,
+.phase3-ranking-head p,
+.campaign-list p,
+.compact-plan-list small {
+  font-size: 0.84rem;
+  line-height: 1.62;
+}
+
+.core7-prompt-groups {
+  gap: 18px;
+}
+
+.core7-prompt-groups > section {
+  padding: 16px 18px 18px;
+  border: 1px solid rgba(18, 55, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(247, 243, 234, 0.52);
+}
+
+.core7-prompt-group-head {
+  margin-bottom: 14px;
+}
+
+.core7-prompt-group-head strong {
+  font-size: 1.02rem;
+}
+
+.core7-prompt-group-head span {
+  font-size: 0.78rem;
+}
+
+.core7-prompt-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.core7-prompt-grid article {
+  min-height: 150px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 8px 20px rgba(18, 55, 42, 0.035);
+}
+
+.core7-prompt-grid article strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.core7-prompt-grid article p {
+  margin: 8px 0 14px;
+}
+
+.core7-prompt-grid .button {
+  width: fit-content;
+  min-width: 180px;
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.core7-system-list {
+  gap: 2px;
+}
+
+.core7-system-list article {
+  padding: 16px 0;
+}
+
+.core7-system-list article > div > strong {
+  font-size: 0.96rem;
+}
+
+.core7-drive-required {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 18px;
+  margin-top: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 254, 250, 0.98), rgba(247, 243, 234, 0.9));
+}
+
+.core7-drive-icon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 16px;
+}
+
+.core7-drive-required h3 {
+  margin: 6px 0 0;
+  font-size: clamp(1.08rem, 1.7vw, 1.42rem);
+  line-height: 1.32;
+}
+
+.campaign-section,
+.plan-list-section {
+  border-radius: 16px;
+}
+
+.campaign-list {
+  display: grid;
+  gap: 0;
+  margin-top: 12px;
+}
+
+.campaign-list article {
+  min-height: 0;
+  grid-template-columns: 38px 1fr auto;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.campaign-index {
+  font-size: 0.76rem;
+}
+
+.campaign-list strong,
+.compact-plan-list strong {
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.campaign-list small {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(18, 55, 42, 0.05);
+  color: #496053;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.compact-plan-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.compact-plan-list > div {
+  border: 1px solid rgba(18, 55, 42, 0.08);
+  border-radius: 14px;
+  background: #fffefa;
+  box-shadow: 0 4px 14px rgba(18, 55, 42, 0.025);
+}
+
+.compact-plan-list > div > button:first-child {
+  width: calc(100% - 34px);
+  min-height: 72px;
+  padding: 10px 8px;
+  grid-template-columns: 58px 1fr auto;
+}
+
+.compact-plan-list time {
+  font-size: 0.76rem;
+}
+
+.compact-plan-list small {
+  margin-top: 5px;
+}
+
+.delete-plan {
+  width: 34px;
+}
+
+.phase2-audit-head,
+.phase3-ranking-head {
+  gap: 18px;
+  padding-bottom: 16px;
+}
+
+.phase2-audit-head h3,
+.phase3-ranking-head h3 {
+  line-height: 1.24;
+}
+
+.phase2-grid {
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.phase2-card {
+  padding: 18px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(18, 55, 42, 0.03);
+}
+
+.phase2-card ul {
+  gap: 10px;
+  padding-left: 1.05rem;
+}
+
+.phase2-card li,
+.phase2-rules span,
+.phase2-mix span,
+.phase2-pillars span,
+.phase2-footnote,
+.phase3-criteria span,
+.phase3-item p,
+.phase3-note {
+  font-size: 0.84rem;
+}
+
+.phase2-rules {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.phase2-rules span {
+  min-height: 74px;
+  padding: 14px 15px;
+  border-radius: 15px;
+}
+
+.phase2-mix {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.phase2-mix div {
+  min-height: 84px;
+}
+
+.phase2-pillars {
+  gap: 10px;
+}
+
+.phase2-pillars span {
+  padding: 10px 13px;
+}
+
+.phase2-footnote {
+  margin-top: 18px;
+  border-radius: 14px;
+  background: rgba(190, 144, 108, 0.12);
+}
+
+.phase3-criteria {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.phase3-criteria span {
+  min-height: 72px;
+  padding: 13px 14px;
+  border-radius: 14px;
+}
+
+.phase3-ranking-grid {
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.phase3-group {
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(18, 55, 42, 0.03);
+}
+
+.phase3-group-head {
+  padding: 16px 17px 13px;
+}
+
+.phase3-item {
+  padding: 15px 17px;
+}
+
+.phase3-item > div strong {
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.phase3-item > div span {
+  font-size: 0.8rem;
+}
+
+.phase3-note {
+  margin-top: 18px;
+  border-radius: 14px;
+}
+
+@media (max-width: 1180px) {
+  .core7-brand-grid,
+  .core7-prompt-grid,
+  .phase3-ranking-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .core7-drive-required {
+    grid-template-columns: 1fr;
+  }
+
+  .phase2-grid,
+  .phase2-rules,
+  .phase3-criteria {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .phase2-mix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .core7-brand-panel,
+  .core7-prompt-panel,
+  .core7-system-panel,
+  .core7-drive-required,
+  .campaign-section,
+  .plan-list-section,
+  .phase2-audit-panel,
+  .phase3-ranking-panel {
+    padding: 18px;
+  }
+
+  .core7-brand-grid,
+  .core7-prompt-grid,
+  .phase2-grid,
+  .phase2-rules,
+  .phase3-criteria,
+  .phase3-ranking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .core7-prompt-grid .button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .campaign-list article {
+    grid-template-columns: 32px 1fr;
+    align-items: start;
+  }
+
+  .campaign-list article .button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .compact-plan-list > div > button:first-child {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .compact-plan-list > div > button:first-child .status-pill {
+    grid-column: 1 / -1;
+    width: fit-content;
+    margin-top: 6px;
+  }
+}
