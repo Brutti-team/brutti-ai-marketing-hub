@@ -7,7 +7,6 @@ import {
   loadWorkspace,
   saveGoogleContent,
   saveGooglePlan,
-  syncNotionProducts,
 } from './lib/googleWorkspace'
 
 function localDateKey() {
@@ -121,14 +120,13 @@ async function runContentWorkflowTest(report) {
 }
 
 async function runProductsTest(report) {
-  const result = await syncNotionProducts()
-  const count = Number(result?.count || 0)
-  assert(count > 0, 'Product sync returned zero products.')
   const workspace = await loadWorkspace()
-  const loaded = (workspace.products || []).length
-  assert(loaded === count, `Product sync count mismatch: synced ${count}, loaded ${loaded}.`)
-  report(`Notion Product Library sync ✓ — ${loaded} products loaded`)
-  return loaded
+  const products = workspace.products || []
+  assert(products.length > 0, 'Product Library returned zero products.')
+  const incomplete = products.filter((product) => !product.name || !product.category || !product.price || !product.material || !product.dimensions)
+  assert(incomplete.length === 0, `Product Library contains ${incomplete.length} incomplete product record${incomplete.length === 1 ? '' : 's'}.`)
+  report(`Curated Product Library ✓ — ${products.length} complete products loaded`)
+  return products.length
 }
 
 async function runDriveTest(report) {
@@ -150,11 +148,11 @@ function createPanel(page) {
       <div>
         <span class="eyebrow">SYSTEM CHECK</span>
         <h3>Workspace readiness test</h3>
-        <p class="workspace-readiness-copy">Tests the Planner, Notion sync, Product Library, Drive assets and review-first content workflow. Temporary test records are deleted automatically.</p>
+        <p class="workspace-readiness-copy">Tests the Planner, Notion workflow sync, curated Product Library, Drive assets and review-first content workflow. Temporary test records are deleted automatically.</p>
       </div>
       <button type="button" class="button secondary small workspace-readiness-run">Run readiness test</button>
     </div>
-    <div class="workspace-readiness-result">Ready to test. Meta / Facebook publishing is intentionally excluded.</div>
+    <div class="workspace-readiness-result">Ready to test. Meta / Facebook publishing is intentionally skipped.</div>
   `
 
   page.appendChild(panel)
