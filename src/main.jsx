@@ -8,6 +8,7 @@ import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
 import './core7-marketing-tools.css'
+import './box-polish.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
