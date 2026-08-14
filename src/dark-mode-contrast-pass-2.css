@@ -1,0 +1,364 @@
+/* Dark-mode contrast pass 2: keep text bright and surfaces clearly separated. */
+
+html[data-theme='dark'] {
+  --dm-bg: #0f1512;
+  --dm-surface: #17201b;
+  --dm-surface-2: #1c2821;
+  --dm-surface-3: #223129;
+  --dm-border: #43584c;
+  --dm-text: #f4f7f5;
+  --dm-text-2: #d3dfd8;
+  --dm-text-3: #afc1b7;
+  --dm-mint: #cfe8d8;
+  --dm-sage: #a9ceb7;
+  --dm-cream: #fff2e4;
+  --dm-peach: #ffd3b8;
+  --dm-gold: #f2d38f;
+}
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] .app-shell,
+html[data-theme='dark'] .app-main {
+  background: var(--dm-bg);
+  color: var(--dm-text);
+}
+
+/* Global readable text in dark mode */
+html[data-theme='dark'] .page h1,
+html[data-theme='dark'] .page h2,
+html[data-theme='dark'] .page h3,
+html[data-theme='dark'] .page h4,
+html[data-theme='dark'] .panel-heading h3,
+html[data-theme='dark'] .page strong,
+html[data-theme='dark'] label {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .page p,
+html[data-theme='dark'] .page li,
+html[data-theme='dark'] .page small,
+html[data-theme='dark'] .settings-copy,
+html[data-theme='dark'] .save-location,
+html[data-theme='dark'] .form-disclaimer,
+html[data-theme='dark'] .content-meta,
+html[data-theme='dark'] .core7-section-copy {
+  color: var(--dm-text-2);
+}
+
+html[data-theme='dark'] .eyebrow,
+html[data-theme='dark'] .workspace-label {
+  color: var(--dm-sage);
+}
+
+/* Make cards visually separate from page background */
+html[data-theme='dark'] .panel,
+html[data-theme='dark'] .stat-card,
+html[data-theme='dark'] .product-card,
+html[data-theme='dark'] .generator-form,
+html[data-theme='dark'] .generator-output,
+html[data-theme='dark'] .core7-system-panel,
+html[data-theme='dark'] .core7-brand-panel,
+html[data-theme='dark'] .core7-prompt-panel,
+html[data-theme='dark'] .source-table-panel {
+  background: var(--dm-surface);
+  border-color: var(--dm-border);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+/* Dashboard accuracy guardrail */
+html[data-theme='dark'] .guardrail-note {
+  background: #26312a;
+  border: 1px solid #596b60;
+  color: var(--dm-text);
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .guardrail-note svg {
+  color: var(--dm-peach);
+}
+
+html[data-theme='dark'] .guardrail-note p,
+html[data-theme='dark'] .guardrail-note strong {
+  color: var(--dm-cream);
+}
+
+html[data-theme='dark'] .guardrail-note p {
+  opacity: 1;
+}
+
+/* Content Studio output: no more white card with pale text */
+html[data-theme='dark'] .generator-layout > * {
+  min-width: 0;
+}
+
+html[data-theme='dark'] .generator-output {
+  min-width: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a241e 0%, #151d19 100%);
+  border: 1px solid #4a6053;
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .output-toolbar {
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+html[data-theme='dark'] .output-toolbar .eyebrow {
+  color: var(--dm-sage);
+}
+
+html[data-theme='dark'] .output-toolbar strong {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .empty-output {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .empty-output h3 {
+  color: var(--dm-cream);
+}
+
+html[data-theme='dark'] .empty-output p {
+  color: var(--dm-text-2);
+}
+
+html[data-theme='dark'] .sparkle-ring {
+  background: #213129;
+  border-color: #3e5c4b;
+  color: var(--dm-mint);
+  box-shadow: 0 0 0 18px rgba(169, 206, 183, 0.05), 0 0 0 36px rgba(169, 206, 183, 0.025);
+}
+
+html[data-theme='dark'] .output-editor-label,
+html[data-theme='dark'] .output-editor-label textarea {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .smart-rewrite-panel {
+  background: var(--dm-surface-2);
+  border-color: var(--dm-border);
+}
+
+html[data-theme='dark'] .smart-rewrite-head strong,
+html[data-theme='dark'] .variation-row span {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .smart-rewrite-head > span {
+  color: var(--dm-text-3);
+}
+
+html[data-theme='dark'] .rewrite-actions button,
+html[data-theme='dark'] .variation-row button,
+html[data-theme='dark'] .brief-polish-row button {
+  background: #223128;
+  border-color: #4b6154;
+  color: var(--dm-text-2);
+}
+
+html[data-theme='dark'] .rewrite-actions button:hover,
+html[data-theme='dark'] .variation-row button:hover,
+html[data-theme='dark'] .brief-polish-row button:hover,
+html[data-theme='dark'] .rewrite-actions button.active,
+html[data-theme='dark'] .variation-row button.active {
+  background: #304238;
+  border-color: #73907f;
+  color: #ffffff;
+}
+
+/* Status pills use bright text on dark surfaces, never dark-on-dark */
+html[data-theme='dark'] .status-pill,
+html[data-theme='dark'] .source-count,
+html[data-theme='dark'] .core7-inline-status,
+html[data-theme='dark'] .verified-label {
+  background: #24332b;
+  border-color: #4b6456;
+  color: var(--dm-mint);
+}
+
+html[data-theme='dark'] .status-pill.approved,
+html[data-theme='dark'] .status-pill.connected,
+html[data-theme='dark'] .status-pill.ready,
+html[data-theme='dark'] .status-pill.published,
+html[data-theme='dark'] .status-pill.imported-snapshot {
+  background: #294033;
+  border-color: #5b8069;
+  color: #def4e6;
+}
+
+html[data-theme='dark'] .status-pill.review,
+html[data-theme='dark'] .status-pill.human-review-required,
+html[data-theme='dark'] .status-pill.partial-sync,
+html[data-theme='dark'] .status-pill.reference-count {
+  background: #39352a;
+  border-color: #6f654e;
+  color: #f7e4b5;
+}
+
+/* Analytics source table */
+html[data-theme='dark'] .source-table-panel {
+  background: #17211c;
+}
+
+html[data-theme='dark'] .source-table {
+  overflow: hidden;
+  border: 1px solid #53675c;
+  border-radius: 14px;
+  background: #18231d;
+}
+
+html[data-theme='dark'] .source-row {
+  background: #1b2721;
+  border-color: #4b5f54;
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .source-row:nth-child(odd):not(.header) {
+  background: #1e2b24;
+}
+
+html[data-theme='dark'] .source-row.header {
+  background: #26362d;
+  color: var(--dm-mint);
+}
+
+html[data-theme='dark'] .source-row.header span {
+  color: var(--dm-mint);
+  font-weight: 800;
+}
+
+html[data-theme='dark'] .source-row:not(.header) > span {
+  color: var(--dm-text-2);
+}
+
+/* Notice banners */
+html[data-theme='dark'] .analytics-notice,
+html[data-theme='dark'] .source-notice {
+  background: #2a3028;
+  border-color: #6b745f;
+  color: var(--dm-cream);
+}
+
+html[data-theme='dark'] .analytics-notice svg,
+html[data-theme='dark'] .source-notice svg {
+  color: var(--dm-gold);
+}
+
+html[data-theme='dark'] .analytics-notice strong,
+html[data-theme='dark'] .source-notice strong {
+  color: var(--dm-cream);
+}
+
+html[data-theme='dark'] .analytics-notice p,
+html[data-theme='dark'] .source-notice p {
+  color: #eadfd2;
+}
+
+/* Phase 2 data rule banner */
+html[data-theme='dark'] .phase2-footnote {
+  background: #303229;
+  border: 1px solid #625f4d;
+  color: #ffe4c8;
+}
+
+html[data-theme='dark'] .phase2-footnote strong {
+  color: #fff1df;
+}
+
+/* System Mode: brighten labels, descriptions and status badges */
+html[data-theme='dark'] .core7-system-panel {
+  background: #17211c;
+  border-color: #43584d;
+}
+
+html[data-theme='dark'] .core7-system-list article {
+  background: transparent;
+  border-color: rgba(207, 232, 216, 0.12);
+}
+
+html[data-theme='dark'] .core7-system-list article > div > strong {
+  color: #f6faf7;
+}
+
+html[data-theme='dark'] .core7-system-list article > div > p {
+  color: #d1ded6;
+}
+
+html[data-theme='dark'] .core7-system-list article > span {
+  background: #284034;
+  border: 1px solid #567864;
+  color: #dff5e7;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .core7-system-panel .core7-inline-status {
+  background: #24372d;
+  border-color: #587362;
+  color: #e9f6ed;
+}
+
+/* General settings rows */
+html[data-theme='dark'] .setting-row,
+html[data-theme='dark'] .connections-list article,
+html[data-theme='dark'] .cloud-session,
+html[data-theme='dark'] .logo-pending {
+  border-color: rgba(207, 232, 216, 0.14);
+}
+
+html[data-theme='dark'] .setting-row strong,
+html[data-theme='dark'] .connections-list strong,
+html[data-theme='dark'] .cloud-session strong,
+html[data-theme='dark'] .logo-pending strong {
+  color: var(--dm-text);
+}
+
+html[data-theme='dark'] .setting-row p,
+html[data-theme='dark'] .connections-list p,
+html[data-theme='dark'] .cloud-session p,
+html[data-theme='dark'] .logo-pending p {
+  color: var(--dm-text-2);
+}
+
+/* Buttons stay readable in both filled and outlined states */
+html[data-theme='dark'] .button.secondary,
+html[data-theme='dark'] .button.ghost-light {
+  background: #223129;
+  border-color: #63786c;
+  color: #f3f7f4;
+}
+
+html[data-theme='dark'] .button.secondary:hover,
+html[data-theme='dark'] .button.ghost-light:hover {
+  background: #304139;
+  border-color: #8ba697;
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .button.primary {
+  background: #dceadf;
+  color: #102118;
+}
+
+html[data-theme='dark'] .button.primary:hover {
+  background: #c9dfd0;
+}
+
+/* Ensure cards and text remain clear on smaller screens */
+@media (max-width: 760px) {
+  html[data-theme='dark'] .generator-output,
+  html[data-theme='dark'] .source-table-panel,
+  html[data-theme='dark'] .core7-system-panel {
+    border-color: #566b5f;
+  }
+
+  html[data-theme='dark'] .source-table {
+    overflow-x: auto;
+  }
+
+  html[data-theme='dark'] .source-row {
+    min-width: 620px;
+  }
+}
