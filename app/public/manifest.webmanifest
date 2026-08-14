@@ -12,15 +12,15 @@
   "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "icons/brutti-app-icon-192.svg",
+      "src": "https://drive.google.com/thumbnail?id=1NyserkCTmZYybJWH6bptPubwdDHljDK3&sz=w192",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "icons/brutti-app-icon-512.svg",
+      "src": "https://drive.google.com/thumbnail?id=1NyserkCTmZYybJWH6bptPubwdDHljDK3&sz=w512",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ]
