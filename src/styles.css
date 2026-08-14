@@ -192,6 +192,11 @@ input:focus, select:focus, textarea:focus { border-color: #98a69e; outline: 3px 
 .two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .checkbox-row { flex-direction: row; align-items: center; gap: 8px; margin: 5px 0 15px !important; font-weight: 500; }
 .checkbox-row input { width: 15px; min-height: 15px; accent-color: var(--forest); }
+.brief-polish-row { display: flex; align-items: center; gap: 7px; margin: -5px 0 13px; flex-wrap: wrap; }
+.brief-polish-row button { display: inline-flex; align-items: center; gap: 5px; padding: 7px 10px; border: 1px solid #cbd8cd; border-radius: 8px; color: var(--forest); background: #f2f6f2; cursor: pointer; font-size: 8px; font-weight: 700; }
+.brief-polish-row button:hover { border-color: var(--forest); background: #e7efe8; }
+.brief-polish-row button.undo { color: #7a6657; border-color: #ddd3ca; background: #faf7f3; }
+.brief-polish-row span { margin-left: auto; color: #949995; font-size: 7px; }
 .form-disclaimer { margin: 11px 0 0; display: flex; align-items: flex-start; gap: 6px; color: #969a96; font-size: 8px; line-height: 1.45; }
 .assist-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-top: 14px; }
 .assist-steps span { display: flex; align-items: center; gap: 5px; padding: 7px; border: 1px solid #e5e4de; border-radius: 8px; color: #707671; background: #faf9f5; font-size: 7px; line-height: 1.35; }
