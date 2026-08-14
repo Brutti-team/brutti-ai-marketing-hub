@@ -3,6 +3,14 @@ const PLANNER_SHEET = 'Daily Planner';
 const LOG_SHEET = 'Integration Log';
 const PRODUCT_SHEET = 'Product Library';
 
+const BRUTTI_RESOURCE_IDS = {
+  plannerSpreadsheet: '10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ',
+  driveRootFolder: '1V3AIjXMqIWU5mi6tG2m4UzDGv1rhBqgO',
+  driveAssetFolder: '17klllaMxznv8IiRUwggEVUsbQ_qcSNFU',
+  notionProductPage: '3b35a38f-1fa4-8034-bfc4-f9fad18eed8b',
+  notionPlannerDatabase: 'aa9bba50-17fd-4d27-9bbb-82a2247424d4'
+};
+
 const CONTENT_HEADERS = [
   'ID', 'Title', 'Platform', 'Content Type', 'Product', 'Language', 'Tone',
   'AI Review', 'Stage', 'Updated At', 'Content', 'Approved At',
@@ -40,6 +48,8 @@ function doPost(e) {
     const payload = request.payload || {};
     const handlers = {
       integration_status: integrationStatus_,
+      test_integrations: testIntegrations_,
+      configure_resources: configureKnownResources_,
       load_workspace: loadWorkspace_,
       save_content: () => saveContent_(payload.item),
       delete_content: () => deleteContent_(payload.id),
@@ -59,23 +69,30 @@ function doPost(e) {
 }
 
 function setupBruttiWorkspace() {
+  applyKnownResourceDefaults_();
   const spreadsheet = plannerSpreadsheet_();
   ensureSheet_(spreadsheet, CONTENT_SHEET, CONTENT_HEADERS);
   ensureSheet_(spreadsheet, PLANNER_SHEET, PLANNER_HEADERS);
   ensureSheet_(spreadsheet, LOG_SHEET, LOG_HEADERS);
   ensureSheet_(spreadsheet, PRODUCT_SHEET, PRODUCT_HEADERS);
-  return 'BRUTTI Google workspace is ready: ' + spreadsheet.getUrl();
+  const tests = testIntegrations_();
+  return JSON.stringify({
+    message: 'BRUTTI Google workspace setup completed.',
+    spreadsheetUrl: spreadsheet.getUrl(),
+    integrations: tests
+  });
 }
 
 function integrationStatus_() {
+  const tests = testIntegrations_();
   const properties = scriptProperties_();
-  const notionToken = properties.getProperty('NOTION_TOKEN');
   return {
     appsScript: true,
-    sheets: Boolean(properties.getProperty('PLANNER_SPREADSHEET_ID')),
-    drive: Boolean(properties.getProperty('DRIVE_FOLDER_ID')),
-    notion: Boolean(notionToken && (properties.getProperty('NOTION_PRODUCT_PAGE_ID') || properties.getProperty('NOTION_DAILY_PLANNER_DATABASE_ID'))),
-    meta: Boolean(properties.getProperty('META_PAGE_ID') && properties.getProperty('META_PAGE_ACCESS_TOKEN') && properties.getProperty('META_GRAPH_VERSION'))
+    sheets: Boolean(tests.sheets && tests.sheets.connected),
+    drive: Boolean(tests.drive && tests.drive.connected),
+    notion: Boolean(tests.notion && tests.notion.connected),
+    meta: Boolean(properties.getProperty('META_PAGE_ID') && properties.getProperty('META_PAGE_ACCESS_TOKEN') && properties.getProperty('META_GRAPH_VERSION')),
+    details: tests
   };
 }
 
@@ -201,14 +218,152 @@ function deletePlan_(id) {
   });
 }
 
+function applyKnownResourceDefaults_() {
+  const properties = scriptProperties_();
+  const current = properties.getProperties();
+  const defaults = {
+    PLANNER_SPREADSHEET_ID: BRUTTI_RESOURCE_IDS.plannerSpreadsheet,
+    DRIVE_ROOT_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveRootFolder,
+    DRIVE_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveRootFolder,
+    DRIVE_ASSET_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveAssetFolder,
+    NOTION_PRODUCT_PAGE_ID: BRUTTI_RESOURCE_IDS.notionProductPage,
+    NOTION_DAILY_PLANNER_DATABASE_ID: BRUTTI_RESOURCE_IDS.notionPlannerDatabase
+  };
+  const missing = {};
+  Object.keys(defaults).forEach(key => {
+    if (!current[key]) missing[key] = defaults[key];
+  });
+  if (Object.keys(missing).length) properties.setProperties(missing, false);
+  return missing;
+}
+
+function configureKnownResources_() {
+  const properties = scriptProperties_();
+  properties.setProperties({
+    PLANNER_SPREADSHEET_ID: BRUTTI_RESOURCE_IDS.plannerSpreadsheet,
+    DRIVE_ROOT_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveRootFolder,
+    DRIVE_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveRootFolder,
+    DRIVE_ASSET_FOLDER_ID: BRUTTI_RESOURCE_IDS.driveAssetFolder,
+    NOTION_PRODUCT_PAGE_ID: BRUTTI_RESOURCE_IDS.notionProductPage,
+    NOTION_DAILY_PLANNER_DATABASE_ID: BRUTTI_RESOURCE_IDS.notionPlannerDatabase
+  }, false);
+  return testIntegrations_();
+}
+
+function testIntegrations_() {
+  applyKnownResourceDefaults_();
+  const properties = scriptProperties_();
+  const result = {
+    checkedAt: new Date().toISOString(),
+    sheets: { connected: false, configured: false },
+    drive: { connected: false, configured: false },
+    notion: { connected: false, configured: false }
+  };
+
+  const spreadsheetId = properties.getProperty('PLANNER_SPREADSHEET_ID');
+  result.sheets.configured = Boolean(spreadsheetId);
+  if (spreadsheetId) {
+    try {
+      const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+      const requiredTabs = [PLANNER_SHEET, CONTENT_SHEET, LOG_SHEET];
+      const existingTabs = spreadsheet.getSheets().map(sheet => sheet.getName());
+      const missingTabs = requiredTabs.filter(name => existingTabs.indexOf(name) < 0);
+      result.sheets = {
+        connected: missingTabs.length === 0,
+        configured: true,
+        id: spreadsheetId,
+        name: spreadsheet.getName(),
+        url: spreadsheet.getUrl(),
+        tabs: existingTabs,
+        missingTabs: missingTabs
+      };
+    } catch (error) {
+      result.sheets.error = error.message;
+    }
+  }
+
+  const rootId = properties.getProperty('DRIVE_ROOT_FOLDER_ID') || properties.getProperty('DRIVE_FOLDER_ID');
+  const assetId = properties.getProperty('DRIVE_ASSET_FOLDER_ID');
+  result.drive.configured = Boolean(rootId && assetId);
+  if (rootId && assetId) {
+    try {
+      const root = DriveApp.getFolderById(rootId);
+      const assets = DriveApp.getFolderById(assetId);
+      const files = assets.getFiles();
+      let assetCount = 0;
+      let imageCount = 0;
+      while (files.hasNext() && assetCount < 250) {
+        const file = files.next();
+        assetCount += 1;
+        if (String(file.getMimeType()).indexOf('image/') === 0) imageCount += 1;
+      }
+      result.drive = {
+        connected: true,
+        configured: true,
+        rootId: rootId,
+        rootName: root.getName(),
+        assetFolderId: assetId,
+        assetFolderName: assets.getName(),
+        directAssetFiles: assetCount,
+        directImageFiles: imageCount
+      };
+    } catch (error) {
+      result.drive.error = error.message;
+    }
+  }
+
+  const notionToken = properties.getProperty('NOTION_TOKEN');
+  const productPageId = properties.getProperty('NOTION_PRODUCT_PAGE_ID');
+  const plannerDatabaseId = properties.getProperty('NOTION_DAILY_PLANNER_DATABASE_ID');
+  result.notion.configured = Boolean(notionToken && productPageId && plannerDatabaseId);
+  result.notion.resourceIdsConfigured = Boolean(productPageId && plannerDatabaseId);
+  result.notion.tokenConfigured = Boolean(notionToken);
+  if (notionToken && productPageId && plannerDatabaseId) {
+    try {
+      const productPage = notionRequest_('/v1/pages/' + encodeURIComponent(productPageId), 'get');
+      const plannerDatabase = notionRequest_('/v1/databases/' + encodeURIComponent(plannerDatabaseId), 'get');
+      result.notion = {
+        connected: true,
+        configured: true,
+        tokenConfigured: true,
+        resourceIdsConfigured: true,
+        productPageId: productPageId,
+        productPageTitle: notionApiTitle_(productPage),
+        plannerDatabaseId: plannerDatabaseId,
+        plannerDatabaseTitle: notionApiTitle_(plannerDatabase)
+      };
+    } catch (error) {
+      result.notion.error = error.message;
+    }
+  } else if (!notionToken) {
+    result.notion.error = 'NOTION_TOKEN is not configured in Apps Script Properties.';
+  }
+
+  result.ready = Boolean(result.sheets.connected && result.drive.connected && result.notion.connected);
+  return result;
+}
+
+function notionApiTitle_(entity) {
+  try {
+    const properties = entity && entity.properties ? entity.properties : {};
+    const titleProperty = Object.keys(properties).map(key => properties[key]).find(prop => prop && prop.type === 'title');
+    if (titleProperty && titleProperty.title) return titleProperty.title.map(item => item.plain_text || '').join('').trim();
+    if (entity && entity.title) return entity.title.map(item => item.plain_text || '').join('').trim();
+  } catch (ignored) {}
+  return '';
+}
+
 function listDriveAssets_() {
-  const folderId = scriptProperties_().getProperty('DRIVE_FOLDER_ID');
-  if (!folderId) throw new Error('DRIVE_FOLDER_ID is not configured in Apps Script Properties.');
+  applyKnownResourceDefaults_();
+  const properties = scriptProperties_();
+  const folderId = properties.getProperty('DRIVE_ASSET_FOLDER_ID') || properties.getProperty('DRIVE_FOLDER_ID');
+  if (!folderId) throw new Error('DRIVE_ASSET_FOLDER_ID is not configured in Apps Script Properties.');
   const folder = DriveApp.getFolderById(folderId);
   const iterator = folder.getFiles();
   const files = [];
   while (iterator.hasNext() && files.length < 100) {
     const file = iterator.next();
+    if (String(file.getMimeType()).indexOf('image/') !== 0) continue;
     files.push({
       id: file.getId(),
       name: file.getName(),
@@ -217,7 +372,7 @@ function listDriveAssets_() {
       updatedAt: file.getLastUpdated().toISOString()
     });
   }
-  return { files: files, folderName: folder.getName() };
+  return { files: files, folderName: folder.getName(), folderId: folderId };
 }
 
 function publishMeta_(contentId) {
@@ -494,6 +649,7 @@ function rateLimit_() {
 }
 
 function plannerSpreadsheet_() {
+  applyKnownResourceDefaults_();
   const id = scriptProperties_().getProperty('PLANNER_SPREADSHEET_ID');
   if (!id) throw new Error('PLANNER_SPREADSHEET_ID is not configured in Apps Script Properties.');
   return SpreadsheetApp.openById(id);
