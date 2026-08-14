@@ -6,10 +6,10 @@ const PENDING_KEY = 'brutti-pending-product-image'
 const productImages = [
   {
     product: 'AHTAM XL Shelving Rack',
-    fileId: '1Yx8Kpyg2nCz95H2RHB7WaHsE5AYp0I4o',
+    fileId: '1ZdI0nH5DBHLVlnAUu_Nygdo_yvm9WTrz',
     fileName: 'AHTAM-XL-Shelving-Rack.jpg',
     view: 'Front View',
-    driveLink: 'https://drive.google.com/file/d/1Yx8Kpyg2nCz95H2RHB7WaHsE5AYp0I4o/view',
+    driveLink: 'https://drive.google.com/file/d/1ZdI0nH5DBHLVlnAUu_Nygdo_yvm9WTrz/view',
   },
   {
     product: 'LOFT BED',
@@ -20,10 +20,10 @@ const productImages = [
   },
   {
     product: 'BARN DOOR',
-    fileId: '136PMp-Ds5cRHqiKEh6wFKlSXU3gGP1iI',
+    fileId: '13MyKl4WBrUhPU00s4kAnb2siKBNFsFxb',
     fileName: 'BARN-DOOR.jpg',
     view: 'Front View',
-    driveLink: 'https://drive.google.com/file/d/136PMp-Ds5cRHqiKEh6wFKlSXU3gGP1iI/view',
+    driveLink: 'https://drive.google.com/file/d/13MyKl4WBrUhPU00s4kAnb2siKBNFsFxb/view',
   },
   {
     product: 'DAY BED',
@@ -34,17 +34,17 @@ const productImages = [
   },
   {
     product: 'PULOUDOPUAN 2.0 Kitchen Island',
-    fileId: '1UMGyjVdNxfqIQkUqOe_WOIbFj8hjJGvE',
+    fileId: '1nCo8zDhFincpQTnGU2APFRi9O8B0ab7k',
     fileName: 'PULOUDOPUAN-2-Kitchen-Island.jpg',
     view: 'Side / End View',
-    driveLink: 'https://drive.google.com/file/d/1UMGyjVdNxfqIQkUqOe_WOIbFj8hjJGvE/view',
+    driveLink: 'https://drive.google.com/file/d/1nCo8zDhFincpQTnGU2APFRi9O8B0ab7k/view',
   },
   {
     product: 'AYYASH Wall Rack',
-    fileId: '1WZ_YfJpiA-HLU5irvml4jnKqWDjHZMYn',
+    fileId: '1wbB4ixz8plt26C_dYN3WlWiYSdLF8Yjv',
     fileName: 'AYYASH-Wall-Rack.jpg',
     view: 'Front View',
-    driveLink: 'https://drive.google.com/file/d/1WZ_YfJpiA-HLU5irvml4jnKqWDjHZMYn/view',
+    driveLink: 'https://drive.google.com/file/d/1wbB4ixz8plt26C_dYN3WlWiYSdLF8Yjv/view',
   },
   {
     product: 'Dangsanak Table',
@@ -159,7 +159,8 @@ function enhanceProductCards(page) {
     }
 
     const badge = visual.querySelector('.photo-status')
-    if (badge) badge.textContent = `${mapping.view} · Confirmed`
+    const badgeText = `${mapping.view} · Confirmed`
+    if (badge && badge.textContent !== badgeText) badge.textContent = badgeText
 
     const createButton = [...card.querySelectorAll('button')]
       .find((button) => /create product content/i.test(button.textContent || ''))
@@ -168,7 +169,7 @@ function enhanceProductCards(page) {
 }
 
 function productSelectOn(page) {
-  return [...page.querySelectorAll('label')]
+  return [...document.querySelectorAll('label')]
     .find((label) => /^Product/i.test(label.textContent || ''))
     ?.querySelector('select') || null
 }
@@ -315,7 +316,7 @@ export default function ProductImageEnhancer() {
 
     sync()
     const observer = new MutationObserver(sync)
-    observer.observe(root, { childList: true, subtree: true, characterData: true })
+    observer.observe(root, { childList: true, subtree: true })
     return () => observer.disconnect()
   }, [])
 
