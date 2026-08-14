@@ -11,6 +11,7 @@ import './phase3-ranking.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
 import './accessibility-theme.css'
+import './dark-contrast-fix.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
