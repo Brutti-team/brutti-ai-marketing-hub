@@ -7,7 +7,8 @@
 .campaign-section,
 .plan-list-section,
 .phase2-audit-panel,
-.phase3-ranking-panel {
+.phase3-ranking-panel,
+.workspace-readiness-panel {
   padding: 22px 24px;
 }
 
@@ -21,7 +22,8 @@
 .core7-system-panel .panel-heading,
 .core7-drive-required .panel-heading,
 .phase2-audit-head,
-.phase3-ranking-head {
+.phase3-ranking-head,
+.workspace-readiness-heading {
   align-items: flex-start;
 }
 
@@ -61,7 +63,8 @@
 .phase2-audit-head p,
 .phase3-ranking-head p,
 .campaign-list p,
-.compact-plan-list small {
+.compact-plan-list small,
+.workspace-readiness-copy {
   font-size: 0.84rem;
   line-height: 1.62;
 }
@@ -340,6 +343,51 @@
   border-radius: 14px;
 }
 
+.workspace-readiness-panel {
+  margin-top: 24px;
+  border-radius: 18px;
+}
+
+.workspace-readiness-heading {
+  gap: 22px;
+  margin-bottom: 0;
+}
+
+.workspace-readiness-heading > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspace-readiness-heading h3 {
+  margin: 5px 0 0;
+  line-height: 1.28;
+}
+
+.workspace-readiness-copy {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.workspace-readiness-run {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 160px;
+  white-space: nowrap;
+}
+
+.workspace-readiness-result {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(168, 181, 162, 0.08);
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.58;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 1180px) {
   .core7-brand-grid,
   .core7-prompt-grid,
@@ -372,7 +420,8 @@
   .campaign-section,
   .plan-list-section,
   .phase2-audit-panel,
-  .phase3-ranking-panel {
+  .phase3-ranking-panel,
+  .workspace-readiness-panel {
     padding: 18px;
   }
 
@@ -409,5 +458,14 @@
     grid-column: 1 / -1;
     width: fit-content;
     margin-top: 6px;
+  }
+
+  .workspace-readiness-heading {
+    flex-direction: column;
+  }
+
+  .workspace-readiness-run {
+    width: 100%;
+    min-width: 0;
   }
 }
