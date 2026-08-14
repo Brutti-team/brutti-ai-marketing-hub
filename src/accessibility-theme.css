@@ -1,0 +1,549 @@
+/* Readability + theme layer. Loaded last so it improves the existing UI without changing features. */
+
+:root {
+  --readable-font: 'Manrope', 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --readable-body: 15px;
+  --readable-small: 12.5px;
+  --readable-label: 13px;
+  --readable-control: 14px;
+  --readable-weight: 500;
+}
+
+html {
+  font-size: 16px;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--readable-font);
+}
+
+body {
+  font-size: var(--readable-body);
+  font-weight: var(--readable-weight);
+  line-height: 1.58;
+  letter-spacing: 0;
+}
+
+/* Stronger, more readable UI type */
+.page,
+.modal,
+.sidebar,
+.topbar {
+  font-weight: 500;
+}
+
+.page-header h1,
+.hero-content h2,
+.brand-hero h2 {
+  font-weight: 700;
+}
+
+.page-header h1 {
+  font-size: clamp(34px, 3vw, 44px);
+  line-height: 1.08;
+}
+
+.page-header p {
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 760px;
+}
+
+.eyebrow,
+.workspace-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.panel-heading h3,
+.form-section-head strong,
+.smart-rewrite-head strong {
+  font-weight: 750;
+}
+
+.panel-heading h3 {
+  font-size: 18px;
+}
+
+.page p,
+.page li,
+.page blockquote,
+.settings-copy,
+.source-notice p,
+.analytics-notice p,
+.core7-section-copy,
+.core7-brand-grid article p,
+.core7-prompt-grid article p,
+.core7-drive-required p,
+.core7-system-list p,
+.phase2-audit-head p,
+.phase3-ranking-head p,
+.phase3-item p,
+.phase2-card li,
+.phase2-footnote,
+.phase3-note {
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+label {
+  font-size: var(--readable-label);
+  font-weight: 650;
+}
+
+input,
+select,
+textarea {
+  min-height: 42px;
+  font-size: var(--readable-control);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+textarea {
+  min-height: 108px;
+}
+
+.button,
+.text-button,
+.tab-bar button,
+.rewrite-actions button,
+.variation-row button,
+.brief-polish-row button,
+.asset-use-button,
+.row-actions button,
+.delete-plan {
+  font-size: 12.5px;
+  font-weight: 750;
+}
+
+.button {
+  min-height: 42px;
+  padding-inline: 16px;
+}
+
+.button.small {
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.nav-link {
+  min-height: 46px;
+  height: auto;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.nav-link em,
+.status-chip,
+.status-pill,
+.source-count,
+.core7-inline-status,
+.phase2-status,
+.phase3-status,
+.verified-label,
+.photo-status {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.topbar-date {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.logo-lockup strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.logo-lockup small,
+.system-card p,
+.tagline {
+  font-size: 11px;
+}
+
+.system-card-head strong {
+  font-size: 12px;
+}
+
+.hero-label {
+  font-size: 11px;
+}
+
+.hero-content p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.stat-card span,
+.stat-card small,
+.calendar-item small,
+.calendar-item span,
+.campaign-list small,
+.compact-plan-list small,
+.product-card-body > div > span,
+.product-card-body p,
+.asset-grid p,
+.prompt-section-head p,
+.source-row,
+.content-table,
+.form-disclaimer,
+.save-location,
+.assist-steps,
+.content-meta {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stat-card strong {
+  font-size: 26px;
+}
+
+.calendar-item strong,
+.campaign-list strong,
+.compact-plan-list strong,
+.product-card-body h3,
+.asset-grid strong,
+.prompt-grid h4,
+.core7-prompt-grid article strong,
+.core7-brand-grid article strong,
+.phase3-item > div strong {
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.calendar-day-head span,
+.calendar-day-head strong,
+.compact-plan-list time,
+.campaign-index,
+.phase2-card-label,
+.phase3-group-head span,
+.phase3-group-head small,
+.phase3-item > div span,
+.core7-prompt-group-head span {
+  font-size: 12px;
+}
+
+.phase3-group-head strong,
+.phase2-mix strong {
+  font-size: 19px;
+}
+
+.phase2-rules span,
+.phase2-mix span,
+.phase2-pillars span,
+.phase3-criteria span,
+.core7-prompt-group-head strong,
+.core7-system-list article > div > strong {
+  font-size: 13.5px;
+}
+
+/* Light / dark segmented control */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.theme-toggle button {
+  min-height: 31px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.theme-toggle button.active {
+  color: var(--forest);
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(18, 55, 42, 0.09);
+}
+
+.theme-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(32, 37, 34, 0.18);
+}
+
+.theme-dot-light {
+  background: #f3c766;
+}
+
+.theme-dot-dark {
+  background: #24322b;
+}
+
+/* Dark mode tokens */
+html[data-theme='dark'] {
+  --forest: #d8eadf;
+  --forest-2: #bad5c4;
+  --forest-3: #95b8a2;
+  --ivory: #101512;
+  --cream: #151b17;
+  --paper: #1a211d;
+  --terracotta: #e29270;
+  --charcoal: #f1f4f0;
+  --sage: #8fa89a;
+  --tan: #d0a17e;
+  --brown: #d9b9a7;
+  --muted: #bdc6c0;
+  --line: #354039;
+  --line-dark: rgba(255, 255, 255, 0.12);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 16px 34px rgba(0, 0, 0, 0.2);
+  color-scheme: dark;
+}
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] .app-shell,
+html[data-theme='dark'] .app-main {
+  background: var(--ivory);
+  color: var(--charcoal);
+}
+
+html[data-theme='dark'] .topbar {
+  background: rgba(16, 21, 18, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='dark'] .sidebar {
+  background: #0b2119;
+  box-shadow: 2px 0 28px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme='dark'] .panel,
+html[data-theme='dark'] .stat-card,
+html[data-theme='dark'] .product-card,
+html[data-theme='dark'] .asset-grid article,
+html[data-theme='dark'] .prompt-grid article,
+html[data-theme='dark'] .core7-brand-grid article,
+html[data-theme='dark'] .core7-prompt-grid article,
+html[data-theme='dark'] .compact-plan-list > div,
+html[data-theme='dark'] .phase2-card,
+html[data-theme='dark'] .phase2-rules span,
+html[data-theme='dark'] .phase2-mix div,
+html[data-theme='dark'] .phase3-criteria span,
+html[data-theme='dark'] .phase3-group,
+html[data-theme='dark'] .core7-prompt-groups > section,
+html[data-theme='dark'] .core7-drive-required,
+html[data-theme='dark'] .modal {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--charcoal);
+}
+
+html[data-theme='dark'] .core7-prompt-groups > section,
+html[data-theme='dark'] .core7-brand-grid article,
+html[data-theme='dark'] .core7-drive-required {
+  background: linear-gradient(180deg, #1c241f, #171e1a);
+}
+
+html[data-theme='dark'] .page-header p,
+html[data-theme='dark'] .page p,
+html[data-theme='dark'] .page li,
+html[data-theme='dark'] .settings-copy,
+html[data-theme='dark'] .core7-section-copy,
+html[data-theme='dark'] .core7-brand-grid article p,
+html[data-theme='dark'] .core7-prompt-grid article p,
+html[data-theme='dark'] .core7-drive-required p,
+html[data-theme='dark'] .core7-system-list p,
+html[data-theme='dark'] .phase2-audit-head p,
+html[data-theme='dark'] .phase3-ranking-head p,
+html[data-theme='dark'] .phase3-item p,
+html[data-theme='dark'] .phase2-card li,
+html[data-theme='dark'] .source-row,
+html[data-theme='dark'] .content-table,
+html[data-theme='dark'] .save-location {
+  color: var(--muted);
+}
+
+html[data-theme='dark'] .eyebrow,
+html[data-theme='dark'] .topbar-date,
+html[data-theme='dark'] .core7-prompt-group-head span,
+html[data-theme='dark'] .phase3-group-head small {
+  color: #aab5ae;
+}
+
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] .search-box,
+html[data-theme='dark'] .product-toolbar,
+html[data-theme='dark'] .library-toolbar,
+html[data-theme='dark'] .tab-bar,
+html[data-theme='dark'] .smart-rewrite-panel,
+html[data-theme='dark'] .selected-asset {
+  background: #151c18;
+  color: var(--charcoal);
+  border-color: var(--line);
+}
+
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: #7e8b83;
+}
+
+html[data-theme='dark'] .button.secondary,
+html[data-theme='dark'] .source-count,
+html[data-theme='dark'] .status-chip,
+html[data-theme='dark'] .status-pill,
+html[data-theme='dark'] .core7-inline-status,
+html[data-theme='dark'] .phase2-status,
+html[data-theme='dark'] .phase3-status {
+  background: #202923;
+  border-color: #3a463f;
+  color: #e7eee9;
+}
+
+html[data-theme='dark'] .button.primary {
+  background: #dce9e0;
+  color: #102218;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .button.primary:hover {
+  background: #c7dccd;
+}
+
+html[data-theme='dark'] .text-button,
+html[data-theme='dark'] .core7-prompt-group-head strong,
+html[data-theme='dark'] .phase2-card-label,
+html[data-theme='dark'] .phase3-group-head span,
+html[data-theme='dark'] .phase3-item > div span {
+  color: #bcd8c6;
+}
+
+html[data-theme='dark'] .status-chip.local,
+html[data-theme='dark'] .status-chip.connected {
+  background: #1d3026;
+  color: #c3e1cf;
+  border-color: #355343;
+}
+
+html[data-theme='dark'] .status-chip.pending,
+html[data-theme='dark'] .source-notice,
+html[data-theme='dark'] .analytics-notice {
+  background: #34241d;
+  color: #f0c5b2;
+  border-color: #624535;
+}
+
+html[data-theme='dark'] .source-notice p,
+html[data-theme='dark'] .analytics-notice p {
+  color: #d9b9aa;
+}
+
+html[data-theme='dark'] .calendar-day,
+html[data-theme='dark'] .calendar-day-head,
+html[data-theme='dark'] .calendar-item,
+html[data-theme='dark'] .add-day {
+  border-color: var(--line);
+}
+
+html[data-theme='dark'] .calendar-day-head,
+html[data-theme='dark'] .calendar-item,
+html[data-theme='dark'] .add-day {
+  background: #171e1a;
+  color: var(--charcoal);
+}
+
+html[data-theme='dark'] .calendar-item.review {
+  background: #2b211c;
+}
+
+html[data-theme='dark'] .calendar-item.scheduled {
+  background: #19251e;
+}
+
+html[data-theme='dark'] .campaign-list article,
+html[data-theme='dark'] .compact-plan-list > div,
+html[data-theme='dark'] .phase3-item,
+html[data-theme='dark'] .phase3-group-head,
+html[data-theme='dark'] .core7-system-list article,
+html[data-theme='dark'] .check-list li,
+html[data-theme='dark'] .avoid-list li {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='dark'] .phase2-footnote {
+  background: rgba(208, 161, 126, 0.13);
+  color: #dfc5b4;
+}
+
+html[data-theme='dark'] .phase3-note {
+  background: rgba(143, 168, 154, 0.13);
+  color: #c7d4cc;
+}
+
+html[data-theme='dark'] .product-visual,
+html[data-theme='dark'] .asset-preview {
+  filter: brightness(0.72) saturate(0.82);
+}
+
+html[data-theme='dark'] .photo-status {
+  background: rgba(20, 28, 23, 0.86);
+  color: #e3ebe5;
+}
+
+html[data-theme='dark'] .theme-toggle {
+  background: #141b17;
+  border-color: #354039;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .theme-toggle button {
+  color: #aeb8b1;
+}
+
+html[data-theme='dark'] .theme-toggle button.active {
+  background: #29342d;
+  color: #f3f5f2;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .theme-dot {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --readable-body: 15px;
+    --readable-control: 16px;
+  }
+
+  .topbar-status {
+    gap: 8px;
+  }
+
+  .theme-toggle button {
+    min-width: 38px;
+    padding: 0 8px;
+    font-size: 0;
+  }
+
+  .theme-toggle button .theme-dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 32px;
+  }
+}
