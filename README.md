@@ -18,7 +18,7 @@ Google remains the operational source of truth:
 
 - **Google Sheets** stores Content Library, Daily Planner and Integration Log records.
 - **Google Drive** stores approved logos, photos, source exports and brand assets.
-- **Google Apps Script** protects the workspace key and runs Drive, Sheets and eventual Meta API actions.
+- **Google Apps Script** protects the workspace key and runs Drive, Sheets, optional Notion sync and Meta publishing actions.
 - **GitHub Pages** displays the website only; it never receives private API keys.
 
 Free Smart Rewrite is deterministic rather than generative AI: it combines verified facts with controlled BRUTTI Facebook writing patterns. This keeps the workflow free and consistent, while human review remains the final approval step.
@@ -26,10 +26,10 @@ Free Smart Rewrite is deterministic rather than generative AI: it combines verif
 ## Included workflow
 
 - Content Studio with free structured drafts, internal Smart Rewrite controls, three caption variations and Brutti style checks
-- Content Library with Edit, Approve, Reject and approval-gated Facebook publishing
+- Content Library with Edit, Approve, Reject and approval-gated Facebook text/photo publishing
 - Review pipeline: Idea → Draft → Review → Approved → Scheduled → Published → Archived
-- Campaign Planner with add, edit and delete controls
-- Brand, Product and Google Drive asset libraries
+- Dynamic weekly Campaign Planner with current-week navigation, add/edit/delete controls and optional direct Notion sync
+- Brand, Product and Google Drive asset libraries, including secure Notion product import and Drive visual attachment
 - AI Prompt Library for writing, video, customer service and creative tasks
 - Verified Facebook activity snapshot without fabricated Meta KPI
 - Session-only internal workspace key; it is never committed or built into the site
@@ -47,6 +47,9 @@ The backend source is in `apps-script/Code.gs` and `apps-script/appsscript.json`
    - `WORKSPACE_KEY` — a long random internal key shared only with approved staff
    - `PLANNER_SPREADSHEET_ID` — spreadsheet ID for `BRUTTI DAILY CONTENT PLANNER`
    - `DRIVE_FOLDER_ID` — folder ID for the approved BRUTTI asset folder
+   - `NOTION_TOKEN` — optional; secret integration token for direct Product/Planner sync
+   - `NOTION_PRODUCT_PAGE_ID` — optional; Notion page containing the 2.1 Product Database table
+   - `NOTION_DAILY_PLANNER_DATABASE_ID` — optional; BRUTTI DAILY CONTENT PLANNER database ID
    - `META_PAGE_ID` — optional until Meta publishing is activated
    - `META_PAGE_ACCESS_TOKEN` — optional until Meta publishing is activated
    - `META_GRAPH_VERSION` — required with the Meta connection
