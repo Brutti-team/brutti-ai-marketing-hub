@@ -12,6 +12,7 @@ import HistoricalAnalyticsEnhancer from './HistoricalAnalyticsEnhancer.jsx'
 import MetaDeferredEnhancer from './MetaDeferredEnhancer.jsx'
 import AnalyticsCopyPolish from './AnalyticsCopyPolish.jsx'
 import SocialEnterpriseIntelligenceEnhancer from './SocialEnterpriseIntelligenceEnhancer.jsx'
+import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -24,6 +25,7 @@ import './dark-mode-readable-mint.css'
 import './product-image-integration.css'
 import './historical-analytics.css'
 import './social-enterprise-intelligence.css'
+import './responsive-clarity.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -39,6 +41,7 @@ createRoot(document.getElementById('root')).render(
     <MetaDeferredEnhancer />
     <AnalyticsCopyPolish />
     <SocialEnterpriseIntelligenceEnhancer />
+    <NotificationCenterEnhancer />
   </StrictMode>,
 )
 
