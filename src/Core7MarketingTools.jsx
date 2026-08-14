@@ -1,66 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { promptLibrary } from './data'
 
 const hiddenNavigation = new Set(['Brand Library', 'AI Tools'])
 const hiddenSettingsRows = new Set(['Free AI Assist Mode', 'Meta / Facebook'])
-const quickStarterTitles = new Set(['Facebook Post', 'Storytelling', 'Hook Generator'])
-
-function setReactValue(element, value) {
-  if (!element) return
-  const prototype = Object.getPrototypeOf(element)
-  const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set
-  if (setter) setter.call(element, value)
-  else element.value = value
-  element.dispatchEvent(new Event('input', { bubbles: true }))
-  element.dispatchEvent(new Event('change', { bubbles: true }))
-}
-
-function PromptStarterPanel({ pageNode }) {
-  const items = useMemo(
-    () => promptLibrary.flatMap((group) => group.items).filter((item) => quickStarterTitles.has(item.title)),
-    [],
-  )
-
-  const applyPrompt = (item) => {
-    const freeAssistButton = [...pageNode.querySelectorAll('.tab-bar button')]
-      .find((button) => /free assist/i.test(button.textContent || ''))
-    freeAssistButton?.click()
-
-    window.setTimeout(() => {
-      const activePage = [...document.querySelectorAll('#root .page')]
-        .find((page) => page.offsetParent !== null) || pageNode
-      const titleInput = activePage.querySelector('input[placeholder*="KAANAGAN product highlight"]')
-      const briefInput = activePage.querySelector('textarea[placeholder*="rough sentence"]')
-      setReactValue(titleInput, item.title)
-      setReactValue(briefInput, item.description)
-      titleInput?.focus()
-      activePage.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 0)
-  }
-
-  return (
-    <section className="panel core7-prompt-panel">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">QUICK STARTERS</span>
-          <h3>Useful Facebook starters</h3>
-        </div>
-        <span className="core7-inline-status">3 tools</span>
-      </div>
-      <p className="core7-section-copy">Load a simple direction into Content Studio, then add the verified BRUTTI facts before generating.</p>
-      <div className="core7-prompt-grid">
-        {items.map((item) => (
-          <article key={item.title}>
-            <strong>{item.title}</strong>
-            <p>{item.description}</p>
-            <button className="button secondary small" type="button" onClick={() => applyPrompt(item)}>Use starter</button>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
-}
 
 function DriveRequiredPanel() {
   return (
@@ -107,6 +49,9 @@ export default function Core7MarketingTools() {
         if (label.textContent?.trim() === 'SMART CAMPAIGN IDEAS') label.textContent = 'CAMPAIGN IDEAS'
       })
 
+      // Keep Free Assist clean: remove legacy/duplicate starter panels if an older cached
+      // version injected them before this enhancer runs.
+      root.querySelectorAll('.core7-prompt-panel, .core7-studio-extras').forEach((panel) => panel.remove())
       root.querySelectorAll('.brutti-platform-status-strip').forEach((strip) => strip.remove())
 
       const avatar = root.querySelector('.topbar .avatar')
@@ -167,7 +112,6 @@ export default function Core7MarketingTools() {
   }, [])
 
   if (!pageNode) return null
-  if (pageTitle === 'Content Studio') return createPortal(<PromptStarterPanel pageNode={pageNode} />, pageNode)
   if (pageTitle === 'Asset Library' && !driveConnected) return createPortal(<DriveRequiredPanel />, pageNode)
   return null
 }
