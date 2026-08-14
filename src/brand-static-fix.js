@@ -145,7 +145,11 @@ function addPlatformStrip() {
 
 function applyStaticVisualFix() {
   addStyles()
-  try { window.localStorage.removeItem('brutti-official-logo-url') } catch {}
+  try {
+    window.localStorage.removeItem('brutti-official-logo-url')
+  } catch (error) {
+    console.debug('Unable to clear cached Brutti logo URL.', error)
+  }
   forceLogo()
   addPlatformStrip()
 }
