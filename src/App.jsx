@@ -109,7 +109,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive }) {
         <div className="sidebar-bottom">
           <div className="system-card">
             <div className="system-card-head"><span className="pulse-dot"/><strong>{workspaceActive ? 'Google workspace active' : 'Local workspace active'}</strong></div>
-            <p>{workspaceActive ? 'AI, Sheets and Drive use the secured Apps Script backend.' : 'Connect the internal Google workspace to activate shared operations.'}</p>
+            <p>{workspaceActive ? 'Free Assist templates, Sheets and Drive are ready.' : 'Connect the internal Google workspace to activate shared operations.'}</p>
           </div>
           <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div>
         </div>
@@ -122,7 +122,7 @@ function Topbar({ setOpen, workspaceActive }) {
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">Updated 13 Aug 2026</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">Updated 14 Aug 2026</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -144,16 +144,16 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
   const stageCounts = pipelineStages.map((stage) => ({ stage, count: content.filter((item) => item.stage === stage).length }))
   return (
     <div className="page dashboard-page">
-      <PageHeader eyebrow="MARKETING CONTROL CENTRE" title="Good afternoon, Michelle." description="Plan today’s work, review AI drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with AI</button>} />
+      <PageHeader eyebrow="MARKETING CONTROL CENTRE" title="Good afternoon, Michelle." description="Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with Assist</button>} />
 
       <section className="hero-panel">
         <div className="hero-content">
-          <span className="hero-label"><Icon name="sparkles" size={15}/>AI DAILY FOCUS</span>
+          <span className="hero-label"><Icon name="sparkles" size={15}/>DAILY FOCUS</span>
           <h2>Turn one verified product story into today’s Facebook content.</h2>
           <p>Start with KAANAGAN or AHTAM XL, choose the objective and language, then send the result through human review before scheduling.</p>
           <div className="hero-buttons"><button className="button cream" onClick={newContent}>Start creating <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
         </div>
-        <div className="hero-art" aria-hidden="true"><div className="art-grid"/><div className="art-card card-one"><span>01</span><strong>Verified input</strong></div><div className="art-card card-two"><span>02</span><strong>AI draft</strong></div><div className="art-card card-three"><span>03</span><strong>Human review</strong></div><div className="art-orbit"/></div>
+        <div className="hero-art" aria-hidden="true"><div className="art-grid"/><div className="art-card card-one"><span>01</span><strong>Verified input</strong></div><div className="art-card card-two"><span>02</span><strong>Assist draft</strong></div><div className="art-card card-three"><span>03</span><strong>Human review</strong></div><div className="art-orbit"/></div>
       </section>
 
       <div className="stats-grid">
@@ -172,7 +172,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
         </section>
 
         <aside className="panel focus-panel">
-          <div className="panel-heading"><div><span className="eyebrow">AI RECOMMENDATIONS</span><h3>Next best actions</h3></div></div>
+          <div className="panel-heading"><div><span className="eyebrow">SMART RECOMMENDATIONS</span><h3>Next best actions</h3></div></div>
           <div className="recommendation-list">
             <button onClick={() => content[0] && openContent(content[0])}><span className="recommend-number">01</span><div><strong>Review KAANAGAN draft</strong><p>One Facebook caption is waiting for human confirmation.</p></div></button>
             <button onClick={() => navigate('products')}><span className="recommend-number">02</span><div><strong>Complete product sources</strong><p>72 product records still need named previews in this build.</p></div></button>
@@ -192,8 +192,75 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
   )
 }
 
-function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generating, workspaceActive }) {
+function buildAssistPrompt(form) {
+  const hashtags = form.includeHashtags ? 'Include 3-5 relevant hashtags.' : 'Do not include hashtags.'
+  return `Act as a careful marketing copy assistant for BRUTTI, a Sabah-based custom furniture and interior brand.
+
+Create one ${form.platform} ${form.type} caption.
+Product: ${form.product}
+Language: ${form.language}
+Tone: ${form.tone}
+Verified facts and direction: ${form.brief.trim()}
+
+Rules:
+- Use only the verified facts above. Do not invent prices, discounts, availability, dimensions, delivery dates, performance data or customer claims.
+- Keep the writing clear, warm and practical.
+- Include one simple call to action asking readers to contact BRUTTI for verified information.
+- ${hashtags}
+- Return only the finished caption.`
+}
+
+function buildFreeDraft(form) {
+  const facts = form.brief.trim().replace(/\s+/g, ' ')
+  const product = form.product === 'General / No Product' ? '' : form.product
+  const bmOpeners = {
+    'Brand Awareness': 'Ruang yang baik bermula dengan pilihan yang sesuai untuk cara kita menggunakannya.',
+    'Product Highlight': product ? `${product} diketengahkan sebagai pilihan untuk ruang yang lebih teratur dan praktikal.` : 'Setiap pilihan perabot perlu bermula dengan keperluan ruang yang sebenar.',
+    Educational: 'Ruang yang lebih teratur bermula dengan perancangan yang jelas dan maklumat yang tepat.',
+    'Behind the Scenes': 'Di sebalik setiap hasil BRUTTI, ada proses yang dibuat dengan teliti dan penuh tujuan.',
+    'Customer Story': 'Setiap ruang mempunyai keperluan dan cerita yang berbeza.',
+    Promotion: 'Sedang mencari pilihan yang lebih sesuai untuk ruang anda?',
+  }
+  const enOpeners = {
+    'Brand Awareness': 'A purposeful space starts with choices that support the way it is used.',
+    'Product Highlight': product ? `${product} is presented as a practical direction for a more organised space.` : 'Every furniture choice should begin with the real needs of the space.',
+    Educational: 'A more organised space begins with clear planning and verified information.',
+    'Behind the Scenes': 'Behind every BRUTTI piece is a process guided by care and purpose.',
+    'Customer Story': 'Every space has different needs and a different story.',
+    Promotion: 'Looking for a direction that better supports your space?',
+  }
+  const bm = `${bmOpeners[form.type] || bmOpeners['Brand Awareness']}\n\n${facts}\n\nHubungi BRUTTI untuk maklumat produk yang telah disahkan.`
+  const en = `${enOpeners[form.type] || enOpeners['Brand Awareness']}\n\n${facts}\n\nContact BRUTTI for verified product information.`
+  const bilingual = `${bmOpeners[form.type] || bmOpeners['Brand Awareness']}\n\n${facts}\n\n${enOpeners[form.type] || enOpeners['Brand Awareness']}\n\nHubungi BRUTTI untuk verified product information.`
+  const draft = form.language === 'English' ? en : form.language === 'BM + English' ? bilingual : bm
+  return `${draft}${form.includeHashtags ? '\n\n#BRUTTI #ProudlySabahan #PurposefullyCrafted' : ''}`
+}
+
+function getRuleChecks(copy, verifiedFacts) {
+  const text = copy.toLowerCase()
+  const facts = verifiedFacts.toLowerCase()
+  const claimTerms = ['rm', '%', 'discount', 'diskaun', 'free delivery', 'penghantaran percuma', 'reach', 'views', 'followers', 'sold']
+  const unsupported = claimTerms.some((term) => text.includes(term) && !facts.includes(term))
+  return [
+    { label:'Verified direction included', pass:Boolean(verifiedFacts.trim()) },
+    { label:'One contact CTA included', pass:/hubungi|contact|mesej|message|whatsapp/i.test(copy) },
+    { label:'No unsupported price, promotion or KPI', pass:!unsupported },
+    { label:'Human approval still required', pass:false, review:true },
+  ]
+}
+
+function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, saveDraft, workspaceActive, toast }) {
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
+  const prompt = buildAssistPrompt(form)
+  const checks = getRuleChecks(output, form.brief)
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt)
+      toast('Prompt copied. Open ChatGPT and paste it there.')
+    } catch {
+      toast('Copy was blocked by the browser. Select the prompt preview and copy it manually.')
+    }
+  }
   return (
     <div className="generator-layout">
       <form className="generator-form" onSubmit={(event) => { event.preventDefault(); onGenerate() }}>
@@ -204,31 +271,32 @@ function GeneratorForm({ form, setForm, onGenerate, output, saveDraft, generatin
         <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Warm & confident</option><option>Practical</option><option>Proud & purposeful</option><option>Helpful</option><option>Casual</option></select></label></div>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Add only confirmed product details, campaign direction or source notes."/></label>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
-        <button className="button primary wide" type="submit" disabled={generating}><Icon name="sparkles"/>{generating ? 'AI is generating…' : workspaceActive ? 'Generate with BRUTTI AI' : 'Generate local preview'}</button>
-        <p className="form-disclaimer"><Icon name="alert" size={14}/>{workspaceActive ? 'OpenAI runs through Apps Script using verified facts and still requires human approval.' : 'Local preview only. Connect the internal Google workspace to activate live AI.'}</p>
+        <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
+        <p className="form-disclaimer"><Icon name="alert" size={14}/>No paid AI API is used. The draft is assembled from BRUTTI templates and the verified facts you enter.</p>
+        <div className="assist-steps"><span><b>1</b>Generate draft</span><span><b>2</b>Copy prompt to ChatGPT</span><span><b>3</b>Paste result and save</span></div>
       </form>
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
-        <div className="output-toolbar"><div><span className="eyebrow">AI OUTPUT</span><strong>{output ? form.title : 'Your generated draft will appear here'}</strong></div>{output ? <StatusPill>Human Review Required</StatusPill> : null}</div>
-        {output ? <><textarea value={output} readOnly/><div className="output-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy</button><button className="button secondary" onClick={onGenerate}>Regenerate</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks"><span><Icon name="check"/>One CTA included</span><span><Icon name="check"/>No unsupported KPI</span><span><Icon name="alert"/>Human review needed</span></div></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Ready when your facts are.</h3><p>Choose a product, add verified details and generate a review-first preview.</p></div>}
+        <div className="output-toolbar"><div><span className="eyebrow">FREE ASSIST OUTPUT</span><strong>{output ? form.title : 'Your structured draft will appear here'}</strong></div>{output ? <StatusPill>Human Review Required</StatusPill> : <StatusPill>Free Mode Ready</StatusPill>}</div>
+        {output ? <><label className="output-editor-label">Draft / paste the improved ChatGPT result here<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><div className="output-actions assist-actions"><button className="button secondary" onClick={copyPrompt}>Copy prompt</button><button className="button secondary" onClick={() => window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer')}>Open ChatGPT</button><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy draft</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><details className="prompt-preview"><summary>View prompt sent manually to ChatGPT</summary><textarea value={prompt} readOnly rows="10"/></details><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Assist Mode is ready.</h3><p>Add verified facts to generate a no-cost template draft. You can then copy the prepared prompt to ChatGPT and paste the improved result back here.</p></div>}
       </div>
     </div>
   )
 }
 
-function ContentStudio({ content, deleteContent, generator, setGenerator, output, generate, saveDraft, openContent, generating, workspaceActive }) {
+function ContentStudio({ content, deleteContent, generator, setGenerator, output, setOutput, generate, saveDraft, openContent, workspaceActive, toast }) {
   const [tab, setTab] = useState('generator')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="AI CONTENT WORKSPACE" title="Content Studio" description="Generate, edit and move content through a review-first publishing workflow." />
-      <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>AI Generator</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
-      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} saveDraft={saveDraft} generating={generating} workspaceActive={workspaceActive}/> : (
+      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Build a structured draft for free, optionally refine it in ChatGPT, then move it through human review." />
+      <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
+      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
-          <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>AI check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
+          <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>Rule check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
           {!visible.length ? <div className="empty-list">No content matches this search.</div> : null}
         </section>
       )}
@@ -335,7 +403,7 @@ function Analytics() {
       <div className="stats-grid analytics-stats">{verifiedSnapshot.map((stat) => <article className="stat-card" key={stat.label}><div className={`stat-icon ${stat.icon}`}><Icon name={stat.icon}/></div><div><span>{stat.label}</span><strong>{stat.value}</strong><small>{stat.note}</small></div></article>)}</div>
       <div className="analytics-grid">
         <section className="panel activity-chart"><div className="panel-heading"><div><span className="eyebrow">CONTENT ACTIVITY</span><h3>Workflow status distribution</h3></div><span className="verified-label"><Icon name="check"/>Local records</span></div><div className="bar-chart"><div><span>Draft / AI Generated</span><i><b style={{width:'75%'}}/></i><strong>3</strong></div><div><span>Human Review</span><i><b style={{width:'50%'}}/></i><strong>2</strong></div><div><span>Approved</span><i><b style={{width:'25%'}}/></i><strong>1</strong></div><div><span>Scheduled</span><i><b style={{width:'50%'}}/></i><strong>2</strong></div><div><span>Published</span><i><b style={{width:'0%'}}/></i><strong>0</strong></div></div></section>
-        <section className="panel insight-card"><span className="eyebrow">AI OBSERVATION</span><h3>Focus on data readiness before performance optimisation.</h3><p>The current exports establish audience and activity volume, but not reliable post-performance comparison. Complete source mapping before asking AI to recommend “best-performing” content.</p><div className="insight-source"><Icon name="file"/><span><strong>Recommended next source</strong><small>Post URL + reach + views + engagements</small></span></div></section>
+        <section className="panel insight-card"><span className="eyebrow">RULE-BASED OBSERVATION</span><h3>Focus on data readiness before performance optimisation.</h3><p>The current exports establish audience and activity volume, but not reliable post-performance comparison. Complete source mapping before using performance recommendations.</p><div className="insight-source"><Icon name="file"/><span><strong>Recommended next source</strong><small>Post URL + reach + views + engagements</small></span></div></section>
       </div>
       <section className="panel source-table-panel"><div className="panel-heading"><div><span className="eyebrow">DATA SOURCES</span><h3>Available Facebook snapshot</h3></div></div><div className="source-table"><div className="source-row header"><span>Source</span><span>Platform</span><span>Volume</span><span>Status</span></div>{sources.map((row) => <div className="source-row" key={row[0]}>{row.map((cell,index) => <span key={cell}>{index===3 ? <StatusPill>{cell}</StatusPill> : cell}</span>)}</div>)}</div></section>
     </div>
@@ -348,7 +416,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   const connections = [
     { name:'Google Sheets', detail:'Content Library, Daily Planner and Integration Log', status:integrations.sheets ? 'Connected' : 'Not connected', icon:'file' },
     { name:'Google Drive', detail:'BRUTTI AI MARKETING SYSTEM and approved assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
-    { name:'OpenAI API', detail:'Content generation, review and planning through Apps Script', status:integrations.openai ? 'Connected' : 'Not connected', icon:'sparkles' },
+    { name:'Free AI Assist Mode', detail:'No-cost templates, ChatGPT prompt copy/paste and rule-based checks', status:'Ready', icon:'sparkles' },
     { name:'Meta / Facebook', detail:'Approved publishing; insights remain empty until data exists', status:integrations.meta ? 'Connected' : 'Not connected', icon:'chart' },
   ]
   const connect = async (event) => {
@@ -368,9 +436,9 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
       <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="Connect the internal Google backend without exposing API keys in GitHub or the browser." />
       <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3>{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
-        {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and server-side AI are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as the GitHub variable VITE_APPS_SCRIPT_URL. OpenAI and Meta credentials stay in Apps Script Properties only.</p>}
+        {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
       </section>
-      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
+      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3>Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p>{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' || connection.status === 'Ready' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
       <div className="settings-grid">
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WORKFLOW RULES</span><h3>Review-first controls</h3></div></div><div className="setting-row"><div><strong>Human approval required</strong><p>Content must be approved before scheduling or publishing.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Block unsupported facts</strong><p>Flag prices, promotions, delivery dates and KPI without sources.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Facebook-only operations</strong><p>Other platforms remain disabled until data and connections exist.</p></div><span className="switch on"><i/></span></div></section>
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{workspaceActive ? 'GOOGLE DATA' : 'LOCAL DATA'}</span><h3>{workspaceActive ? 'Shared internal workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{workspaceActive ? 'Content and planner edits are stored in BRUTTI Google Sheets. Assets remain in the existing Google Drive structure.' : 'Until Apps Script is connected, content and planner edits stay in this browser only.'}</p>{!workspaceActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Drive-first assets</strong><p>Official logo and product files remain in their approved BRUTTI Drive folders.</p></div></div></section>
@@ -382,7 +450,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
 function ContentEditor({ item, onClose, onSave, onPublish, toast, workspaceActive }) {
   const [draft, setDraft] = useState(item)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
-  const act = (stage, message) => { const next = { ...draft, stage, aiReview: stage === 'Approved' || stage === 'Published' ? 'AI Approved' : 'Human Review Required', updatedAt: '13 Aug 2026, just now' }; setDraft(next); onSave(next); toast(message) }
+  const act = (stage, message) => { const next = { ...draft, stage, aiReview: stage === 'Approved' || stage === 'Published' ? 'Rule Check Passed' : 'Human Review Required', updatedAt: '14 Aug 2026, just now' }; setDraft(next); onSave(next); toast(message) }
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal content-modal" role="dialog" aria-modal="true" aria-label="Edit content">
@@ -428,7 +496,6 @@ function App() {
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
   const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
-  const [generating, setGenerating] = useState(false)
 
   const toast = useCallback((message) => {
     setToastMessage(message)
@@ -489,39 +556,17 @@ function App() {
     toast('Google workspace disconnected. Local preview mode restored.')
   }
 
-  const localPreview = () => {
-    const productLine = generator.product === 'General / No Product' ? '' : ` untuk ${generator.product}`
-    const facts = generator.brief.trim().replace(/\s+/g, ' ')
-    const outputs = {
-      'Bahasa Melayu': `Ruang yang baik bermula dengan pilihan yang sesuai untuk cara kita menggunakannya.\n\n${facts}${productLine ? ` Inilah arah yang diketengahkan${productLine}.` : ''}\n\nHubungi BRUTTI untuk maklumat yang telah disahkan.`,
-      English: `A purposeful space starts with choices that support the way it is used.\n\n${facts}${productLine ? ` This is the direction behind ${generator.product}.` : ''}\n\nContact BRUTTI for verified product information.`,
-      'BM + English': `Ruang yang baik bermula dengan pilihan yang praktikal.\n\n${facts}${productLine ? ` This is the idea behind ${generator.product}.` : ''}\n\nHubungi BRUTTI untuk verified product information.`,
-    }
-    return `${outputs[generator.language]}${generator.includeHashtags ? '\n\n#BRUTTI #ProudlySabahan #PurposefullyCrafted' : ''}`
-  }
-
-  const generate = async () => {
+  const generate = () => {
     if (!generator.title.trim() || !generator.brief.trim()) { toast('Add a title and verified facts first.'); return }
-    if (!workspaceActive) {
-      setOutput(localPreview())
-      toast('Local preview generated. Connect the Google workspace for live AI.')
-      return
-    }
-    setGenerating(true)
-    try {
-      const result = await callMarketingApi('generate_content', generator)
-      setOutput(result.copy)
-      toast('Live AI draft generated. Human approval is still required.')
-    } catch (error) {
-      toast(error.message)
-    } finally {
-      setGenerating(false)
-    }
+    setOutput(buildFreeDraft(generator))
+    toast('Free structured draft generated. Refine it here or copy the prepared prompt to ChatGPT.')
   }
 
   const saveGeneratedDraft = async () => {
     if (!output) return
-    let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:'Human Review Required', stage:'AI Generated', updatedAt:'13 Aug 2026, just now', copy:output }
+    const checks = getRuleChecks(output, generator.brief)
+    const passed = checks.filter((check) => !check.review).every((check) => check.pass)
+    let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:passed ? 'Rule Check Passed' : 'Human Review Required', stage:'Draft', updatedAt:'14 Aug 2026, just now', copy:output }
     try {
       if (workspaceActive) item = await saveGoogleContent(item)
       setContent((items) => [item, ...items])
@@ -569,7 +614,7 @@ function App() {
     try {
       await saveGoogleContent({...item, stage:'Approved'})
       const result = await callMarketingApi('publish_meta', { contentId:item.id })
-      const published = {...item, stage:'Published', aiReview:'AI Approved', publishLink:result.publishLink || '', updatedAt:'13 Aug 2026, just now'}
+      const published = {...item, stage:'Published', aiReview:'Rule Check Passed', publishLink:result.publishLink || '', updatedAt:'14 Aug 2026, just now'}
       setContent((items) => items.map((current) => current.id === item.id ? published : current))
       setActiveContent(null)
       toast(`Published to Facebook successfully: ${result.postId}`)
@@ -581,7 +626,7 @@ function App() {
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} generating={generating} workspaceActive={workspaceActive} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} />,
@@ -590,12 +635,12 @@ function App() {
     analytics: <Analytics />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output, workspaceActive, integrations, generating])
+  }), [page, content, plans, generator, output, workspaceActive, integrations])
 
   return (
     <div className="app-shell">
       <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive}/>
-      <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google internal workspace · Human-approved publishing' : 'Local fallback · Connect Google for live AI'}</span></footer></div>
+      <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
