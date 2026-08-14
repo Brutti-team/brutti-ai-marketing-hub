@@ -207,9 +207,15 @@ input:focus, select:focus, textarea:focus { border-color: #98a69e; outline: 3px 
 .output-editor-label textarea { min-height: 315px; margin-top: 2px; padding: 17px; border: 1px solid #e2ded6; background: rgba(255,255,255,.72); font-size: 11px; }
 .output-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .assist-actions { flex-wrap: wrap; }
-.prompt-preview { margin-top: 13px; border: 1px solid #e4e2dc; border-radius: 9px; background: rgba(255,255,255,.48); }
-.prompt-preview summary { padding: 10px 12px; color: #5f6661; cursor: pointer; font-size: 8px; font-weight: 700; }
-.prompt-preview textarea { min-height: 180px; border: 0; border-top: 1px solid #e4e2dc; border-radius: 0 0 9px 9px; background: #fffefa; font-size: 9px; }
+.smart-rewrite-panel { margin: 13px 0; padding: 14px; border: 1px solid #dce4dc; border-radius: 11px; background: rgba(235,241,235,.72); }
+.smart-rewrite-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+.smart-rewrite-head strong { display: block; margin-top: 4px; color: var(--forest); font-size: 10px; }
+.smart-rewrite-head > span { padding: 5px 8px; border-radius: 999px; color: #52705f; background: #fffefa; font-size: 7px; white-space: nowrap; }
+.rewrite-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.rewrite-actions button, .variation-row button { border: 1px solid #cdd9cf; border-radius: 999px; color: #526158; background: #fffefa; padding: 7px 10px; cursor: pointer; font-size: 8px; font-weight: 700; }
+.rewrite-actions button:hover, .rewrite-actions button.active, .variation-row button:hover, .variation-row button.active { border-color: var(--forest); color: #fff; background: var(--forest); }
+.variation-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #d5dfd6; }
+.variation-row > span { margin-right: auto; color: #65736a; font-size: 8px; font-weight: 700; }
 .ai-checks { margin-top: 15px; display: flex; gap: 14px; flex-wrap: wrap; padding-top: 13px; border-top: 1px solid #e6e2da; }
 .ai-checks span { display: flex; align-items: center; gap: 5px; color: #717772; font-size: 8px; }
 .ai-checks .pass { color: #37644f; }

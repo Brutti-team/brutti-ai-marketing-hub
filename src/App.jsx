@@ -192,74 +192,148 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
   )
 }
 
-function buildAssistPrompt(form) {
-  const hashtags = form.includeHashtags ? 'Include 3-5 relevant hashtags.' : 'Do not include hashtags.'
-  return `Act as a careful marketing copy assistant for BRUTTI, a Sabah-based custom furniture and interior brand.
-
-Create one ${form.platform} ${form.type} caption.
-Product: ${form.product}
-Language: ${form.language}
-Tone: ${form.tone}
-Verified facts and direction: ${form.brief.trim()}
-
-Rules:
-- Use only the verified facts above. Do not invent prices, discounts, availability, dimensions, delivery dates, performance data or customer claims.
-- Keep the writing clear, warm and practical.
-- Include one simple call to action asking readers to contact BRUTTI for verified information.
-- ${hashtags}
-- Return only the finished caption.`
+const bruttiCopyBank = {
+  bm: {
+    'Brand Awareness': [
+      'Ruang yang baik bermula dengan pilihan yang sesuai untuk cara kita menggunakannya.',
+      'Setiap ruang ada tujuan, dan setiap pilihan sepatutnya membantu ruang itu berfungsi dengan lebih baik.',
+      'Bagi BRUTTI, ruang yang bermakna bermula dengan keperluan sebenar penggunanya.',
+    ],
+    'Product Highlight': [
+      'Pilihan perabot yang tepat boleh membantu ruang terasa lebih teratur dan mudah digunakan.',
+      'Bila fungsi dan susunan bergerak seiring, ruang menjadi lebih selesa untuk kegunaan harian.',
+      'Setiap produk perlu dipilih berdasarkan ruang, fungsi dan keperluan sebenar.',
+    ],
+    Educational: [
+      'Ruang yang lebih teratur bermula dengan perancangan yang jelas dan maklumat yang tepat.',
+      'Sebelum memilih perabot, kenal pasti dahulu fungsi utama dan keadaan ruang yang ada.',
+      'Pilihan yang praktikal bermula dengan memahami apa yang benar-benar diperlukan oleh ruang.',
+    ],
+    'Behind the Scenes': [
+      'Di sebalik setiap hasil BRUTTI, ada proses yang dibuat dengan teliti dan penuh tujuan.',
+      'Setiap hasil bermula dengan perancangan, penelitian dan kerja yang dilakukan satu langkah pada satu masa.',
+      'Dari idea hingga ke hasil akhir, setiap proses perlu kekal jelas dan terarah.',
+    ],
+    'Customer Story': [
+      'Setiap ruang mempunyai keperluan dan cerita yang berbeza.',
+      'Bila keperluan pelanggan difahami dengan jelas, penyelesaian ruang dapat dirancang dengan lebih tepat.',
+      'Cerita setiap ruang bermula daripada cara pelanggan mahu menggunakannya.',
+    ],
+    Promotion: [
+      'Sedang mencari pilihan yang lebih sesuai untuk ruang anda?',
+      'Ini mungkin masa yang sesuai untuk merancang ruang mengikut keperluan sebenar anda.',
+      'Sebelum membuat pilihan, semak dahulu maklumat tawaran dan kesesuaiannya untuk ruang anda.',
+    ],
+  },
+  en: {
+    'Brand Awareness': [
+      'A purposeful space starts with choices that support the way it is used.',
+      'Every space has a purpose, and every choice should help it work better.',
+      'At BRUTTI, a meaningful space begins with the real needs of the people using it.',
+    ],
+    'Product Highlight': [
+      'The right furniture choice can help a space feel more organised and easier to use.',
+      'When function and layout work together, a space becomes more practical for everyday use.',
+      'Every product should be considered according to the space, function and verified need.',
+    ],
+    Educational: [
+      'A more organised space begins with clear planning and verified information.',
+      'Before choosing furniture, start by identifying the main function and condition of the space.',
+      'A practical choice begins with understanding what the space genuinely needs.',
+    ],
+    'Behind the Scenes': [
+      'Behind every BRUTTI piece is a process guided by care and purpose.',
+      'Every result begins with planning, attention and work completed one step at a time.',
+      'From the first direction to the final result, each stage needs a clear purpose.',
+    ],
+    'Customer Story': [
+      'Every space has different needs and a different story.',
+      'When a customer’s needs are understood clearly, the space can be planned more thoughtfully.',
+      'The story of every space begins with how the customer intends to use it.',
+    ],
+    Promotion: [
+      'Looking for a direction that better supports your space?',
+      'This may be a good time to plan your space around what you genuinely need.',
+      'Before deciding, check the verified offer details and whether they suit your space.',
+    ],
+  },
 }
 
-function buildFreeDraft(form) {
+const bruttiCtas = {
+  bm: [
+    'Hubungi BRUTTI untuk maklumat produk yang telah disahkan.',
+    'Mesej BRUTTI untuk semak maklumat dan pilihan yang sesuai untuk ruang anda.',
+    'Bincang dengan pasukan BRUTTI sebelum membuat pilihan untuk ruang anda.',
+  ],
+  en: [
+    'Contact BRUTTI for verified product information.',
+    'Message BRUTTI to check the details and options suited to your space.',
+    'Speak with the BRUTTI team before deciding what works for your space.',
+  ],
+}
+
+function buildSmartDraft(form, mode = 'balanced', variation = 0) {
   const facts = form.brief.trim().replace(/\s+/g, ' ')
   const product = form.product === 'General / No Product' ? '' : form.product
-  const bmOpeners = {
-    'Brand Awareness': 'Ruang yang baik bermula dengan pilihan yang sesuai untuk cara kita menggunakannya.',
-    'Product Highlight': product ? `${product} diketengahkan sebagai pilihan untuk ruang yang lebih teratur dan praktikal.` : 'Setiap pilihan perabot perlu bermula dengan keperluan ruang yang sebenar.',
-    Educational: 'Ruang yang lebih teratur bermula dengan perancangan yang jelas dan maklumat yang tepat.',
-    'Behind the Scenes': 'Di sebalik setiap hasil BRUTTI, ada proses yang dibuat dengan teliti dan penuh tujuan.',
-    'Customer Story': 'Setiap ruang mempunyai keperluan dan cerita yang berbeza.',
-    Promotion: 'Sedang mencari pilihan yang lebih sesuai untuk ruang anda?',
+  const index = Math.abs(variation) % 3
+  const selectOpener = (language) => {
+    const standard = bruttiCopyBank[language][form.type] || bruttiCopyBank[language]['Brand Awareness']
+    if (mode === 'balanced' && form.tone === 'Casual') return language === 'bm' ? 'Kalau ruang mula rasa kurang teratur, mari lihat semula apa yang benar-benar diperlukan.' : 'If a space starts to feel less organised, let’s look again at what it genuinely needs.'
+    if (mode === 'engaging') return language === 'bm' ? `Apa yang membuatkan sesebuah ruang lebih mudah digunakan setiap hari?` : 'What makes a space easier to use every day?'
+    if (mode === 'casual') return language === 'bm' ? 'Kalau ruang mula rasa kurang teratur, mungkin sudah tiba masanya untuk lihat semula apa yang benar-benar diperlukan.' : 'If a space starts to feel less organised, it may be time to look again at what it genuinely needs.'
+    if (mode === 'professional') return language === 'bm' ? 'Perancangan ruang yang baik perlu bermula dengan keperluan yang jelas dan maklumat yang telah disahkan.' : 'Good space planning should begin with clear requirements and verified information.'
+    return standard[(mode === 'hook' ? index + 1 : index) % standard.length]
   }
-  const enOpeners = {
-    'Brand Awareness': 'A purposeful space starts with choices that support the way it is used.',
-    'Product Highlight': product ? `${product} is presented as a practical direction for a more organised space.` : 'Every furniture choice should begin with the real needs of the space.',
-    Educational: 'A more organised space begins with clear planning and verified information.',
-    'Behind the Scenes': 'Behind every BRUTTI piece is a process guided by care and purpose.',
-    'Customer Story': 'Every space has different needs and a different story.',
-    Promotion: 'Looking for a direction that better supports your space?',
+  const selectCta = (language) => bruttiCtas[language][mode === 'cta' ? (index + 1) % 3 : index]
+  const productLineBm = product && form.type === 'Product Highlight' ? `${product} menjadi fokus untuk perkongsian kali ini.` : ''
+  const productLineEn = product && form.type === 'Product Highlight' ? `${product} is the focus of this post.` : ''
+  const buildLanguage = (language) => {
+    const pieces = [selectOpener(language)]
+    const productLine = language === 'bm' ? productLineBm : productLineEn
+    if (productLine && mode !== 'shorten') pieces.push(productLine)
+    pieces.push(facts)
+    pieces.push(selectCta(language))
+    return pieces.filter(Boolean).join('\n\n')
   }
-  const bm = `${bmOpeners[form.type] || bmOpeners['Brand Awareness']}\n\n${facts}\n\nHubungi BRUTTI untuk maklumat produk yang telah disahkan.`
-  const en = `${enOpeners[form.type] || enOpeners['Brand Awareness']}\n\n${facts}\n\nContact BRUTTI for verified product information.`
-  const bilingual = `${bmOpeners[form.type] || bmOpeners['Brand Awareness']}\n\n${facts}\n\n${enOpeners[form.type] || enOpeners['Brand Awareness']}\n\nHubungi BRUTTI untuk verified product information.`
+  const bm = buildLanguage('bm')
+  const en = buildLanguage('en')
+  const bilingual = `${selectOpener('bm')}\n\n${facts}\n\n${selectCta('bm')}\n\n${selectOpener('en')}\n\n${selectCta('en')}`
   const draft = form.language === 'English' ? en : form.language === 'BM + English' ? bilingual : bm
-  return `${draft}${form.includeHashtags ? '\n\n#BRUTTI #ProudlySabahan #PurposefullyCrafted' : ''}`
+  const addHashtags = form.includeHashtags || mode === 'hashtags'
+  const hashtags = index === 1 ? '#BRUTTI #ProudlySabahan #RuangBermakna' : index === 2 ? '#BRUTTI #PurposefullyCrafted #RuangPraktikal' : '#BRUTTI #ProudlySabahan #PurposefullyCrafted'
+  return `${draft}${addHashtags ? `\n\n${hashtags}` : ''}`
 }
 
 function getRuleChecks(copy, verifiedFacts) {
   const text = copy.toLowerCase()
   const facts = verifiedFacts.toLowerCase()
-  const claimTerms = ['rm', '%', 'discount', 'diskaun', 'free delivery', 'penghantaran percuma', 'reach', 'views', 'followers', 'sold']
+  const claimTerms = ['rm', '%', 'discount', 'diskaun', 'free delivery', 'penghantaran percuma', 'reach', 'views', 'followers', 'sold', 'stok terhad', 'limited stock', 'no. 1', 'terbaik']
   const unsupported = claimTerms.some((term) => text.includes(term) && !facts.includes(term))
+  const paragraphs = copy.split(/\n\s*\n/).filter(Boolean)
+  const hashtags = copy.match(/#[\p{L}\p{N}_]+/gu) || []
+  const hypeTerms = ['game changer', 'revolusi', 'sempurna untuk semua', 'pasti puas hati', 'luar biasa']
+  const hypeFree = !hypeTerms.some((term) => text.includes(term)) && (copy.match(/!/g) || []).length <= 2
   return [
-    { label:'Verified direction included', pass:Boolean(verifiedFacts.trim()) },
-    { label:'One contact CTA included', pass:/hubungi|contact|mesej|message|whatsapp/i.test(copy) },
+    { label:'Verified facts supplied', pass:Boolean(verifiedFacts.trim()) },
+    { label:'Brutti Facebook style aligned', pass:hypeFree && paragraphs.length >= 2 && paragraphs.length <= 7 },
+    { label:'Clear contact CTA', pass:/hubungi|contact|mesej|message|bincang|speak with|whatsapp/i.test(copy) },
+    { label:'Hashtags controlled (maximum 5)', pass:hashtags.length <= 5 },
     { label:'No unsupported price, promotion or KPI', pass:!unsupported },
     { label:'Human approval still required', pass:false, review:true },
   ]
 }
 
 function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, saveDraft, workspaceActive, toast }) {
+  const [rewriteMode, setRewriteMode] = useState('balanced')
+  const [variation, setVariation] = useState(0)
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
-  const prompt = buildAssistPrompt(form)
   const checks = getRuleChecks(output, form.brief)
-  const copyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt)
-      toast('Prompt copied. Open ChatGPT and paste it there.')
-    } catch {
-      toast('Copy was blocked by the browser. Select the prompt preview and copy it manually.')
-    }
+  const rewrite = (mode, nextVariation = variation) => {
+    setRewriteMode(mode)
+    setVariation(nextVariation)
+    onOutputChange(buildSmartDraft(form, mode, nextVariation))
+    const labels = { balanced:'New Brutti variation', engaging:'More engaging', casual:'More casual', professional:'More professional', shorten:'Shorter caption', hook:'New opening hook', cta:'New CTA', hashtags:'Updated hashtags' }
+    toast(`${labels[mode]} applied without an external AI platform.`)
   }
   return (
     <div className="generator-layout">
@@ -273,12 +347,12 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
         <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
         <p className="form-disclaimer"><Icon name="alert" size={14}/>No paid AI API is used. The draft is assembled from BRUTTI templates and the verified facts you enter.</p>
-        <div className="assist-steps"><span><b>1</b>Generate draft</span><span><b>2</b>Copy prompt to ChatGPT</span><span><b>3</b>Paste result and save</span></div>
+        <div className="assist-steps"><span><b>1</b>Generate caption</span><span><b>2</b>Use Smart Rewrite</span><span><b>3</b>Rule check and save</span></div>
       </form>
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
         <div className="output-toolbar"><div><span className="eyebrow">FREE ASSIST OUTPUT</span><strong>{output ? form.title : 'Your structured draft will appear here'}</strong></div>{output ? <StatusPill>Human Review Required</StatusPill> : <StatusPill>Free Mode Ready</StatusPill>}</div>
-        {output ? <><label className="output-editor-label">Draft / paste the improved ChatGPT result here<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><div className="output-actions assist-actions"><button className="button secondary" onClick={copyPrompt}>Copy prompt</button><button className="button secondary" onClick={() => window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer')}>Open ChatGPT</button><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy draft</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><details className="prompt-preview"><summary>View prompt sent manually to ChatGPT</summary><textarea value={prompt} readOnly rows="10"/></details><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Assist Mode is ready.</h3><p>Add verified facts to generate a no-cost template draft. You can then copy the prepared prompt to ChatGPT and paste the improved result back here.</p></div>}
+        {output ? <><label className="output-editor-label">Editable Facebook caption<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><section className="smart-rewrite-panel"><div className="smart-rewrite-head"><div><span className="eyebrow">FREE SMART REWRITE</span><strong>Refine the caption inside this website</strong></div><span>No API · No external platform</span></div><div className="rewrite-actions"><button className={rewriteMode === 'engaging' ? 'active' : ''} onClick={() => rewrite('engaging')}>More engaging</button><button className={rewriteMode === 'casual' ? 'active' : ''} onClick={() => rewrite('casual')}>More casual</button><button className={rewriteMode === 'professional' ? 'active' : ''} onClick={() => rewrite('professional')}>More professional</button><button className={rewriteMode === 'shorten' ? 'active' : ''} onClick={() => rewrite('shorten')}>Shorten</button><button className={rewriteMode === 'hook' ? 'active' : ''} onClick={() => rewrite('hook')}>New hook</button><button className={rewriteMode === 'cta' ? 'active' : ''} onClick={() => rewrite('cta')}>New CTA</button><button className={rewriteMode === 'hashtags' ? 'active' : ''} onClick={() => rewrite('hashtags')}>Refresh hashtags</button></div><div className="variation-row"><span>Brutti variations</span>{[0,1,2].map((index) => <button className={rewriteMode === 'balanced' && variation === index ? 'active' : ''} key={index} onClick={() => rewrite('balanced', index)}>Version {index + 1}</button>)}</div></section><div className="output-actions assist-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy caption</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Smart Rewrite is ready.</h3><p>Add verified facts to generate a Brutti-style Facebook caption, then refine its hook, tone, length, CTA and hashtags without leaving this website.</p></div>}
       </div>
     </div>
   )
@@ -291,7 +365,7 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Build a structured draft for free, optionally refine it in ChatGPT, then move it through human review." />
+      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Generate and refine Brutti-style Facebook captions inside this website, then move them through human review." />
       <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
       {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast}/> : (
         <section className="panel content-library">
@@ -558,8 +632,8 @@ function App() {
 
   const generate = () => {
     if (!generator.title.trim() || !generator.brief.trim()) { toast('Add a title and verified facts first.'); return }
-    setOutput(buildFreeDraft(generator))
-    toast('Free structured draft generated. Refine it here or copy the prepared prompt to ChatGPT.')
+    setOutput(buildSmartDraft(generator))
+    toast('Brutti-style caption generated. Use Smart Rewrite to refine it inside this website.')
   }
 
   const saveGeneratedDraft = async () => {

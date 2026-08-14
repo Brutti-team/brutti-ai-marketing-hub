@@ -4,12 +4,12 @@ An internal marketing workspace for BRUTTI, a Sabah-based custom furniture and i
 
 ## Free AI Assist Mode
 
-The production website does not call a paid OpenAI API and does not log in to a personal ChatGPT account. Instead it provides a no-cost assisted workflow:
+The production website does not call a paid AI API and does not require staff to open a separate AI platform. Instead it provides a no-cost assisted workflow:
 
 - generate a structured Facebook draft from BRUTTI templates and verified facts
-- prepare a brand-aware prompt that staff can copy into ChatGPT manually
-- provide an editable area where the improved ChatGPT result can be pasted back
-- run rule-based checks for a contact CTA and unsupported price, promotion or KPI claims
+- refine captions inside the website with More Engaging, Casual, Professional, Shorten, New Hook, New CTA and Refresh Hashtags controls
+- provide three Brutti-style variations for every verified direction
+- run rule-based checks for Brutti Facebook style, readability, CTA, hashtag discipline and unsupported claims
 - save drafts and planner records to Google Sheets
 - require human approval before any future Meta publishing
 
@@ -20,11 +20,11 @@ Google remains the operational source of truth:
 - **Google Apps Script** protects the workspace key and runs Drive, Sheets and eventual Meta API actions.
 - **GitHub Pages** displays the website only; it never receives private API keys.
 
-ChatGPT is optional and manual in this workflow. Staff can use an existing ChatGPT session to improve a prepared prompt, but the website works without an AI API key or AI billing.
+Free Smart Rewrite is deterministic rather than generative AI: it combines verified facts with controlled BRUTTI Facebook writing patterns. This keeps the workflow free and consistent, while human review remains the final approval step.
 
 ## Included workflow
 
-- Content Studio with free structured drafts, prompt copy, editable paste-back and rule checks
+- Content Studio with free structured drafts, internal Smart Rewrite controls, three caption variations and Brutti style checks
 - Content Library with Edit, Approve, Reject and approval-gated Facebook publishing
 - Review pipeline: Idea → Draft → Review → Approved → Scheduled → Published → Archived
 - Campaign Planner with add, edit and delete controls
@@ -72,7 +72,7 @@ The existing `BRUTTI AI MARKETING MASTER DATA`, `BRUTTI Website & Make Sync Mapp
 
 ## Accuracy boundaries
 
-- Template drafts and manually prepared ChatGPT prompts receive only the verified facts entered in the website.
+- Template drafts and Smart Rewrite receive only the verified facts entered in the website.
 - Content stays review-first; Meta publishing requires the `Approved` stage.
 - The system does not fabricate prices, promotions, availability, delivery dates, specifications or social-performance KPI.
 - Live Meta analytics remain blank until real Meta data is connected.
