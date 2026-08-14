@@ -145,17 +145,16 @@ function createPanel(page) {
 
   const panel = document.createElement('section')
   panel.className = 'panel workspace-readiness-panel'
-  panel.style.marginTop = '24px'
   panel.innerHTML = `
-    <div class="panel-heading">
+    <div class="panel-heading workspace-readiness-heading">
       <div>
         <span class="eyebrow">SYSTEM CHECK</span>
         <h3>Workspace readiness test</h3>
-        <p style="margin-top:8px">Tests Planner, Notion sync, Product Library, Drive assets and the review-first content workflow. Temporary test records are deleted automatically.</p>
+        <p class="workspace-readiness-copy">Tests the Planner, Notion sync, Product Library, Drive assets and review-first content workflow. Temporary test records are deleted automatically.</p>
       </div>
-      <button type="button" class="button primary workspace-readiness-run">Run readiness test</button>
+      <button type="button" class="button secondary small workspace-readiness-run">Run readiness test</button>
     </div>
-    <div class="workspace-readiness-result" style="margin-top:16px;white-space:pre-wrap;line-height:1.6">Ready to test. Meta / Facebook publishing is intentionally excluded.</div>
+    <div class="workspace-readiness-result">Ready to test. Meta / Facebook publishing is intentionally excluded.</div>
   `
 
   page.appendChild(panel)
