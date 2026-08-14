@@ -27,6 +27,7 @@ import './product-image-integration.css'
 import './historical-analytics.css'
 import './social-enterprise-intelligence.css'
 import './responsive-clarity.css'
+import './dark-impact-contrast-fix.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
