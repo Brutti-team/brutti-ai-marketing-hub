@@ -14,6 +14,7 @@ import AnalyticsCopyPolish from './AnalyticsCopyPolish.jsx'
 import SocialEnterpriseIntelligenceEnhancer from './SocialEnterpriseIntelligenceEnhancer.jsx'
 import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
 import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
+import SocialLogoDecorEnhancer from './SocialLogoDecorEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -27,6 +28,7 @@ import './product-image-integration.css'
 import './historical-analytics.css'
 import './social-enterprise-intelligence.css'
 import './responsive-clarity.css'
+import './social-logo-decor.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -44,6 +46,7 @@ createRoot(document.getElementById('root')).render(
     <SocialEnterpriseIntelligenceEnhancer />
     <NotificationCenterEnhancer />
     <ProductCatalogQualityEnhancer />
+    <SocialLogoDecorEnhancer />
   </StrictMode>,
 )
 
