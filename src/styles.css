@@ -532,3 +532,17 @@ footer span:first-child { color: #646a66; font-weight: 700; }
   .modal-action-groups .button { flex: 1; }
   footer { padding: 0 15px 25px; flex-direction: column; }
 }
+
+
+/* Dynamic operations upgrades */
+.dynamic-planner-summary { gap:18px; flex-wrap:wrap; }
+.dynamic-planner-summary small { display:block; margin-top:4px; opacity:.68; }
+.planner-nav { display:flex; gap:8px; flex-wrap:wrap; }
+.calendar-day.is-today { outline:2px solid rgba(201,111,74,.55); outline-offset:-2px; }
+.calendar-day.is-today .calendar-day-head { background:rgba(201,111,74,.09); }
+.selected-asset { display:flex; align-items:center; gap:10px; padding:11px 12px; border:1px solid rgba(18,55,42,.16); border-radius:12px; background:rgba(18,55,42,.04); margin:10px 0; }
+.selected-asset span { display:flex; flex-direction:column; flex:1; min-width:0; }
+.selected-asset small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.selected-asset button { border:0; background:transparent; text-decoration:underline; cursor:pointer; }
+.asset-use-button { display:inline-flex; align-items:center; justify-content:center; }
+.product-card-body p strong { font-weight:700; }

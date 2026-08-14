@@ -71,3 +71,7 @@ export async function saveGooglePlan(plan) {
 export async function deleteGooglePlan(id) {
   return callMarketingApi('delete_plan', { id: String(id) })
 }
+
+export async function syncNotionProducts() {
+  return callMarketingApi('sync_notion_products')
+}

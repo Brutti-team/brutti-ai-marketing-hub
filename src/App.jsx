@@ -17,17 +17,19 @@ import {
   googleConfigured,
   hasWorkspaceKey,
   loadWorkspace,
+  syncNotionProducts,
   saveGoogleContent,
   saveGooglePlan,
   setWorkspaceKey,
 } from './lib/googleWorkspace'
+import { addDays, dateFromKey, formatDateRange, formatTimestamp, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'studio', label: 'Content Studio', icon: 'sparkles', count: 4 },
+  { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
   { id: 'planner', label: 'Campaign Planner', icon: 'calendar' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
-  { id: 'products', label: 'Product Library', icon: 'box', count: 88 },
+  { id: 'products', label: 'Product Library', icon: 'box' },
   { id: 'assets', label: 'Asset Library', icon: 'image' },
   { id: 'ai-tools', label: 'AI Tools', icon: 'wand' },
   { id: 'analytics', label: 'Analytics', icon: 'chart' },
@@ -91,7 +93,7 @@ function Logo() {
   )
 }
 
-function Sidebar({ page, setPage, open, setOpen, workspaceActive }) {
+function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
   const navigate = (id) => { setPage(id); setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   return (
     <>
@@ -100,11 +102,12 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive }) {
         <div className="sidebar-brand"><Logo/><button className="icon-button sidebar-close" onClick={() => setOpen(false)} aria-label="Close menu"><Icon name="close" /></button></div>
         <div className="workspace-label">WORKSPACE</div>
         <nav>
-          {navigation.map((item) => (
-            <button key={item.id} className={`nav-link ${page === item.id ? 'active' : ''}`} onClick={() => navigate(item.id)}>
-              <Icon name={item.icon}/><span>{item.label}</span>{item.count ? <em>{item.count}</em> : null}
+          {navigation.map((item) => {
+            const count = item.id === 'studio' ? counts.content : item.id === 'products' ? counts.products : null
+            return <button key={item.id} className={`nav-link ${page === item.id ? 'active' : ''}`} onClick={() => navigate(item.id)}>
+              <Icon name={item.icon}/><span>{item.label}</span>{count !== null ? <em>{count}</em> : null}
             </button>
-          ))}
+          })}
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card">
@@ -119,10 +122,11 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive }) {
 }
 
 function Topbar({ setOpen, workspaceActive }) {
+  const todayLabel = new Date().toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' })
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">Updated 14 Aug 2026</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">{todayLabel}</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -415,7 +419,7 @@ function getRuleChecks(copy, verifiedFacts) {
   ]
 }
 
-function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, saveDraft, workspaceActive, toast }) {
+function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, saveDraft, workspaceActive, toast, productOptions }) {
   const [rewriteMode, setRewriteMode] = useState('balanced')
   const [variation, setVariation] = useState(0)
   const [originalBrief, setOriginalBrief] = useState('')
@@ -443,10 +447,10 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <p className="form-disclaimer"><Icon name="check" size={14}/>Default voice: Brutti Sabahan Casual — santai, natural dengan 7–13 baris isi. Perkataan seperti ni, ja, nda, bah, kasi dan mau akan dikekalkan bila sesuai.</p>
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
         <div className="two-fields"><label>Platform<select value={form.platform} onChange={update('platform')}><option>Facebook</option><option disabled>Instagram — not connected</option><option disabled>TikTok — not connected</option><option disabled>Threads — not connected</option></select></label><label>Content type<select value={form.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option><option>Promotion</option></select></label></div>
-        <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productNames.map((name) => <option key={name}>{name}</option>)}</select></label>
+        <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label>
         <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Brutti Sabahan Casual</option><option>Warm & confident</option><option>Practical & friendly</option><option>Proud & purposeful</option><option>Helpful</option><option>Professional but friendly</option></select></label></div>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Write your rough sentence or add confirmed product details and campaign direction."/></label>
-        <div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
+        {form.assetName ? <div className="selected-asset"><Icon name="image"/><span><strong>Selected visual</strong><small>{form.assetName}</small></span><button type="button" onClick={() => setForm((current) => ({...current, driveFileId:'', assetName:'', driveLink:''}))}>Remove</button></div> : null}<div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
         <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
         <p className="form-disclaimer"><Icon name="alert" size={14}/>No paid AI API is used. The draft is assembled from BRUTTI templates and the verified facts you enter.</p>
@@ -461,7 +465,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
   )
 }
 
-function ContentStudio({ content, deleteContent, generator, setGenerator, output, setOutput, generate, saveDraft, openContent, workspaceActive, toast }) {
+function ContentStudio({ content, deleteContent, generator, setGenerator, output, setOutput, generate, saveDraft, openContent, workspaceActive, toast, productOptions }) {
   const [tab, setTab] = useState('generator')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
@@ -470,7 +474,7 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
     <div className="page">
       <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Buat dan asah caption Facebook dalam gaya Brutti Sabahan yang santai, kemudian hantar untuk human review." />
       <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
-      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast}/> : (
+      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast} productOptions={productOptions}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
           <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>Rule check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
@@ -482,22 +486,17 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
 }
 
 function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
-  const week = ['2026-08-17','2026-08-18','2026-08-19','2026-08-20','2026-08-21','2026-08-22','2026-08-23']
+  const [anchor, setAnchor] = useState(() => startOfWeek(new Date()))
+  const week = weekKeys(anchor)
+  const today = localDateKey()
+  const weekPlans = plans.filter((plan) => week.includes(plan.date))
+  const moveWeek = (days) => setAnchor((current) => addDays(current, days))
   return (
     <div className="page">
-      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Add, edit, delete and organise weekly content before it reaches publishing." actions={<button className="button primary" onClick={newPlan}><Icon name="plus"/>Add content</button>} />
-      <div className="planner-summary"><div><span>Week of</span><strong>17–23 August 2026</strong></div><div className="planner-legend"><span><i className="idea"/>Idea</span><span><i className="review"/>Review</span><span><i className="scheduled"/>Scheduled</span></div></div>
-      <section className="week-calendar">
-        {week.map((date) => {
-          const items = plans.filter((plan) => plan.date === date)
-          const day = new Date(`${date}T00:00:00`)
-          return <div className="calendar-day" key={date}><div className="calendar-day-head"><span>{day.toLocaleDateString('en-MY',{weekday:'short'})}</span><strong>{day.getDate()}</strong></div><div className="calendar-items">{items.map((plan) => <button className={`calendar-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)}><small>{plan.type}</small><strong>{plan.title}</strong><span>{plan.channel} · {plan.status}</span></button>)}<button className="add-day" onClick={() => newPlan(date)}><Icon name="plus" size={14}/>Add</button></div></div>
-        })}
-      </section>
-      <div className="planner-bottom-grid">
-        <section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">AI CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea) => <article key={idea.title}><span className="campaign-index">{String(campaignIdeas.indexOf(idea)+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(undefined, idea)}>Plan idea</button></article>)}</div></section>
-        <section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} scheduled items</h3></div></div><div className="compact-plan-list">{plans.map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{new Date(`${plan.date}T00:00:00`).toLocaleDateString('en-MY',{day:'2-digit',month:'short'})}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section>
-      </div>
+      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Dynamic weekly planner for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
+      <div className="planner-summary dynamic-planner-summary"><div><span>Week</span><strong>{formatDateRange(week)}</strong><small>{weekPlans.length} planned item{weekPlans.length === 1 ? '' : 's'}</small></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveWeek(-7)}>← Previous</button><button className="button secondary small" onClick={() => setAnchor(startOfWeek(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveWeek(7)}>Next →</button></div></div>
+      <section className="week-calendar">{week.map((date) => { const items = plans.filter((plan) => plan.date === date); const day = dateFromKey(date); return <div className={`calendar-day ${date === today ? 'is-today' : ''}`} key={date}><div className="calendar-day-head"><span>{day.toLocaleDateString('en-MY',{weekday:'short'})}{date === today ? ' · Today' : ''}</span><strong>{day.getDate()}</strong></div><div className="calendar-items">{items.map((plan) => <button className={`calendar-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)}><small>{plan.type}</small><strong>{plan.title}</strong><span>{plan.channel} · {plan.status}</span></button>)}<button className="add-day" onClick={() => newPlan(date)}><Icon name="plus" size={14}/>Add</button></div></div>})}</section>
+      <div className="planner-bottom-grid"><section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">SMART CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea,index) => <article key={idea.title}><span className="campaign-index">{String(index+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(today, idea)}>Plan idea</button></article>)}</div></section><section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} total items</h3></div></div><div className="compact-plan-list">{[...plans].sort((a,b) => a.date.localeCompare(b.date)).map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{dateFromKey(plan.date).toLocaleDateString('en-MY',{day:'2-digit',month:'short'})}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section></div>
     </div>
   )
 }
@@ -523,35 +522,34 @@ function BrandLibrary() {
   )
 }
 
-function ProductLibrary({ onUseProduct }) {
+function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
-  const visible = products.filter((product) => (category === 'All' || product.category === category) && product.name.toLowerCase().includes(query.toLowerCase()))
+  const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
+  const visible = productData.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Browse verified product names and prepare product-led content without inventing missing details." actions={<span className="source-count">88 source records</span>} />
-      <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}><option>All</option><option>Storage</option><option>Wardrobe</option><option>Display</option><option>Bespoke</option></select></div>
-      <div className="product-grid">{visible.map((product, index) => <article className="product-card" key={product.id}><div className={`product-visual visual-${index%5}`}><div className="furniture-shape"><span/><span/><span/></div><span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : 'Preview placeholder'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category}</span><h3>{product.name}</h3></div><p>{product.sourceStatus}. Price and specifications require source confirmation.</p><button className="text-button" onClick={() => onUseProduct(product.name)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
-      <div className="source-notice"><Icon name="alert"/><div><strong>Source completeness</strong><p>This interface currently embeds 16 named product previews from 88 reported records. Add the remaining verified records through the future Notion/API sync.</p></div></div>
+      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}</div>} />
+      <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
+      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index%5}`}><div className="furniture-shape"><span/><span/><span/></div><span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
+      {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
+      <div className="source-notice"><Icon name={productData.length >= 88 ? 'check' : 'alert'}/><div><strong>{productData.length >= 88 ? 'Product source loaded' : 'Product sync readiness'}</strong><p>{productData.length >= 88 ? 'The full verified product set is available in this workspace.' : 'The website is using its verified fallback set. Configure Notion in Apps Script, then sync the source table here.'}</p></div></div>
     </div>
   )
 }
 
-function AssetLibrary({ toast, workspaceActive, driveActive }) {
-  const fallbackAssets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference']
+function AssetLibrary({ toast, workspaceActive, driveActive, onUseAsset }) {
+  const fallbackAssets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference'].map((name,index) => ({id:`fallback-${index}`,name,url:'',mimeType:'reference'}))
   const [driveAssets, setDriveAssets] = useState([])
-  useEffect(() => {
-    if (!workspaceActive || !driveActive) return
-    callMarketingApi('list_drive_assets')
-      .then((result) => setDriveAssets(result.files || []))
-      .catch((error) => toast(error.message))
-  }, [workspaceActive, driveActive, toast])
-  const assets = driveAssets.length ? driveAssets.map((asset) => asset.name) : fallbackAssets
+  const [query, setQuery] = useState('')
+  useEffect(() => { if (!workspaceActive || !driveActive) return; callMarketingApi('list_drive_assets').then((result) => setDriveAssets(result.files || [])).catch((error) => toast(error.message)) }, [workspaceActive, driveActive, toast])
+  const assets = driveAssets.length ? driveAssets : fallbackAssets
+  const visible = assets.filter((asset) => asset.name.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="CREATIVE SOURCE FILES" title="Asset Library" description="Read approved product and brand assets from the BRUTTI AI MARKETING SYSTEM folder in Google Drive." actions={<button className="button secondary" onClick={() => toast('Upload new assets through the controlled Google Drive folder.')}><Icon name="plus"/>Add asset</button>} />
+      <PageHeader eyebrow="CREATIVE SOURCE FILES" title="Asset Library" description="Choose an approved Drive visual and send it directly into Content Studio." actions={<button className="button secondary" onClick={() => toast('Upload new assets through the controlled Google Drive folder.')}><Icon name="plus"/>Add asset</button>} />
       <div className="asset-summary"><article><strong>{assets.length}</strong><span>{driveAssets.length ? 'Drive assets loaded' : 'Confirmed references'}</span></article><article><strong>{driveAssets.length}</strong><span>Direct Drive files connected</span></article><article><strong>{driveActive ? 'Ready' : 'Pending'}</strong><span>Secure Drive connection</span></article></div>
-      <section className="panel asset-panel"><div className="library-toolbar"><div className="search-box"><Icon name="search"/><input placeholder="Search assets…"/></div><span className={`status-chip ${driveActive ? 'connected' : 'pending'}`}><span/>{driveActive ? 'Drive connected' : 'Drive sync pending'}</span></div><div className="asset-grid">{assets.map((asset,index) => <article key={asset}><div className={`asset-preview asset-${index%4}`}><Icon name="image" size={28}/><span>{String(index+1).padStart(2,'0')}</span></div><div><strong>{asset}</strong><p>{driveAssets.length ? 'Google Drive asset' : 'Reference record · product asset'}</p><div><StatusPill>{driveAssets.length ? 'Connected' : 'Verified name'}</StatusPill><button onClick={() => toast(driveAssets.length ? 'Drive file is available through the secured backend.' : 'File preview will be available after Drive sync.')}><Icon name="chevron"/></button></div></div></article>)}</div></section>
+      <section className="panel asset-panel"><div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search assets…"/></div><span className={`status-chip ${driveActive ? 'connected' : 'pending'}`}><span/>{driveActive ? 'Drive connected' : 'Drive sync pending'}</span></div><div className="asset-grid">{visible.map((asset,index) => <article key={asset.id || asset.name}><div className={`asset-preview asset-${index%4}`}><Icon name="image" size={28}/><span>{String(index+1).padStart(2,'0')}</span></div><div><strong>{asset.name}</strong><p>{driveAssets.length ? asset.mimeType || 'Google Drive asset' : 'Reference record · product asset'}</p><div><StatusPill>{driveAssets.length ? 'Connected' : 'Verified name'}</StatusPill>{driveAssets.length ? <button className="asset-use-button" onClick={() => onUseAsset(asset)} aria-label={`Use ${asset.name} in content`}><Icon name="arrow"/></button> : <button onClick={() => toast('Connect Google Drive to attach this visual.')}><Icon name="chevron"/></button>}</div></div></article>)}</div></section>
     </div>
   )
 }
@@ -566,23 +564,20 @@ function AITools({ onUsePrompt }) {
   )
 }
 
-function Analytics() {
-  const sources = [
-    ['Follower export','Facebook','12,001 records','Imported snapshot'],
-    ['Reaction export','Facebook','728 records','Imported snapshot'],
-    ['Media archive','Facebook','7,062 files','Reference count'],
-    ['Post analytics sources','Facebook','7 source files','Needs KPI mapping'],
-  ]
+function Analytics({ content, plans, productData, integrations }) {
+  const sources = [['Follower export','Facebook','12,001 records','Imported snapshot'],['Reaction export','Facebook','728 records','Imported snapshot'],['Media archive','Facebook','7,062 files','Reference count'],['Product source','Notion / Google',`${productData.length} loaded`,productData.length >= 88 ? 'Full product set' : 'Partial sync']]
+  const stages = ['Draft','AI Generated','Review','Approved','Scheduled','Published']
+  const maxCount = Math.max(1, ...stages.map((stage) => content.filter((item) => item.stage === stage).length))
+  const scheduledPlans = plans.filter((plan) => plan.status === 'Scheduled').length
+  const published = content.filter((item) => item.stage === 'Published').length
+  const withAssets = content.filter((item) => item.driveFileId).length
   return (
     <div className="page">
-      <PageHeader eyebrow="VERIFIED ACTIVITY DATA" title="Analytics" description="Use supplied exports for activity context while live Meta Insights remains disconnected." actions={<span className="status-chip pending"><span/>Meta KPI excluded</span>} />
+      <PageHeader eyebrow="VERIFIED ACTIVITY DATA" title="Analytics" description="Operational marketing analytics update from the workspace. Meta performance KPI stay excluded until a verified Insights source exists." actions={<span className={`status-chip ${integrations.meta ? 'connected' : 'pending'}`}><span/>{integrations.meta ? 'Meta publishing connected' : 'Meta KPI excluded'}</span>} />
       <div className="analytics-notice"><Icon name="alert"/><div><strong>No fabricated performance KPI</strong><p>Reach, views, engagement rate, followers gained, enquiries and sales attribution stay blank until verified monthly or post-level exports are mapped.</p></div></div>
-      <div className="stats-grid analytics-stats">{verifiedSnapshot.map((stat) => <article className="stat-card" key={stat.label}><div className={`stat-icon ${stat.icon}`}><Icon name={stat.icon}/></div><div><span>{stat.label}</span><strong>{stat.value}</strong><small>{stat.note}</small></div></article>)}</div>
-      <div className="analytics-grid">
-        <section className="panel activity-chart"><div className="panel-heading"><div><span className="eyebrow">CONTENT ACTIVITY</span><h3>Workflow status distribution</h3></div><span className="verified-label"><Icon name="check"/>Local records</span></div><div className="bar-chart"><div><span>Draft / AI Generated</span><i><b style={{width:'75%'}}/></i><strong>3</strong></div><div><span>Human Review</span><i><b style={{width:'50%'}}/></i><strong>2</strong></div><div><span>Approved</span><i><b style={{width:'25%'}}/></i><strong>1</strong></div><div><span>Scheduled</span><i><b style={{width:'50%'}}/></i><strong>2</strong></div><div><span>Published</span><i><b style={{width:'0%'}}/></i><strong>0</strong></div></div></section>
-        <section className="panel insight-card"><span className="eyebrow">RULE-BASED OBSERVATION</span><h3>Focus on data readiness before performance optimisation.</h3><p>The current exports establish audience and activity volume, but not reliable post-performance comparison. Complete source mapping before using performance recommendations.</p><div className="insight-source"><Icon name="file"/><span><strong>Recommended next source</strong><small>Post URL + reach + views + engagements</small></span></div></section>
-      </div>
-      <section className="panel source-table-panel"><div className="panel-heading"><div><span className="eyebrow">DATA SOURCES</span><h3>Available Facebook snapshot</h3></div></div><div className="source-table"><div className="source-row header"><span>Source</span><span>Platform</span><span>Volume</span><span>Status</span></div>{sources.map((row) => <div className="source-row" key={row[0]}>{row.map((cell,index) => <span key={cell}>{index===3 ? <StatusPill>{cell}</StatusPill> : cell}</span>)}</div>)}</div></section>
+      <div className="stats-grid analytics-stats"><article className="stat-card"><div className="stat-icon file"><Icon name="file"/></div><div><span>Content records</span><strong>{content.length}</strong><small>{content.filter((item)=>item.stage==='Review').length} awaiting review</small></div></article><article className="stat-card"><div className="stat-icon calendar"><Icon name="calendar"/></div><div><span>Scheduled plans</span><strong>{scheduledPlans}</strong><small>{plans.length} total planner items</small></div></article><article className="stat-card"><div className="stat-icon image"><Icon name="image"/></div><div><span>Drafts with visual</span><strong>{withAssets}</strong><small>Drive assets attached to content</small></div></article><article className="stat-card"><div className="stat-icon check"><Icon name="check"/></div><div><span>Published records</span><strong>{published}</strong><small>Workspace publishing history</small></div></article></div>
+      <div className="analytics-grid"><section className="panel activity-chart"><div className="panel-heading"><div><span className="eyebrow">CONTENT ACTIVITY</span><h3>Live workflow distribution</h3></div><span className="verified-label"><Icon name="check"/>Workspace records</span></div><div className="bar-chart">{stages.map((stage) => { const count = content.filter((item) => item.stage === stage).length; return <div key={stage}><span>{stage}</span><i><b style={{width:`${Math.round((count/maxCount)*100)}%`}}/></i><strong>{count}</strong></div> })}</div></section><section className="panel insight-card"><span className="eyebrow">RULE-BASED OBSERVATION</span><h3>{content.some((item)=>item.stage==='Review') ? 'Clear the review queue before adding too many new drafts.' : 'The review queue is clear.'}</h3><p>{integrations.notion ? 'Notion planner sync is configured for shared planning records.' : 'Notion backend sync is not configured yet; Google remains the current operational source.'}</p><div className="insight-source"><Icon name="file"/><span><strong>Next data upgrade</strong><small>Verified post URL + reach + views + engagements</small></span></div></section></div>
+      <section className="panel source-table-panel"><div className="panel-heading"><div><span className="eyebrow">DATA SOURCES</span><h3>Available source snapshot</h3></div></div><div className="source-table"><div className="source-row header"><span>Source</span><span>Platform</span><span>Volume</span><span>Status</span></div>{sources.map((row) => <div className="source-row" key={row[0]}>{row.map((cell,index) => <span key={`${row[0]}-${index}`}>{index===3 ? <StatusPill>{cell}</StatusPill> : cell}</span>)}</div>)}</div></section>
     </div>
   )
 }
@@ -593,6 +588,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   const connections = [
     { name:'Google Sheets', detail:'Content Library, Daily Planner and Integration Log', status:integrations.sheets ? 'Connected' : 'Not connected', icon:'file' },
     { name:'Google Drive', detail:'BRUTTI AI MARKETING SYSTEM and approved assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
+    { name:'Notion', detail:'Product Database and BRUTTI DAILY CONTENT PLANNER sync through Apps Script', status:integrations.notion ? 'Connected' : 'Not connected', icon:'file' },
     { name:'Free AI Assist Mode', detail:'No-cost templates, ChatGPT prompt copy/paste and rule-based checks', status:'Ready', icon:'sparkles' },
     { name:'Meta / Facebook', detail:'Approved publishing; insights remain empty until data exists', status:integrations.meta ? 'Connected' : 'Not connected', icon:'chart' },
   ]
@@ -632,12 +628,12 @@ function ContentEditor({ item, onClose, onSave, onPublish, toast, workspaceActiv
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal content-modal" role="dialog" aria-modal="true" aria-label="Edit content">
         <div className="modal-head"><div><span className="eyebrow">CONTENT REVIEW</span><h2>{draft.title}</h2></div><button className="icon-button" onClick={onClose}><Icon name="close"/></button></div>
-        <div className="content-meta"><StatusPill>{draft.stage}</StatusPill><span>{draft.platform}</span><span>{draft.product}</span></div>
+        <div className="content-meta"><StatusPill>{draft.stage}</StatusPill><span>{draft.platform}</span><span>{draft.product}</span>{draft.assetName ? <span>Visual: {draft.assetName}</span> : null}</div>
         <label>Title<input value={draft.title} onChange={update('title')}/></label>
         <div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option></select></label><label>Workflow stage<select value={draft.stage} onChange={update('stage')}>{[...pipelineStages,'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></label></div>
         <label>Content<textarea rows="12" value={draft.copy} onChange={update('copy')}/></label>
         <div className="modal-guardrail"><Icon name="alert"/><span>Check price, availability, delivery dates, dimensions and claims before approval.</span></div>
-        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? workspaceActive ? onPublish(draft) : toast('Meta publishing needs the Google Apps Script backend and Meta credentials.') : toast('Approve this content before publishing.')}>Publish to Facebook</button></div></div>
+        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:'13 Aug 2026, just now'}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? workspaceActive ? onPublish(draft) : toast('Meta publishing needs the Google Apps Script backend and Meta credentials.') : toast('Approve this content before publishing.')}>{draft.driveFileId ? 'Publish photo + caption' : 'Publish to Facebook'}</button></div></div>
       </div>
     </div>
   )
@@ -669,10 +665,12 @@ function App() {
   const [activePlan, setActivePlan] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimer = useRef(null)
-  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true })
+  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
+  const [productData, setProductData] = useState(products)
+  const [syncingProducts, setSyncingProducts] = useState(false)
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
-  const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
+  const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, drive:false, notion:false, meta:false })
 
   const toast = useCallback((message) => {
     setToastMessage(message)
@@ -684,7 +682,7 @@ function App() {
 
   const refreshIntegrations = useCallback(async () => {
     if (!hasWorkspaceKey()) {
-      setIntegrations({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
+      setIntegrations({ appsScript:false, sheets:false, drive:false, notion:false, meta:false })
       return
     }
     try {
@@ -703,6 +701,7 @@ function App() {
         setIntegrations(status)
         setContent(workspace.content || [])
         setPlans(workspace.plans || [])
+        setProductData(workspace.products?.length ? workspace.products : products)
         setWorkspaceActive(true)
       })
       .catch((error) => { clearWorkspaceKey(); toast(error.message) })
@@ -716,6 +715,7 @@ function App() {
       setIntegrations(status)
       setContent(workspace.content || [])
       setPlans(workspace.plans || [])
+      setProductData(workspace.products?.length ? workspace.products : products)
       setWorkspaceActive(true)
       toast('BRUTTI Google workspace connected.')
     } catch (error) {
@@ -727,9 +727,10 @@ function App() {
   const disconnectWorkspace = () => {
     clearWorkspaceKey()
     setWorkspaceActive(false)
-    setIntegrations({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
+    setIntegrations({ appsScript:false, sheets:false, drive:false, notion:false, meta:false })
     setContent(initialContent)
     setPlans(initialPlans)
+    setProductData(products)
     toast('Google workspace disconnected. Local preview mode restored.')
   }
 
@@ -743,7 +744,7 @@ function App() {
     if (!output) return
     const checks = getRuleChecks(output, generator.brief)
     const passed = checks.filter((check) => !check.review).every((check) => check.pass)
-    let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:passed ? 'Rule Check Passed' : 'Human Review Required', stage:'Draft', updatedAt:'14 Aug 2026, just now', copy:output }
+    let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:passed ? 'Rule Check Passed' : 'Human Review Required', stage:'Draft', updatedAt:formatTimestamp(), copy:output, driveFileId:generator.driveFileId || '', assetName:generator.assetName || '', driveLink:generator.driveLink || '' }
     try {
       if (workspaceActive) item = await saveGoogleContent(item)
       setContent((items) => [item, ...items])
@@ -755,7 +756,7 @@ function App() {
   }
 
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
-  const openNewPlan = (date = '2026-08-19', idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || '2026-08-19', channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
+  const openNewPlan = (date = localDateKey(), idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || localDateKey(), channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
   const savePlan = async (plan) => {
     let next = plan.id ? plan : {...plan,id:workspaceActive ? crypto.randomUUID() : Date.now()}
     try {
@@ -791,32 +792,34 @@ function App() {
     try {
       await saveGoogleContent({...item, stage:'Approved'})
       const result = await callMarketingApi('publish_meta', { contentId:item.id })
-      const published = {...item, stage:'Published', aiReview:'Rule Check Passed', publishLink:result.publishLink || '', updatedAt:'14 Aug 2026, just now'}
+      const published = {...item, stage:'Published', aiReview:'Rule Check Passed', publishLink:result.publishLink || '', updatedAt:formatTimestamp()}
       setContent((items) => items.map((current) => current.id === item.id ? published : current))
       setActiveContent(null)
       toast(`Published to Facebook successfully: ${result.postId}`)
     } catch (error) { toast(error.message) }
   }
-  const useProduct = (product) => { setGenerator((form) => ({...form, product, title:`${product} – Product Highlight`, type:'Product Highlight'})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
+  const useProduct = (product) => { const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; '); setGenerator((form) => ({...form, product:product.name, title:`${product.name} – Product Highlight`, type:'Product Highlight', brief:details || form.brief})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
+  const useAsset = (asset) => { setGenerator((form) => ({...form, driveFileId:asset.id || '', assetName:asset.name || '', driveLink:asset.url || ''})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${asset.name} attached to the next content draft.`) }
+  const syncProducts = async () => { setSyncingProducts(true); try { const result = await syncNotionProducts(); setProductData(result.products?.length ? result.products : productData); toast(`${result.products?.length || 0} verified products synced from Notion.`) } catch (error) { toast(error.message) } finally { setSyncingProducts(false) } }
   const usePrompt = (item) => { setGenerator((form) => ({...form, title:item.title, type:item.type.includes('Facebook') ? 'Brand Awareness' : form.type, brief:item.description})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${item.title} prompt loaded into Content Studio.`) }
   const resetWorkspace = () => { setContent(initialContent); setPlans(initialPlans); toast('Local demo data restored.') }
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={productData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
-    products: <ProductLibrary onUseProduct={useProduct} />,
-    assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} />,
+    products: <ProductLibrary onUseProduct={useProduct} productData={productData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} />,
+    assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
-    analytics: <Analytics />,
+    analytics: <Analytics content={content} plans={plans} productData={productData} integrations={integrations} />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output, workspaceActive, integrations])
+  }), [page, content, plans, generator, output, workspaceActive, integrations, productData, syncingProducts])
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive}/>
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:productData.length}}/>
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan}/> : null}

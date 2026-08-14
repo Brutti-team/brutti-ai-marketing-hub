@@ -49,7 +49,7 @@ export const initialContent = [
     product: 'AHTAM XL Shelving Rack',
     language: 'BM + English',
     tone: 'Practical',
-    aiReview: 'AI Approved',
+    aiReview: 'Rule Check Passed',
     stage: 'Approved',
     updatedAt: '13 Aug 2026, 12:18 PM',
     copy: 'Susun ruang dengan lebih teratur bersama AHTAM XL Shelving Rack.\n\nA practical open shelving option for spaces that value easy access and a clean arrangement.\n\nHubungi BRUTTI untuk maklumat lanjut.\n\n#BRUTTI #AHTAMXL #StorageSolution',
