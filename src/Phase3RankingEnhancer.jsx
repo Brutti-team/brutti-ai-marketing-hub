@@ -107,7 +107,7 @@ function RankingPanel({ compact }) {
       <div className="phase3-ranking-head">
         <div>
           <span className="eyebrow">FACEBOOK CONTENT RANKING · PHASE 3</span>
-          <h3>{compact ? 'Temporary quality ranking for current Facebook content patterns.' : 'Rank content quality now; add performance ranking when KPI is available.'}</h3>
+          <h3>{compact ? 'Temporary quality ranking for current Facebook content patterns.' : 'Rank content quality now; add performance ranking when KPIs are available.'}</h3>
           <p>
             This ranking uses editorial quality signals only. It does not claim which post performed best because verified per-post reach, views and engagement are not yet available.
           </p>
@@ -124,7 +124,7 @@ function RankingPanel({ compact }) {
       </div>
 
       <div className="phase3-note">
-        <strong>Upgrade path:</strong> When Facebook post-level KPI is connected, keep this quality score and add a separate performance score for reach, views, engagements, clicks and enquiries.
+        <strong>Upgrade path:</strong> When Facebook post-level KPIs are connected, keep this quality score and add a separate performance score for reach, views, engagements, clicks and enquiries.
       </div>
     </section>
   )
