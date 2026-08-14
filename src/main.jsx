@@ -7,6 +7,7 @@ import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import ProductImageEnhancer from './ProductImageEnhancer.jsx'
+import ProductImageMappingRepair from './ProductImageMappingRepair.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')).render(
     <AccessibilityThemeEnhancer />
     <DailyContentRecommendationEnhancer />
     <ProductImageEnhancer />
+    <ProductImageMappingRepair />
   </StrictMode>,
 )
 
