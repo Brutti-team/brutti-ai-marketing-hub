@@ -240,7 +240,8 @@ export default function DailyContentRecommendationEnhancer() {
       const weekday = new Date().toLocaleDateString('en-MY', { weekday: 'long' })
       const label = hero.querySelector('.hero-label')
       const labelText = label ? [...label.childNodes].find((node) => node.nodeType === Node.TEXT_NODE) : null
-      if (labelText) labelText.textContent = `TODAY'S RECOMMENDATION · ${weekday}`
+      const recommendationLabel = `TODAY'S RECOMMENDATION · ${weekday}`
+      if (labelText && labelText.textContent !== recommendationLabel) labelText.textContent = recommendationLabel
 
       setText(hero.querySelector('.hero-content h2'), recommendation.idea)
       setText(hero.querySelector('.hero-content p'), `Why this content? ${recommendation.reason}`)
