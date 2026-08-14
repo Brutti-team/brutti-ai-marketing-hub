@@ -1,32 +1,32 @@
 # BRUTTI AI Marketing Hub
 
-An AI-first internal marketing workspace for BRUTTI, a Sabah-based custom furniture and interior brand.
+An internal marketing workspace for BRUTTI, a Sabah-based custom furniture and interior brand, with a zero-cost AI Assist workflow.
 
-## What ChatGPT / AI does in this website
+## Free AI Assist Mode
 
-The website does not log in to a personal ChatGPT account. Google Apps Script securely calls the OpenAI Responses API using a separate API key. The AI layer can:
+The production website does not call a paid OpenAI API and does not log in to a personal ChatGPT account. Instead it provides a no-cost assisted workflow:
 
-- generate Facebook drafts in BM, English or bilingual format from verified facts
-- review copy for unsupported prices, promotions, delivery claims, specifications and KPI
-- suggest daily and weekly content directions
-- turn approved product information into reusable content
-- prepare planner records and content drafts for Google Sheets
-- support Meta publishing after a human marks content `Approved`
+- generate a structured Facebook draft from BRUTTI templates and verified facts
+- prepare a brand-aware prompt that staff can copy into ChatGPT manually
+- provide an editable area where the improved ChatGPT result can be pasted back
+- run rule-based checks for a contact CTA and unsupported price, promotion or KPI claims
+- save drafts and planner records to Google Sheets
+- require human approval before any future Meta publishing
 
 Google remains the operational source of truth:
 
 - **Google Sheets** stores Content Library, Daily Planner and Integration Log records.
 - **Google Drive** stores approved logos, photos, source exports and brand assets.
-- **Google Apps Script** protects credentials and runs OpenAI, Drive, Sheets and eventual Meta API actions.
+- **Google Apps Script** protects the workspace key and runs Drive, Sheets and eventual Meta API actions.
 - **GitHub Pages** displays the website only; it never receives private API keys.
 
-ChatGPT Plus and OpenAI API billing are separate. If the OpenAI API is not configured, the website keeps a local rule-based preview but does not claim that it is a live AI result.
+ChatGPT is optional and manual in this workflow. Staff can use an existing ChatGPT session to improve a prepared prompt, but the website works without an AI API key or AI billing.
 
 ## Included workflow
 
-- Content Studio with live AI generation when Apps Script and OpenAI are connected
+- Content Studio with free structured drafts, prompt copy, editable paste-back and rule checks
 - Content Library with Edit, Approve, Reject and approval-gated Facebook publishing
-- Review pipeline: Idea → Draft → AI Generated → Review → Approved → Scheduled → Published → Archived
+- Review pipeline: Idea → Draft → Review → Approved → Scheduled → Published → Archived
 - Campaign Planner with add, edit and delete controls
 - Brand, Product and Google Drive asset libraries
 - AI Prompt Library for writing, video, customer service and creative tasks
@@ -46,8 +46,6 @@ The backend source is in `apps-script/Code.gs` and `apps-script/appsscript.json`
    - `WORKSPACE_KEY` — a long random internal key shared only with approved staff
    - `PLANNER_SPREADSHEET_ID` — spreadsheet ID for `BRUTTI DAILY CONTENT PLANNER`
    - `DRIVE_FOLDER_ID` — folder ID for the approved BRUTTI asset folder
-   - `OPENAI_API_KEY` — optional until live AI is activated
-   - `OPENAI_MODEL` — model selected for content generation
    - `META_PAGE_ID` — optional until Meta publishing is activated
    - `META_PAGE_ACCESS_TOKEN` — optional until Meta publishing is activated
    - `META_GRAPH_VERSION` — required with the Meta connection
@@ -68,13 +66,13 @@ The web app URL is public because GitHub Pages must reach it, but every operatio
 The backend preserves the current `Daily Planner` columns and uses these additional tabs in `BRUTTI DAILY CONTENT PLANNER`:
 
 - `Content Library` — draft, approval and publishing records
-- `Integration Log` — timestamped AI, Sheet, Drive and Meta actions
+- `Integration Log` — timestamped Sheet, Drive and Meta actions
 
 The existing `BRUTTI AI MARKETING MASTER DATA`, `BRUTTI Website & Make Sync Mapping`, `BRUTTI Sync` workflow and Drive folder structure remain separate and are not deleted.
 
 ## Accuracy boundaries
 
-- AI receives only the verified facts entered in the website.
+- Template drafts and manually prepared ChatGPT prompts receive only the verified facts entered in the website.
 - Content stays review-first; Meta publishing requires the `Approved` stage.
 - The system does not fabricate prices, promotions, availability, delivery dates, specifications or social-performance KPI.
 - Live Meta analytics remain blank until real Meta data is connected.
