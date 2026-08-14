@@ -22,7 +22,7 @@ const PLANNER_HEADERS = [
   'Key Message', 'Promotion', 'Language', 'Generated Content', 'Status',
   'Approval Notes', 'Approved Date', 'Published Date', 'Drive Link',
   'Publish Link', 'Request ID', 'Notion Page ID', 'Source', 'Website Action',
-  'Website Sync Status', 'Last Website Update'
+  'Website Sync Status', 'Last Website Update', 'Sync Error', 'Name'
 ];
 
 const LOG_HEADERS = ['Timestamp', 'Action', 'Record ID', 'Status', 'Message', 'Actor', 'Source'];
@@ -184,15 +184,21 @@ function savePlan_(plan) {
       'BRUTTI AI Marketing Hub',
       clean_(plan.websiteAction || (rowNumber ? 'Edit' : 'Add')),
       'Synced',
-      now
+      now,
+      clean_(existing[21] || ''),
+      clean_(plan.name || plan.title || existing[22] || '')
     ];
     if (notionPlannerConfigured_()) {
       try {
         const synced = upsertNotionPlan_(values);
         values[16] = synced.pageId || values[16];
         values[19] = 'Synced';
+        values[21] = '';
+        values[22] = values[22] || values[5];
       } catch (error) {
         values[19] = 'Error';
+        values[21] = clean_(error.message);
+        values[22] = values[22] || values[5];
         logEvent_('notion_plan_sync', id, 'Error', error.message);
       }
     }
@@ -266,16 +272,21 @@ function testIntegrations_() {
     try {
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       const requiredTabs = [PLANNER_SHEET, CONTENT_SHEET, LOG_SHEET];
+      const planner = spreadsheet.getSheetByName(PLANNER_SHEET);
+      const plannerHeaders = planner ? planner.getRange(1, 1, 1, PLANNER_HEADERS.length).getDisplayValues()[0] : [];
+      const plannerSchemaMatches = plannerHeaders.join('|') === PLANNER_HEADERS.join('|');
       const existingTabs = spreadsheet.getSheets().map(sheet => sheet.getName());
       const missingTabs = requiredTabs.filter(name => existingTabs.indexOf(name) < 0);
       result.sheets = {
-        connected: missingTabs.length === 0,
+        connected: missingTabs.length === 0 && plannerSchemaMatches,
         configured: true,
         id: spreadsheetId,
         name: spreadsheet.getName(),
         url: spreadsheet.getUrl(),
         tabs: existingTabs,
-        missingTabs: missingTabs
+        missingTabs: missingTabs,
+        plannerSchemaMatches: plannerSchemaMatches,
+        plannerColumns: PLANNER_HEADERS.length
       };
     } catch (error) {
       result.sheets.error = error.message;
@@ -481,9 +492,14 @@ function syncNotionPlanner_() {
       row[16] = synced.pageId || row[16];
       row[19] = 'Synced';
       row[20] = new Date();
+      row[21] = '';
+      row[22] = row[22] || row[5];
       count += 1;
     } catch (error) {
       row[19] = 'Error';
+      row[20] = new Date();
+      row[21] = clean_(error.message);
+      row[22] = row[22] || row[5];
       logEvent_('notion_plan_sync', String(row[15] || ''), 'Error', error.message);
     }
     rows[index] = row;
@@ -504,7 +520,7 @@ function upsertNotionPlan_(row) {
   const statusMap = { Idea:'Draft', 'AI Generated':'Draft', Draft:'Draft', Review:'Review', Approved:'Approved', Rejected:'Rejected', Scheduled:'Scheduled', Published:'Published' };
   const languageMap = { 'BM + English':'Bahasa Melayu + English', 'Bahasa Melayu + English':'Bahasa Melayu + English', English:'English', 'Bahasa Melayu':'Bahasa Melayu' };
   const props = {
-    'Name': notionTitle_(row[5]),
+    'Name': notionTitle_(row[22] || row[5]),
     'Content Date': { date: { start: formatDate_(row[0]) } },
     'Platform': { select: { name: String(row[1] || 'Facebook') } },
     'Content Type': { select: { name: 'Facebook Post' } },
@@ -623,7 +639,14 @@ function planFromValues_(row, rowNumber) {
     generatedContent: String(row[8] || ''),
     approvalNotes: String(row[10] || ''),
     driveLink: String(row[13] || ''),
-    publishLink: String(row[14] || '')
+    publishLink: String(row[14] || ''),
+    notionPageId: String(row[16] || ''),
+    source: String(row[17] || ''),
+    websiteAction: String(row[18] || ''),
+    websiteSyncStatus: String(row[19] || ''),
+    lastWebsiteUpdate: formatIso_(row[20]),
+    syncError: String(row[21] || ''),
+    name: String(row[22] || row[5] || '')
   };
 }
 
