@@ -195,34 +195,34 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
 const bruttiCopyBank = {
   bm: {
     'Brand Awareness': [
-      'Ruang yang baik bermula dengan pilihan yang sesuai untuk cara kita menggunakannya.',
-      'Setiap ruang ada tujuan, dan setiap pilihan sepatutnya membantu ruang itu berfungsi dengan lebih baik.',
-      'Bagi BRUTTI, ruang yang bermakna bermula dengan keperluan sebenar penggunanya.',
+      'Nah, setiap ruang ada cerita dia sendiri bah.',
+      'Kadang-kadang bukan perlu banyak benda pun, yang penting ngam dengan cara kamu guna ruang tu.',
+      'Di BRUTTI, kami suka bikin sesuatu yang betul-betul ikut keperluan ruang kamu.',
     ],
     'Product Highlight': [
-      'Pilihan perabot yang tepat boleh membantu ruang terasa lebih teratur dan mudah digunakan.',
-      'Bila fungsi dan susunan bergerak seiring, ruang menjadi lebih selesa untuk kegunaan harian.',
-      'Setiap produk perlu dipilih berdasarkan ruang, fungsi dan keperluan sebenar.',
+      'Kalau cari furniture yang ngam dengan ruang kamu, cuba tinguk yang ni dulu.',
+      'Simple, practical dan senang mau kasi ngam dengan kegunaan harian.',
+      'Nah, kali ni kami mau kasi spotlight sikit sama satu lagi hasil BRUTTI.',
     ],
     Educational: [
-      'Ruang yang lebih teratur bermula dengan perancangan yang jelas dan maklumat yang tepat.',
-      'Sebelum memilih perabot, kenal pasti dahulu fungsi utama dan keadaan ruang yang ada.',
-      'Pilihan yang praktikal bermula dengan memahami apa yang benar-benar diperlukan oleh ruang.',
+      'Kamu pernah fikir ka macam mana mau kasi ruang lebih teratur?',
+      'Sebelum pilih furniture, tinguk dulu ruang tu selalu digunakan untuk apa.',
+      'Tip simple ja kali ni, tapi boleh bantu kamu susun ruang dengan lebih ngam.',
     ],
     'Behind the Scenes': [
-      'Di sebalik setiap hasil BRUTTI, ada proses yang dibuat dengan teliti dan penuh tujuan.',
-      'Setiap hasil bermula dengan perancangan, penelitian dan kerja yang dilakukan satu langkah pada satu masa.',
-      'Dari idea hingga ke hasil akhir, setiap proses perlu kekal jelas dan terarah.',
+      'Nah, kamu tinguk dulu apa yang team kami sedang bikin ni.',
+      'Di belakang setiap BRUTTI piece, memang banyak juga proses dia bah.',
+      'Dari idea sampai siap, team kasi jalan satu-satu supaya hasil dia ngam.',
     ],
     'Customer Story': [
-      'Setiap ruang mempunyai keperluan dan cerita yang berbeza.',
-      'Bila keperluan pelanggan difahami dengan jelas, penyelesaian ruang dapat dirancang dengan lebih tepat.',
-      'Cerita setiap ruang bermula daripada cara pelanggan mahu menggunakannya.',
+      'Setiap customer datang dengan ruang dan cerita yang lain-lain.',
+      'Bila customer sudah share apa yang dia perlukan, barula senang kami susun direction yang ngam.',
+      'Yang paling siok, bila idea customer tu pelan-pelan jadi real depan mata.',
     ],
     Promotion: [
-      'Sedang mencari pilihan yang lebih sesuai untuk ruang anda?',
-      'Ini mungkin masa yang sesuai untuk merancang ruang mengikut keperluan sebenar anda.',
-      'Sebelum membuat pilihan, semak dahulu maklumat tawaran dan kesesuaiannya untuk ruang anda.',
+      'Siapa yang sudah lama tunggu, nah ini masanya bah.',
+      'Kalau yang ni memang ngam dengan ruang kamu, jangan kasi tunggu lama sangat.',
+      'Sebelum confirm, semak dulu semua detail promo yang team sudah bagi ya.',
     ],
   },
   en: {
@@ -261,9 +261,9 @@ const bruttiCopyBank = {
 
 const bruttiCtas = {
   bm: [
-    'Hubungi BRUTTI untuk maklumat produk yang telah disahkan.',
-    'Mesej BRUTTI untuk semak maklumat dan pilihan yang sesuai untuk ruang anda.',
-    'Bincang dengan pasukan BRUTTI sebelum membuat pilihan untuk ruang anda.',
+    'Kalau mau tahu lebih lanjut, roger ja team BRUTTI.',
+    'Ada soalan pasal yang ni? Mesej ja kami bah.',
+    'Kamu rasa yang ni ngam ka dengan ruang kamu? Kasi tau kami di komen.',
   ],
   en: [
     'Contact BRUTTI for verified product information.',
@@ -285,51 +285,45 @@ function polishDirectionText(value, language) {
   if (language === 'English') return sentenceCase(original)
 
   let polished = original
-    .replace(/\bni\b/gi, 'ini')
-    .replace(/\bja\b/gi, 'sahaja')
-    .replace(/\bmau\b/gi, 'mahu')
-    .replace(/\bsenang\b/gi, 'mudah')
-    .replace(/\bfoldable\b/gi, 'boleh dilipat')
-    .replace(/\bevent\b/gi, 'acara')
     .replace(/\bdiluar\b/gi, 'di luar')
-    .replace(/\bsebab\b/gi, 'kerana')
-    .replace(/\bkena lagi\b/gi, 'lebih-lebih lagi')
-    .replace(/\bmudah mahu disimpan\b/gi, 'mudah disimpan')
-    .replace(/\bboleh dilipat mudah disimpan\b/gi, 'boleh dilipat dan mudah disimpan')
+    .replace(/\bdidalam\b/gi, 'di dalam')
+    .replace(/\bkemana-mana\b/gi, 'ke mana-mana')
+    .replace(/\bkena lagi\b/gi, 'lagi-lagi kalau')
+    .replace(/\bbarang2\b/gi, 'barang-barang')
 
-  const portable = /mudah dibawa ke mana-mana/i.test(polished)
-  const foldable = /boleh dilipat/i.test(polished)
-  const storage = /mudah disimpan|penyimpanan/i.test(polished)
-  const event = /acara/i.test(polished)
+  const portable = /(?:senang|mudah) dibawa ke mana-mana/i.test(polished)
+  const foldable = /foldable|boleh dilipat/i.test(polished)
+  const storage = /(?:senang|mudah).{0,16}(?:mau|mahu)?\s*disimpan|senang.{0,10}simpan|penyimpanan/i.test(polished)
+  const event = /event|acara/i.test(polished)
   const outdoor = /di luar/i.test(polished)
   const kiosk = /\bkiosk\b/i.test(polished)
   if (portable && foldable) {
-    const subject = kiosk ? 'Kiosk ini' : 'Produk ini'
-    const eventUse = event ? ` dan sesuai digunakan untuk ${outdoor ? 'acara di luar' : 'pelbagai acara'}` : ''
-    const storageLine = storage || foldable ? 'Reka bentuknya yang boleh dilipat turut memudahkan penyimpanan.' : ''
-    return `${subject} mudah dibawa ke mana-mana${eventUse}. ${storageLine}`.trim()
+    const subject = kiosk ? 'Kiosk ni' : 'Produk ni'
+    const eventUse = event ? `, lagi-lagi kalau ada event${outdoor ? ' di luar' : ''}` : ''
+    const storageLine = storage || foldable ? 'Foldable pula tu, jadi senang ja mau simpan.' : ''
+    return `${subject} memang senang dibawa ke mana-mana${eventUse}. ${storageLine}`.trim()
   }
 
   polished = polished
-    .replace(/\s+(lebih-lebih lagi|terutamanya)\s+/i, '. $1, ')
-    .replace(/\s+kerana\s+/i, '. Hal ini kerana ')
+    .replace(/\s+(lagi-lagi kalau)\s+/i, ', $1 ')
+    .replace(/\s+sebab\s+/i, '. Sebab ')
   return polished.split(/(?<=[.!?])\s+/).map(sentenceCase).join(' ')
 }
 
 function buildSmartDraft(form, mode = 'balanced', variation = 0) {
-  const facts = form.brief.trim().replace(/\s+/g, ' ')
+  const facts = polishDirectionText(form.brief, form.language)
   const product = form.product === 'General / No Product' ? '' : form.product
   const index = Math.abs(variation) % 3
   const selectOpener = (language) => {
     const standard = bruttiCopyBank[language][form.type] || bruttiCopyBank[language]['Brand Awareness']
-    if (mode === 'balanced' && form.tone === 'Casual') return language === 'bm' ? 'Kalau ruang mula rasa kurang teratur, mari lihat semula apa yang benar-benar diperlukan.' : 'If a space starts to feel less organised, let’s look again at what it genuinely needs.'
-    if (mode === 'engaging') return language === 'bm' ? `Apa yang membuatkan sesebuah ruang lebih mudah digunakan setiap hari?` : 'What makes a space easier to use every day?'
-    if (mode === 'casual') return language === 'bm' ? 'Kalau ruang mula rasa kurang teratur, mungkin sudah tiba masanya untuk lihat semula apa yang benar-benar diperlukan.' : 'If a space starts to feel less organised, it may be time to look again at what it genuinely needs.'
-    if (mode === 'professional') return language === 'bm' ? 'Perancangan ruang yang baik perlu bermula dengan keperluan yang jelas dan maklumat yang telah disahkan.' : 'Good space planning should begin with clear requirements and verified information.'
+    if (mode === 'balanced' && form.tone === 'Brutti Sabahan Casual') return standard[index]
+    if (mode === 'engaging') return language === 'bm' ? 'Kamu pernah nampak benda macam ni ka?' : 'Have you seen something like this before?'
+    if (mode === 'casual') return language === 'bm' ? 'Nah, kali ni kami mau share benda yang simple tapi menarik bah.' : 'Here is something simple but interesting that we wanted to share.'
+    if (mode === 'professional') return language === 'bm' ? 'Kalau kamu cari pilihan yang practical dan kemas, yang ni boleh masuk dalam pertimbangan.' : 'If you need a practical and tidy option, this may be worth considering.'
     return standard[(mode === 'hook' ? index + 1 : index) % standard.length]
   }
   const selectCta = (language) => bruttiCtas[language][mode === 'cta' ? (index + 1) % 3 : index]
-  const productLineBm = product && form.type === 'Product Highlight' ? `${product} menjadi fokus untuk perkongsian kali ini.` : ''
+  const productLineBm = product && form.type === 'Product Highlight' ? `Untuk kali ni, kami kasi spotlight sikit sama ${product}.` : ''
   const productLineEn = product && form.type === 'Product Highlight' ? `${product} is the focus of this post.` : ''
   const buildLanguage = (language) => {
     const pieces = [selectOpener(language)]
@@ -344,7 +338,7 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
   const bilingual = `${selectOpener('bm')}\n\n${facts}\n\n${selectCta('bm')}\n\n${selectOpener('en')}\n\n${selectCta('en')}`
   const draft = form.language === 'English' ? en : form.language === 'BM + English' ? bilingual : bm
   const addHashtags = form.includeHashtags || mode === 'hashtags'
-  const hashtags = index === 1 ? '#BRUTTI #ProudlySabahan #RuangBermakna' : index === 2 ? '#BRUTTI #PurposefullyCrafted #RuangPraktikal' : '#BRUTTI #ProudlySabahan #PurposefullyCrafted'
+  const hashtags = index === 1 ? '#BRUTTI #ProudlySabahan #FurnitureSabah' : index === 2 ? '#BRUTTI #PurposefullyCrafted #CustomFurnitureSabah' : '#BRUTTI #ProudlySabahan #BikinSampaiJadi'
   return `${draft}${addHashtags ? `\n\n${hashtags}` : ''}`
 }
 
@@ -360,7 +354,7 @@ function getRuleChecks(copy, verifiedFacts) {
   return [
     { label:'Verified facts supplied', pass:Boolean(verifiedFacts.trim()) },
     { label:'Brutti Facebook style aligned', pass:hypeFree && paragraphs.length >= 2 && paragraphs.length <= 7 },
-    { label:'Clear contact CTA', pass:/hubungi|contact|mesej|message|bincang|speak with|whatsapp/i.test(copy) },
+    { label:'Natural Brutti CTA', pass:/hubungi|contact|mesej|message|bincang|speak with|whatsapp|roger|kasi tau|komen|share|simpan/i.test(copy) },
     { label:'Hashtags controlled (maximum 5)', pass:hashtags.length <= 5 },
     { label:'No unsupported price, promotion or KPI', pass:!unsupported },
     { label:'Human approval still required', pass:false, review:true },
@@ -392,12 +386,13 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
     <div className="generator-layout">
       <form className="generator-form" onSubmit={(event) => { event.preventDefault(); onGenerate() }}>
         <div className="form-section-head"><span>01</span><div><strong>Content direction</strong><p>Only use facts you can verify.</p></div></div>
+        <p className="form-disclaimer"><Icon name="check" size={14}/>Default voice: Brutti Sabahan Casual — santai, natural dan tidak dipaksa. Perkataan seperti ni, ja, nda, bah, kasi dan mau akan dikekalkan bila sesuai.</p>
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
         <div className="two-fields"><label>Platform<select value={form.platform} onChange={update('platform')}><option>Facebook</option><option disabled>Instagram — not connected</option><option disabled>TikTok — not connected</option><option disabled>Threads — not connected</option></select></label><label>Content type<select value={form.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option><option>Promotion</option></select></label></div>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productNames.map((name) => <option key={name}>{name}</option>)}</select></label>
-        <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Warm & confident</option><option>Practical</option><option>Proud & purposeful</option><option>Helpful</option><option>Casual</option></select></label></div>
+        <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Brutti Sabahan Casual</option><option>Warm & confident</option><option>Practical & friendly</option><option>Proud & purposeful</option><option>Helpful</option><option>Professional but friendly</option></select></label></div>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Write your rough sentence or add confirmed product details and campaign direction."/></label>
-        <div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Polish wording in Brutti style</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Meaning must still be checked by a human.</span></div>
+        <div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
         <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
         <p className="form-disclaimer"><Icon name="alert" size={14}/>No paid AI API is used. The draft is assembled from BRUTTI templates and the verified facts you enter.</p>
@@ -406,7 +401,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
 
       <div className={`generator-output ${output ? 'has-output' : ''}`}>
         <div className="output-toolbar"><div><span className="eyebrow">FREE ASSIST OUTPUT</span><strong>{output ? form.title : 'Your structured draft will appear here'}</strong></div>{output ? <StatusPill>Human Review Required</StatusPill> : <StatusPill>Free Mode Ready</StatusPill>}</div>
-        {output ? <><label className="output-editor-label">Editable Facebook caption<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><section className="smart-rewrite-panel"><div className="smart-rewrite-head"><div><span className="eyebrow">FREE SMART REWRITE</span><strong>Refine the caption inside this website</strong></div><span>No API · No external platform</span></div><div className="rewrite-actions"><button className={rewriteMode === 'engaging' ? 'active' : ''} onClick={() => rewrite('engaging')}>More engaging</button><button className={rewriteMode === 'casual' ? 'active' : ''} onClick={() => rewrite('casual')}>More casual</button><button className={rewriteMode === 'professional' ? 'active' : ''} onClick={() => rewrite('professional')}>More professional</button><button className={rewriteMode === 'shorten' ? 'active' : ''} onClick={() => rewrite('shorten')}>Shorten</button><button className={rewriteMode === 'hook' ? 'active' : ''} onClick={() => rewrite('hook')}>New hook</button><button className={rewriteMode === 'cta' ? 'active' : ''} onClick={() => rewrite('cta')}>New CTA</button><button className={rewriteMode === 'hashtags' ? 'active' : ''} onClick={() => rewrite('hashtags')}>Refresh hashtags</button></div><div className="variation-row"><span>Brutti variations</span>{[0,1,2].map((index) => <button className={rewriteMode === 'balanced' && variation === index ? 'active' : ''} key={index} onClick={() => rewrite('balanced', index)}>Version {index + 1}</button>)}</div></section><div className="output-actions assist-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy caption</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Smart Rewrite is ready.</h3><p>Add verified facts to generate a Brutti-style Facebook caption, then refine its hook, tone, length, CTA and hashtags without leaving this website.</p></div>}
+        {output ? <><label className="output-editor-label">Editable Facebook caption<textarea value={output} onChange={(event) => onOutputChange(event.target.value)} rows="16"/></label><section className="smart-rewrite-panel"><div className="smart-rewrite-head"><div><span className="eyebrow">FREE SMART REWRITE</span><strong>Asah caption ikut suara Brutti</strong></div><span>Brutti Sabahan Casual · No API</span></div><div className="rewrite-actions"><button className={rewriteMode === 'engaging' ? 'active' : ''} onClick={() => rewrite('engaging')}>More engaging</button><button className={rewriteMode === 'casual' ? 'active' : ''} onClick={() => rewrite('casual')}>More casual</button><button className={rewriteMode === 'professional' ? 'active' : ''} onClick={() => rewrite('professional')}>More professional</button><button className={rewriteMode === 'shorten' ? 'active' : ''} onClick={() => rewrite('shorten')}>Shorten</button><button className={rewriteMode === 'hook' ? 'active' : ''} onClick={() => rewrite('hook')}>New hook</button><button className={rewriteMode === 'cta' ? 'active' : ''} onClick={() => rewrite('cta')}>New CTA</button><button className={rewriteMode === 'hashtags' ? 'active' : ''} onClick={() => rewrite('hashtags')}>Refresh hashtags</button></div><div className="variation-row"><span>Brutti Sabahan variations</span>{[0,1,2].map((index) => <button className={rewriteMode === 'balanced' && variation === index ? 'active' : ''} key={index} onClick={() => rewrite('balanced', index)}>Version {index + 1}</button>)}</div></section><div className="output-actions assist-actions"><button className="button secondary" onClick={() => navigator.clipboard?.writeText(output)}>Copy caption</button><button className="button primary" onClick={saveDraft}>Save as draft</button></div><div className="ai-checks">{checks.map((check) => <span className={check.pass ? 'pass' : check.review ? 'review' : 'flag'} key={check.label}><Icon name={check.pass ? 'check' : 'alert'}/>{check.label}</span>)}</div><p className="save-location">{workspaceActive ? 'Saving writes this draft to the BRUTTI Google Sheet.' : 'Saving keeps this draft in the current browser until Google is connected.'}</p></> : <div className="empty-output"><div className="sparkle-ring"><Icon name="sparkles" size={28}/></div><h3>Free Smart Rewrite is ready.</h3><p>Add verified facts to generate a relaxed Sabahan-style BRUTTI Facebook caption, then refine its hook, tone, length, CTA and hashtags without leaving this website.</p></div>}
       </div>
     </div>
   )
@@ -419,7 +414,7 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Generate and refine Brutti-style Facebook captions inside this website, then move them through human review." />
+      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Buat dan asah caption Facebook dalam gaya Brutti Sabahan yang santai, kemudian hantar untuk human review." />
       <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
       {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast}/> : (
         <section className="panel content-library">
@@ -463,7 +458,7 @@ function BrandLibrary() {
       <section className="brand-hero"><div><span className="eyebrow light">BRUTTI BRAND PROMISE</span><h2>Proudly Sabahan.<br/><em>Purposefully Crafted.</em><br/>Responsibly Made.</h2></div><div className="brand-monogram">B</div></section>
       <div className="brand-grid">
         <section className="panel brand-card"><span className="card-number">01</span><span className="eyebrow">PERSONALITY</span><h3>Warm, confident and purposeful.</h3><p>BRUTTI communicates with pride in local craft, practical clarity and respect for the customer’s space.</p><div className="keyword-row"><span>Warm</span><span>Practical</span><span>Proud</span><span>Honest</span><span>Creative</span></div></section>
-        <section className="panel brand-card"><span className="card-number">02</span><span className="eyebrow">VOICE & TONE</span><h3>Human first, never overproduced.</h3><p>Use clear, customer-focused language. Keep local character natural and avoid forcing slang, hype or repetitive wording.</p><blockquote>“Crafted for the way your space needs to work.”</blockquote></section>
+        <section className="panel brand-card"><span className="card-number">02</span><span className="eyebrow">VOICE & TONE</span><h3>Sabahan santai, natural dan human.</h3><p>Kekalkan perkataan seperti ni, ja, nda, bah, kasi, mau, tinguk dan ngam bila sesuai. Campur English secara natural, jangan paksa slang atau ulang perkataan yang sama terlalu banyak.</p><blockquote>“Nah, kamu tinguk dulu yang ni bah.”</blockquote></section>
       </div>
       <section className="panel palette-panel"><div className="panel-heading"><div><span className="eyebrow">VISUAL LANGUAGE</span><h3>Core colour palette</h3></div></div><div className="colour-grid">{colours.map(([name,hex]) => <div key={hex}><div className="colour-swatch" style={{background:hex}}/><strong>{name}</strong><span>{hex}</span></div>)}</div></section>
       <div className="brand-grid guideline-grid">
@@ -620,7 +615,7 @@ function App() {
   const [activePlan, setActivePlan] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimer = useRef(null)
-  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Warm & confident', brief:'', includeHashtags:true })
+  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true })
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
   const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, openai:false, drive:false, meta:false })
