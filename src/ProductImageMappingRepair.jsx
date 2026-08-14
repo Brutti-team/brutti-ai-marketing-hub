@@ -15,7 +15,7 @@ const repairedMappings = {
     fileName: 'BARN-DOOR.jpg',
     view: 'Front View',
   },
-  'puloUdopuan 2.0 kitchen island'.toLowerCase(): {
+  'puloudopuan 2.0 kitchen island': {
     product: 'PULOUDOPUAN 2.0 Kitchen Island',
     fileId: '1nCo8zDhFincpQTnGU2APFRi9O8B0ab7k',
     fileName: 'PULOUDOPUAN-2-Kitchen-Island.jpg',
