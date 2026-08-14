@@ -272,6 +272,50 @@ const bruttiCtas = {
   ],
 }
 
+function sentenceCase(value) {
+  const cleaned = value.trim().replace(/\s+([,.!?])/g, '$1')
+  if (!cleaned) return ''
+  const cased = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  return /[.!?]$/.test(cased) ? cased : `${cased}.`
+}
+
+function polishDirectionText(value, language) {
+  const original = value.trim().replace(/\s+/g, ' ')
+  if (!original) return ''
+  if (language === 'English') return sentenceCase(original)
+
+  let polished = original
+    .replace(/\bni\b/gi, 'ini')
+    .replace(/\bja\b/gi, 'sahaja')
+    .replace(/\bmau\b/gi, 'mahu')
+    .replace(/\bsenang\b/gi, 'mudah')
+    .replace(/\bfoldable\b/gi, 'boleh dilipat')
+    .replace(/\bevent\b/gi, 'acara')
+    .replace(/\bdiluar\b/gi, 'di luar')
+    .replace(/\bsebab\b/gi, 'kerana')
+    .replace(/\bkena lagi\b/gi, 'lebih-lebih lagi')
+    .replace(/\bmudah mahu disimpan\b/gi, 'mudah disimpan')
+    .replace(/\bboleh dilipat mudah disimpan\b/gi, 'boleh dilipat dan mudah disimpan')
+
+  const portable = /mudah dibawa ke mana-mana/i.test(polished)
+  const foldable = /boleh dilipat/i.test(polished)
+  const storage = /mudah disimpan|penyimpanan/i.test(polished)
+  const event = /acara/i.test(polished)
+  const outdoor = /di luar/i.test(polished)
+  const kiosk = /\bkiosk\b/i.test(polished)
+  if (portable && foldable) {
+    const subject = kiosk ? 'Kiosk ini' : 'Produk ini'
+    const eventUse = event ? ` dan sesuai digunakan untuk ${outdoor ? 'acara di luar' : 'pelbagai acara'}` : ''
+    const storageLine = storage || foldable ? 'Reka bentuknya yang boleh dilipat turut memudahkan penyimpanan.' : ''
+    return `${subject} mudah dibawa ke mana-mana${eventUse}. ${storageLine}`.trim()
+  }
+
+  polished = polished
+    .replace(/\s+(lebih-lebih lagi|terutamanya)\s+/i, '. $1, ')
+    .replace(/\s+kerana\s+/i, '. Hal ini kerana ')
+  return polished.split(/(?<=[.!?])\s+/).map(sentenceCase).join(' ')
+}
+
 function buildSmartDraft(form, mode = 'balanced', variation = 0) {
   const facts = form.brief.trim().replace(/\s+/g, ' ')
   const product = form.product === 'General / No Product' ? '' : form.product
@@ -326,6 +370,7 @@ function getRuleChecks(copy, verifiedFacts) {
 function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, saveDraft, workspaceActive, toast }) {
   const [rewriteMode, setRewriteMode] = useState('balanced')
   const [variation, setVariation] = useState(0)
+  const [originalBrief, setOriginalBrief] = useState('')
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const checks = getRuleChecks(output, form.brief)
   const rewrite = (mode, nextVariation = variation) => {
@@ -335,6 +380,14 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
     const labels = { balanced:'New Brutti variation', engaging:'More engaging', casual:'More casual', professional:'More professional', shorten:'Shorter caption', hook:'New opening hook', cta:'New CTA', hashtags:'Updated hashtags' }
     toast(`${labels[mode]} applied without an external AI platform.`)
   }
+  const polishBrief = () => {
+    if (!form.brief.trim()) { toast('Write your product facts or rough direction first.'); return }
+    const polished = polishDirectionText(form.brief, form.language)
+    if (polished === form.brief.trim()) { toast('The wording is already tidy. You can continue generating the caption.'); return }
+    setOriginalBrief(form.brief)
+    setForm((current) => ({ ...current, brief:polished }))
+    toast('Wording polished in Brutti style. Check that the meaning is still accurate before generating.')
+  }
   return (
     <div className="generator-layout">
       <form className="generator-form" onSubmit={(event) => { event.preventDefault(); onGenerate() }}>
@@ -343,7 +396,8 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <div className="two-fields"><label>Platform<select value={form.platform} onChange={update('platform')}><option>Facebook</option><option disabled>Instagram — not connected</option><option disabled>TikTok — not connected</option><option disabled>Threads — not connected</option></select></label><label>Content type<select value={form.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option><option>Promotion</option></select></label></div>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productNames.map((name) => <option key={name}>{name}</option>)}</select></label>
         <div className="two-fields"><label>Language<select value={form.language} onChange={update('language')}><option>Bahasa Melayu</option><option>English</option><option>BM + English</option></select></label><label>Tone<select value={form.tone} onChange={update('tone')}><option>Warm & confident</option><option>Practical</option><option>Proud & purposeful</option><option>Helpful</option><option>Casual</option></select></label></div>
-        <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Add only confirmed product details, campaign direction or source notes."/></label>
+        <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Write your rough sentence or add confirmed product details and campaign direction."/></label>
+        <div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Polish wording in Brutti style</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Meaning must still be checked by a human.</span></div>
         <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label>
         <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
         <p className="form-disclaimer"><Icon name="alert" size={14}/>No paid AI API is used. The draft is assembled from BRUTTI templates and the verified facts you enter.</p>
