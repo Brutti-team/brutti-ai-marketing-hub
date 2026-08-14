@@ -3,20 +3,8 @@ import { createPortal } from 'react-dom'
 import { promptLibrary } from './data'
 
 const hiddenNavigation = new Set(['Brand Library', 'AI Tools'])
-
-const brandRules = [
-  ['Voice', 'Sabahan santai, natural dan human. Jangan paksa slang atau ulang perkataan terlalu banyak.'],
-  ['Structure', 'Satu main message, opening hook yang jelas dan satu CTA yang relevant.'],
-  ['Hashtags', 'Gunakan 3–5 hashtag yang betul-betul relevant; maximum 5.'],
-  ['Facts', 'Gunakan verified facts sahaja. Jangan invent harga, promotion, delivery detail atau KPI.'],
-]
-
-const systemRules = [
-  ['Free AI Assist Mode', 'Ready', 'Rule-based content assist. No paid AI API required.'],
-  ['Brand governance', 'Active', 'Content Studio follows BRUTTI voice, fact and CTA guardrails.'],
-  ['Human approval', 'Required', 'Final approval remains with the marketing team before publishing.'],
-  ['Current channel', 'Facebook only', 'Other platforms stay hidden until their data and connections are ready.'],
-]
+const hiddenSettingsRows = new Set(['Free AI Assist Mode', 'Meta / Facebook'])
+const quickStarterTitles = new Set(['Facebook Post', 'Storytelling', 'Hook Generator'])
 
 function setReactValue(element, value) {
   if (!element) return
@@ -28,35 +16,11 @@ function setReactValue(element, value) {
   element.dispatchEvent(new Event('change', { bubbles: true }))
 }
 
-function BrandRulesPanel() {
-  return (
-    <section className="panel core7-brand-panel">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">BRAND RULES</span>
-          <h3>BRUTTI content guardrails</h3>
-        </div>
-        <span className="core7-inline-status">Built into Content Studio</span>
-      </div>
-      <div className="core7-brand-grid">
-        {brandRules.map(([title, copy]) => (
-          <article key={title}>
-            <strong>{title}</strong>
-            <p>{copy}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function PromptStarterPanel({ pageNode }) {
-  const groups = useMemo(() => promptLibrary
-    .map((group) => ({
-      ...group,
-      items: group.items.filter((item) => !/instagram|tiktok|threads/i.test(item.title)),
-    }))
-    .filter((group) => group.items.length), [])
+  const items = useMemo(
+    () => promptLibrary.flatMap((group) => group.items).filter((item) => quickStarterTitles.has(item.title)),
+    [],
+  )
 
   const applyPrompt = (item) => {
     const freeAssistButton = [...pageNode.querySelectorAll('.tab-bar button')]
@@ -79,62 +43,18 @@ function PromptStarterPanel({ pageNode }) {
     <section className="panel core7-prompt-panel">
       <div className="panel-heading">
         <div>
-          <span className="eyebrow">MARKETING ASSIST LIBRARY</span>
-          <h3>Prompt starters inside Content Studio</h3>
+          <span className="eyebrow">QUICK STARTERS</span>
+          <h3>Useful Facebook starters</h3>
         </div>
-        <span className="core7-inline-status">Facebook workflow</span>
+        <span className="core7-inline-status">3 tools</span>
       </div>
-      <p className="core7-section-copy">Pilih starter yang sesuai. Ia akan dimasukkan terus ke Content Studio sebagai direction untuk kamu semak dan refine.</p>
-      <div className="core7-prompt-groups">
-        {groups.map((group) => (
-          <section key={group.category}>
-            <div className="core7-prompt-group-head">
-              <strong>{group.category}</strong>
-              <span>{group.items.length} tools</span>
-            </div>
-            <div className="core7-prompt-grid">
-              {group.items.map((item) => (
-                <article key={item.title}>
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                  <button className="button secondary small" type="button" onClick={() => applyPrompt(item)}>Load into Content Studio</button>
-                </article>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function ContentStudioExtras({ pageNode }) {
-  return (
-    <div className="core7-studio-extras">
-      <BrandRulesPanel />
-      <PromptStarterPanel pageNode={pageNode} />
-    </div>
-  )
-}
-
-function SystemModePanel() {
-  return (
-    <section className="panel core7-system-panel">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">SYSTEM MODE</span>
-          <h3>Marketing operating rules</h3>
-        </div>
-        <span className="core7-inline-status">Operational</span>
-      </div>
-      <div className="core7-system-list">
-        {systemRules.map(([name, status, detail]) => (
-          <article key={name}>
-            <div>
-              <strong>{name}</strong>
-              <p>{detail}</p>
-            </div>
-            <span>{status}</span>
+      <p className="core7-section-copy">Load a simple direction into Content Studio, then add the verified BRUTTI facts before generating.</p>
+      <div className="core7-prompt-grid">
+        {items.map((item) => (
+          <article key={item.title}>
+            <strong>{item.title}</strong>
+            <p>{item.description}</p>
+            <button className="button secondary small" type="button" onClick={() => applyPrompt(item)}>Use starter</button>
           </article>
         ))}
       </div>
@@ -149,7 +69,7 @@ function DriveRequiredPanel() {
       <div>
         <span className="eyebrow">GOOGLE DRIVE REQUIRED</span>
         <h3>Connect Drive to use approved visual assets.</h3>
-        <p>Asset cards are hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real BRUTTI assets.</p>
+        <p>Asset cards stay hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real BRUTTI assets.</p>
       </div>
     </section>
   )
@@ -187,6 +107,14 @@ export default function Core7MarketingTools() {
         if (label.textContent?.trim() === 'SMART CAMPAIGN IDEAS') label.textContent = 'CAMPAIGN IDEAS'
       })
 
+      root.querySelectorAll('.brutti-platform-status-strip').forEach((strip) => strip.remove())
+
+      const avatar = root.querySelector('.topbar .avatar')
+      if (avatar) avatar.hidden = true
+
+      const sidebarStatus = root.querySelector('.sidebar .system-card')
+      if (sidebarStatus) sidebarStatus.hidden = true
+
       if (title === 'Content Studio' && activePage) {
         const platformLabel = [...activePage.querySelectorAll('label')]
           .find((label) => /^Platform/i.test(label.textContent || ''))
@@ -216,13 +144,19 @@ export default function Core7MarketingTools() {
       if (title === 'Settings' && activePage) {
         activePage.querySelectorAll('.connections-list article').forEach((row) => {
           const name = row.querySelector('strong')?.textContent?.trim() || ''
-          row.hidden = name === 'Free AI Assist Mode'
+          row.hidden = hiddenSettingsRows.has(name)
           row.querySelectorAll('button').forEach((button) => { button.hidden = true })
         })
 
         const refreshButton = [...activePage.querySelectorAll('button')]
           .find((button) => /^Refresh status$/i.test(button.textContent?.trim() || ''))
         if (refreshButton) refreshButton.textContent = 'Refresh integration status'
+      }
+
+      if (title === 'Analytics' && activePage) {
+        activePage.querySelectorAll('.page-header .status-chip').forEach((chip) => {
+          if (/meta/i.test(chip.textContent || '')) chip.hidden = true
+        })
       }
     }
 
@@ -233,9 +167,7 @@ export default function Core7MarketingTools() {
   }, [])
 
   if (!pageNode) return null
-
-  if (pageTitle === 'Content Studio') return createPortal(<ContentStudioExtras pageNode={pageNode} />, pageNode)
-  if (pageTitle === 'Settings') return createPortal(<SystemModePanel />, pageNode)
+  if (pageTitle === 'Content Studio') return createPortal(<PromptStarterPanel pageNode={pageNode} />, pageNode)
   if (pageTitle === 'Asset Library' && !driveConnected) return createPortal(<DriveRequiredPanel />, pageNode)
   return null
 }
