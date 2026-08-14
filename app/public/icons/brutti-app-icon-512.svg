@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="BRUTTI AI Marketing Hub">
+  <rect width="512" height="512" rx="112" fill="#12372A"/>
+  <rect x="64" y="64" width="384" height="384" rx="86" fill="#1D4A39"/>
+  <path d="M155 125h115c66 0 104 29 104 77 0 33-17 56-49 69 39 11 61 38 61 78 0 59-45 91-120 91H155V125Zm102 126c35 0 53-13 53-37 0-23-18-35-53-35h-38v72h38Zm10 134c37 0 56-14 56-40 0-24-19-38-56-38h-48v78h48Z" fill="#F7F3EA"/>
+  <circle cx="386" cy="131" r="27" fill="#A8B5A2"/>
+</svg>
