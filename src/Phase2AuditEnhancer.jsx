@@ -118,7 +118,7 @@ function AuditPanel({ config }) {
       ) : null}
 
       <div className="phase2-footnote">
-        <strong>Data rule:</strong> Do not label any post as “best performing” until verified post-level KPI is available.
+        <strong>Data rule:</strong> Do not label any post as “best performing” until verified post-level KPIs are available.
       </div>
     </section>
   )
