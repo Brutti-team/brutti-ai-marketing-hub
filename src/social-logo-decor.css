@@ -1,0 +1,108 @@
+.brutti-social-rail {
+  margin-top: 10px;
+}
+
+.brutti-social-caption {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.brutti-social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brutti-social-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 10px 5px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--forest);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.brutti-social-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.brutti-social-chip.is-facebook .brutti-social-mark {
+  background: #1877f2;
+}
+
+.brutti-social-chip.is-instagram .brutti-social-mark {
+  background: linear-gradient(135deg, #f58529, #dd2a7b 55%, #8134af);
+}
+
+.brutti-social-chip.is-tiktok .brutti-social-mark {
+  background: #111111;
+}
+
+.brutti-social-chip.is-threads .brutti-social-mark {
+  background: #1f1f1f;
+}
+
+.brutti-asset-channel-strip {
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(18, 55, 42, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(239, 244, 240, 0.88), rgba(255, 255, 255, 0.86));
+}
+
+.brutti-asset-channel-strip p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.core7-drive-required .brutti-asset-channel-strip {
+  margin-top: 12px;
+}
+
+html[data-theme='dark'] .brutti-social-caption {
+  color: #b9c3bd;
+}
+
+html[data-theme='dark'] .brutti-social-chip {
+  background: rgba(30, 38, 33, 0.94);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #edf2ee;
+}
+
+html[data-theme='dark'] .brutti-asset-channel-strip {
+  border-color: rgba(226, 146, 112, 0.24);
+  background: linear-gradient(180deg, rgba(27, 35, 30, 0.96), rgba(22, 29, 25, 0.96));
+}
+
+html[data-theme='dark'] .brutti-asset-channel-strip p {
+  color: #c0cac4;
+}
+
+@media (max-width: 760px) {
+  .brutti-social-chip {
+    font-size: 11px;
+  }
+
+  .brutti-asset-channel-strip {
+    padding: 12px 13px;
+  }
+}
