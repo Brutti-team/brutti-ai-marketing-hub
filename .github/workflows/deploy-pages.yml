@@ -33,7 +33,7 @@ jobs:
         run: npm run build
         # Public endpoint only; credentials remain in Apps Script Properties.
         env:
-          VITE_APPS_SCRIPT_URL: https://script.google.com/macros/s/AKfycbw64UCd3C6UeI8TsRhNGoUdgHjyCmqSEmaUtOYb6-aXwz4VM2toIchuI3hnwpXqQA8-/exec
+          VITE_APPS_SCRIPT_URL: https://script.google.com/macros/s/AKfycbwmr3wQO5wJyjITXxUpIJDREOYvZsBhBfT2kpqJ6nIw_11s1hXw3Jpd1fq_pcbE1n3X/exec
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
