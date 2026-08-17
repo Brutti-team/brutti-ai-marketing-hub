@@ -12,6 +12,7 @@ import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
 import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
 import LightModeAnalyticsContrastEnhancer from './LightModeAnalyticsContrastEnhancer.jsx'
 import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
+import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
     <ProductCatalogQualityEnhancer />
     <LightModeAnalyticsContrastEnhancer />
     <BrandCasingEnhancer />
+    <SmartRewriteDirectionEnhancer />
   </StrictMode>,
 )
 
