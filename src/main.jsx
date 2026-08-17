@@ -14,6 +14,7 @@ import LightModeAnalyticsContrastEnhancer from './LightModeAnalyticsContrastEnha
 import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
 import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
 import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
+import BruttiSoulMasterEnhancer from './BruttiSoulMasterEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -27,6 +28,7 @@ import './responsive-clarity.css'
 import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
 import './asset-library-upgrade.css'
+import './brutti-soul-master.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -44,6 +46,7 @@ createRoot(document.getElementById('root')).render(
     <BrandCasingEnhancer />
     <SmartRewriteDirectionEnhancer />
     <AssetLibraryEnhancer />
+    <BruttiSoulMasterEnhancer />
   </StrictMode>,
 )
 
