@@ -13,6 +13,7 @@ import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
 import LightModeAnalyticsContrastEnhancer from './LightModeAnalyticsContrastEnhancer.jsx'
 import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
 import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
+import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -25,6 +26,7 @@ import './historical-analytics.css'
 import './responsive-clarity.css'
 import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
+import './asset-library-upgrade.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -41,6 +43,7 @@ createRoot(document.getElementById('root')).render(
     <LightModeAnalyticsContrastEnhancer />
     <BrandCasingEnhancer />
     <SmartRewriteDirectionEnhancer />
+    <AssetLibraryEnhancer />
   </StrictMode>,
 )
 
