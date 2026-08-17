@@ -222,7 +222,7 @@ function polishBmLine(line, index, professionalMode) {
       .replace(/\blebih mudah\b/gi, 'lebih senang')
   }
 
-  if (index === 0 && !professionalMode && !/[!?👀🤭😅✨]$/.test(clean(next)) && /\b(?:ruang|bilik|barang|storage|produk|kamu)\b/i.test(next)) {
+  if (index === 0 && !professionalMode && !/[!?👀🤭😅✨]$/u.test(clean(next)) && /\b(?:ruang|bilik|barang|storage|produk|kamu)\b/i.test(next)) {
     next = `${clean(next)} 👀`
   }
 
