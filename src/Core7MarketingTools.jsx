@@ -4,6 +4,12 @@ import { createPortal } from 'react-dom'
 const hiddenNavigation = new Set(['Brand Library', 'AI Tools'])
 const hiddenSettingsRows = new Set(['Free AI Assist Mode', 'Meta / Facebook'])
 
+const staticSettingLabels = new Map([
+  ['Human approval required', 'Required'],
+  ['Block unsupported facts', 'Active'],
+  ['Facebook-only operations', 'Active'],
+])
+
 function DriveRequiredPanel() {
   return (
     <section className="panel core7-drive-required">
@@ -11,7 +17,7 @@ function DriveRequiredPanel() {
       <div>
         <span className="eyebrow">GOOGLE DRIVE REQUIRED</span>
         <h3>Connect Drive to use approved visual assets.</h3>
-        <p>Asset cards stay hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real BRUTTI assets.</p>
+        <p>Asset cards stay hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real Brutti assets.</p>
       </div>
     </section>
   )
@@ -41,9 +47,10 @@ export default function Core7MarketingTools() {
         button.hidden = hiddenNavigation.has(label)
       })
 
-      root.querySelectorAll('.phase2-audit-panel, .phase3-ranking-panel').forEach((panel) => {
-        panel.hidden = title !== 'Analytics'
-      })
+      // Remove non-daily audit/reference panels from the operational interface.
+      // Their source files remain in the repository and can be restored later.
+      root.querySelectorAll('.phase2-audit-panel, .phase3-ranking-panel, .social-enterprise-intelligence, .workspace-readiness-panel')
+        .forEach((panel) => panel.remove())
 
       root.querySelectorAll('.panel-heading .eyebrow').forEach((label) => {
         if (label.textContent?.trim() === 'SMART CAMPAIGN IDEAS') label.textContent = 'CAMPAIGN IDEAS'
@@ -53,6 +60,12 @@ export default function Core7MarketingTools() {
       // version injected them before this enhancer runs.
       root.querySelectorAll('.core7-prompt-panel, .core7-studio-extras').forEach((panel) => panel.remove())
       root.querySelectorAll('.brutti-platform-status-strip').forEach((strip) => strip.remove())
+
+      // Publishing stays unavailable while Meta is intentionally read-only/deferred.
+      root.querySelectorAll('button').forEach((button) => {
+        const text = button.textContent?.trim() || ''
+        if (/publish\s+(to\s+facebook|photo\s*\+\s*caption|to\s+meta)/i.test(text)) button.hidden = true
+      })
 
       const avatar = root.querySelector('.topbar .avatar')
       if (avatar) avatar.hidden = true
@@ -91,6 +104,17 @@ export default function Core7MarketingTools() {
           const name = row.querySelector('strong')?.textContent?.trim() || ''
           row.hidden = hiddenSettingsRows.has(name)
           row.querySelectorAll('button').forEach((button) => { button.hidden = true })
+        })
+
+        // These are fixed workflow rules, not interactive toggles. Present them as status badges.
+        activePage.querySelectorAll('.setting-row').forEach((row) => {
+          const name = row.querySelector('strong')?.textContent?.trim() || ''
+          const status = row.querySelector('.switch')
+          const label = staticSettingLabels.get(name)
+          if (!status || !label) return
+          status.className = 'status-pill connected static-setting-status'
+          status.textContent = label
+          status.setAttribute('aria-label', `${name}: ${label}`)
         })
 
         const refreshButton = [...activePage.querySelectorAll('button')]
