@@ -15,7 +15,6 @@ import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
 import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
 import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
 import BruttiSoulMasterEnhancer from './BruttiSoulMasterEnhancer.jsx'
-import HashtagOptionEnhancer from './HashtagOptionEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -30,7 +29,6 @@ import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
 import './asset-library-upgrade.css'
 import './brutti-soul-master.css'
-import './hashtag-option.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -49,7 +47,6 @@ createRoot(document.getElementById('root')).render(
     <SmartRewriteDirectionEnhancer />
     <AssetLibraryEnhancer />
     <BruttiSoulMasterEnhancer />
-    <HashtagOptionEnhancer />
   </StrictMode>,
 )
 
