@@ -47,8 +47,6 @@ export default function Core7MarketingTools() {
         button.hidden = hiddenNavigation.has(label)
       })
 
-      // Remove non-daily audit/reference panels from the operational interface.
-      // Their source files remain in the repository and can be restored later.
       root.querySelectorAll('.phase2-audit-panel, .phase3-ranking-panel, .social-enterprise-intelligence, .workspace-readiness-panel')
         .forEach((panel) => panel.remove())
 
@@ -56,12 +54,9 @@ export default function Core7MarketingTools() {
         if (label.textContent?.trim() === 'SMART CAMPAIGN IDEAS') label.textContent = 'CAMPAIGN IDEAS'
       })
 
-      // Keep Free Assist clean: remove legacy/duplicate starter panels if an older cached
-      // version injected them before this enhancer runs.
       root.querySelectorAll('.core7-prompt-panel, .core7-studio-extras').forEach((panel) => panel.remove())
       root.querySelectorAll('.brutti-platform-status-strip').forEach((strip) => strip.remove())
 
-      // Publishing stays unavailable while Meta is intentionally read-only/deferred.
       root.querySelectorAll('button').forEach((button) => {
         const text = button.textContent?.trim() || ''
         if (/publish\s+(to\s+facebook|photo\s*\+\s*caption|to\s+meta)/i.test(text)) button.hidden = true
@@ -106,7 +101,6 @@ export default function Core7MarketingTools() {
           row.querySelectorAll('button').forEach((button) => { button.hidden = true })
         })
 
-        // These are fixed workflow rules, not interactive toggles. Present them as status badges.
         activePage.querySelectorAll('.setting-row').forEach((row) => {
           const name = row.querySelector('strong')?.textContent?.trim() || ''
           const status = row.querySelector('.switch')
@@ -129,10 +123,34 @@ export default function Core7MarketingTools() {
       }
     }
 
+    let timer = 0
+    const schedule = (delay = 60) => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, delay)
+    }
+    const scheduleBurst = () => {
+      schedule(40)
+      window.setTimeout(sync, 260)
+      window.setTimeout(sync, 900)
+    }
+
+    const onClick = (event) => {
+      if (event.target.closest?.('button, a')) scheduleBurst()
+    }
+    const onSubmit = () => scheduleBurst()
+    const onChange = () => schedule(80)
+
     sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(root, { childList: true, subtree: true, characterData: true })
-    return () => observer.disconnect()
+    document.addEventListener('click', onClick, true)
+    document.addEventListener('submit', onSubmit, true)
+    document.addEventListener('change', onChange, true)
+
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+      document.removeEventListener('submit', onSubmit, true)
+      document.removeEventListener('change', onChange, true)
+    }
   }, [])
 
   if (!pageNode) return null
