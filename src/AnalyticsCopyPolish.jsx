@@ -11,9 +11,7 @@ function replaceExact(node, current, replacement) {
 
 export default function AnalyticsCopyPolish() {
   useEffect(() => {
-    const root = document.getElementById('root')
-    if (!root) return undefined
-
+    let timer = 0
     const sync = () => {
       const page = activeAnalyticsPage()
       if (!page) return
@@ -33,10 +31,23 @@ export default function AnalyticsCopyPolish() {
       })
     }
 
+    const schedule = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, 90)
+    }
+    const onClick = (event) => {
+      if (event.target.closest?.('button, a')) {
+        schedule()
+        window.setTimeout(sync, 320)
+      }
+    }
+
     sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(root, { childList: true, subtree: true })
-    return () => observer.disconnect()
+    document.addEventListener('click', onClick, true)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   return null
