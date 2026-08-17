@@ -1,8 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
-import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
-import BruttiSoulMasterEnhancer from './BruttiSoulMasterEnhancer.jsx'
+import BruttiSoulLiteEnhancer from './BruttiSoulLiteEnhancer.jsx'
 import './styles.css'
 import './box-polish.css'
 import './accessibility-theme.css'
@@ -12,15 +10,12 @@ import './dark-mode-readable-mint.css'
 import './responsive-clarity.css'
 import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
-import './asset-library-upgrade.css'
 import './brutti-soul-master.css'
 
 createRoot(document.getElementById('root')).render(
   <>
     <App />
-    <AccessibilityThemeEnhancer />
-    <AssetLibraryEnhancer />
-    <BruttiSoulMasterEnhancer />
+    <BruttiSoulLiteEnhancer />
   </>,
 )
 
