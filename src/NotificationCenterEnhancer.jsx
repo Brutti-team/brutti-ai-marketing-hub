@@ -72,6 +72,14 @@ function readDashboardSignals() {
   return alerts
 }
 
+function sameAlerts(left, right) {
+  if (left.length !== right.length) return false
+  return left.every((item, index) => {
+    const other = right[index]
+    return other && item.id === other.id && item.level === other.level && item.title === other.title && item.detail === other.detail && item.action === other.action && item.button === other.button
+  })
+}
+
 function NotificationItem({ alert, onSelect }) {
   return (
     <button className={`brutti-notification-item ${alert.level === 'alert' ? 'is-alert' : ''}`} onClick={() => onSelect(alert)}>
@@ -92,11 +100,12 @@ export default function NotificationCenterEnhancer() {
 
   useEffect(() => {
     let cancelled = false
+    let timer = 0
 
     const refresh = () => {
       if (cancelled) return
       const nextTopbar = document.querySelector('.topbar-status')
-      if (nextTopbar) setTopbarTarget(nextTopbar)
+      if (nextTopbar) setTopbarTarget((current) => current === nextTopbar ? current : nextTopbar)
 
       const dashboard = document.querySelector('.dashboard-page')
       const header = dashboard?.querySelector('.page-header')
@@ -107,19 +116,43 @@ export default function NotificationCenterEnhancer() {
           mount.className = 'brutti-notification-banner-mount'
           header.insertAdjacentElement('afterend', mount)
         }
-        setBannerTarget(mount)
+        setBannerTarget((current) => current === mount ? current : mount)
       } else {
-        setBannerTarget(null)
+        setBannerTarget((current) => current === null ? current : null)
       }
 
-      setAlerts(readDashboardSignals())
+      const nextAlerts = readDashboardSignals()
+      setAlerts((current) => sameAlerts(current, nextAlerts) ? current : nextAlerts)
     }
 
+    const schedule = (delay = 180) => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(refresh, delay)
+    }
+    const scheduleBurst = () => {
+      schedule(120)
+      window.setTimeout(refresh, 700)
+    }
+
+    const onClick = (event) => {
+      if (event.target.closest?.('button, a')) scheduleBurst()
+    }
+    const onSubmit = () => scheduleBurst()
+    const onChange = () => schedule(180)
+
     refresh()
-    const timer = window.setInterval(refresh, 1200)
+    const interval = window.setInterval(refresh, 10000)
+    document.addEventListener('click', onClick, true)
+    document.addEventListener('submit', onSubmit, true)
+    document.addEventListener('change', onChange, true)
+
     return () => {
       cancelled = true
-      window.clearInterval(timer)
+      window.clearInterval(interval)
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+      document.removeEventListener('submit', onSubmit, true)
+      document.removeEventListener('change', onChange, true)
     }
   }, [])
 
