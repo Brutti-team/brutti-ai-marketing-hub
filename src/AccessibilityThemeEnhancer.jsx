@@ -54,15 +54,25 @@ export default function AccessibilityThemeEnhancer() {
     const root = document.getElementById('root')
     if (!root) return undefined
 
+    let timer = 0
     const sync = () => {
       const nextTarget = root.querySelector('.topbar-status')
       setTarget((current) => current === nextTarget ? current : nextTarget)
     }
+    const schedule = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, 80)
+    }
+    const onClick = (event) => {
+      if (event.target.closest?.('button, a')) schedule()
+    }
 
     sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(root, { childList: true, subtree: true })
-    return () => observer.disconnect()
+    document.addEventListener('click', onClick, true)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   if (!target) return null
