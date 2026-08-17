@@ -1,8 +1,32 @@
 import { useEffect } from 'react'
+import soulMasterDoc from './Brutti_Soul_MasterDoc.md?raw'
+
+function clean(value = '') {
+  return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function extractSection(number) {
+  const pattern = new RegExp(`## ${number}\\.[\\s\\S]*?(?=\\n---\\n\\n## |$)`, 'i')
+  return soulMasterDoc.match(pattern)?.[0] || ''
+}
+
+const SOUL = Object.freeze({
+  full: soulMasterDoc,
+  origin: extractSection(1),
+  voice: extractSection(2),
+  values: extractSection(3),
+  redLines: extractSection(4),
+  product: extractSection(5),
+  craft: extractSection(6),
+  pillars: extractSection(7),
+  vision: extractSection(8),
+  checklist: extractSection(9),
+  examples: extractSection(10),
+})
 
 const SOURCE = {
   title: 'Brutti Soul Master',
-  evidence: 'Brand source of truth for Brutti voice, story direction and content ideas.',
+  evidence: 'Full Master Soul .md loaded once as the brand source for voice, story direction, verified brand context and content ideas.',
   rules: ['First person', 'Story-led hook', 'Sabahan colloquial', '1–3 emoji', 'No hashtags'],
 }
 
@@ -10,28 +34,52 @@ const IDEAS = [
   {
     pillar: '01 · ARTISAN & DIGNITY',
     title: 'Cerita orang di sebalik satu piece',
-    direction: 'Pilih satu cerita sebenar tentang artisan atau team Brutti. Cerita apa yang mereka buat, kenapa benda itu penting dan satu detail real dari proses. Jangan tambah claim yang belum disahkan.',
+    direction: 'Pilih satu cerita sebenar tentang artisan Brutti. Masukkan nama, apa yang dia buat, satu detail peribadi atau proses yang memang diketahui, dan kenapa kerja dia penting. Fokus pada maruah artisan, bukan ayat umum pasal staff.',
+    source: SOUL.values,
   },
   {
     pillar: '02 · STORY BEHIND THE PIECE',
     title: 'Kenapa piece ni wujud?',
-    direction: 'Pilih satu furniture atau project sebenar. Mulakan dengan masalah atau keperluan ruang, kemudian cerita kenapa solution itu dipilih dan bagaimana ia digunakan. Guna fakta yang memang sudah confirm sahaja.',
+    direction: 'Pilih satu furniture atau project sebenar. Mulakan dengan masalah atau keperluan ruang, kemudian cerita kenapa solution itu dipilih, proses atau momen penting, dan bagaimana ia digunakan. Guna fakta yang memang confirm sahaja.',
+    source: `${SOUL.product}\n${SOUL.pillars}`,
   },
   {
     pillar: '03 · FOUNDER / TEAM MOMENT',
     title: 'Momen jujur di sebalik Brutti',
-    direction: 'Gunakan satu momen sebenar dari founder atau team: keputusan susah, benda yang dipelajari, atau sesuatu yang tidak menjadi seperti plan. Cerita dengan nada jujur dan santai, bukan corporate.',
+    direction: 'Gunakan satu momen sebenar dari Lukman, Faznur atau team: keputusan susah, benda yang dipelajari, kesilapan, syukur atau sesuatu yang tidak menjadi seperti plan. Cerita dengan nada jujur dan santai, bukan corporate.',
+    source: `${SOUL.origin}\n${SOUL.values}\n${SOUL.examples}`,
   },
   {
     pillar: '04 · DAILY FUNNY MOMENT',
     title: 'Babak harian yang boleh jadi content',
-    direction: 'Cari satu babak lucu atau relatable yang betul-betul berlaku di workshop, installation atau office. Mulakan dari scene itu, kemudian sambung dengan point Brutti yang relevan. Jangan reka kejadian.',
+    direction: 'Cari satu babak lucu atau relatable yang betul-betul berlaku di workshop, installation atau office. Mulakan dari scene itu, kemudian sambung dengan point Brutti yang relevan. Humor boleh self-deprecating, tapi jangan reka kejadian.',
+    source: `${SOUL.voice}\n${SOUL.pillars}`,
+  },
+  {
+    pillar: '05 · ORIGIN / MILESTONE',
+    title: 'Dari last option untuk survive sampai Brutti hari ni',
+    direction: 'Gunakan milestone yang betul-betul berlaku. Boleh kaitkan dengan asal Brutti pada 11 Oktober 2020, perubahan dari hobi woodworking dan metalworking kepada bisnes, atau satu pencapaian semasa. Pastikan cerita baru yang ditambah memang benar.',
+    source: SOUL.origin,
+  },
+  {
+    pillar: '06 · RADICAL TRANSPARENCY',
+    title: 'Cerita benda yang tidak perfect',
+    direction: 'Pilih satu perkara sebenar yang silap, lambat, susah atau perlu diperbetulkan. Terangkan apa jadi, bagaimana team handle dan apa yang dipelajari. Jangan cari drama; guna transparency hanya bila ada cerita sebenar.',
+    source: SOUL.values,
+  },
+  {
+    pillar: '07 · NAME & LOCAL IDENTITY',
+    title: 'Cerita di sebalik nama satu piece',
+    direction: 'Pilih produk yang memang ada kisah nama. Cerita maksud nama, siapa yang bagi nama atau kaitannya dengan Sabah/Borneo jika fakta itu diketahui. Jangan reka maksud nama yang belum disahkan.',
+    source: SOUL.product,
+  },
+  {
+    pillar: '08 · WHERE BRUTTI IS GOING',
+    title: 'Brutti bukan mau jadi paling besar',
+    direction: 'Bina content tentang direction Brutti sebagai craft Sabah yang jujur dan berjiwa, termasuk perkembangan ke interior design + build melalui Brutti Builders bila relevan. Kaitkan dengan perkara semasa yang benar supaya post tidak jadi manifesto kosong.',
+    source: SOUL.vision,
   },
 ]
-
-function clean(value = '') {
-  return String(value || '').replace(/\s+/g, ' ').trim()
-}
 
 function activePage(title) {
   return [...document.querySelectorAll('#root .page')]
@@ -67,7 +115,7 @@ function splitFacts(value = '') {
     .split(/(?<=[.!?])\s+|\s*;\s*|\s*,\s*(?=[A-Z0-9])/)
     .map(sentence)
     .filter(Boolean)
-  return pieces.slice(0, 4)
+  return pieces.slice(0, 5)
 }
 
 function productName(page) {
@@ -79,6 +127,46 @@ function contentType(page) {
   return field(page, 'Content type', 'select')?.value || 'Brand Awareness'
 }
 
+function sourceSignals(text) {
+  const value = clean(text).toLowerCase()
+  return {
+    origin: /asal|origin|anniversary|ulang tahun|2020|pkp|pandemik|car wash|survive/.test(value),
+    artisan: /artisan|tukang|gaji|payroll|craft|kilang|workshop|maruah/.test(value),
+    founder: /lukman|faznur|founder|bini|isteri|wife|menyesal|syukur|terharu|silap|salah|belajar/.test(value),
+    transparent: /telus|transparent|breakdown|kos|cost|defect|delay|silap|salah|betulkan|masalah/.test(value),
+    naming: /nama|name|dangsanak|lexi|eunoia|adudu|borneo|sabah/.test(value),
+    builders: /builder|interior|design|build|renovation|ubahsuai/.test(value),
+    funny: /lucu|kelakar|funny|gelak|hint|whatsapp|babak/.test(value),
+    product: /produk|product|piece|furniture|perabot|cabinet|rack|bed|table|kiosk|wardrobe/.test(value),
+  }
+}
+
+function sourceSupportLines(signals, subject) {
+  const lines = []
+  if (signals.origin && SOUL.origin) {
+    lines.push('Brutti bermula masa keadaan memang tidak senang, jadi cerita brand ni dari awal memang pasal survive dan bikin sampai jadi.')
+  }
+  if (signals.artisan && SOUL.values) {
+    lines.push('Bagi kami, orang yang bikin piece tu bukan sekadar “staff” — artisan tu sebahagian daripada cerita Brutti.')
+  }
+  if (signals.transparent && SOUL.values) {
+    lines.push('Kalau ada benda yang tidak jadi seperti plan, kami lebih rela cerita betul-betul dan kasi betulkan daripada pura-pura perfect.')
+  }
+  if (signals.founder && SOUL.voice) {
+    lines.push('Cerita macam ni memang lebih ngam kalau kami cakap terus sebagai orang yang lalui benda tu sendiri.')
+  }
+  if (signals.naming && SOUL.product && subject) {
+    lines.push(`${subject} bukan sekadar label; kalau nama dia ada cerita, cerita tu yang kasi piece tu lebih hidup.`)
+  }
+  if (signals.builders && SOUL.vision) {
+    lines.push('Sekarang direction Brutti pun makin luas — dari furniture kepada interior design + build melalui Brutti Builders.')
+  }
+  if (signals.funny && SOUL.voice) {
+    lines.push('Kalau ada babak yang bikin ketawa, cerita ja natural. Tidak payah kasi nampak macam content yang dirancang terlalu keras.')
+  }
+  return lines.slice(0, 2)
+}
+
 function buildSoulCaption(page, mode = 'balanced', variation = 0) {
   const title = field(page, 'Content title', 'input')?.value || ''
   const brief = field(page, 'Verified facts / direction', 'textarea')?.value || ''
@@ -86,6 +174,7 @@ function buildSoulCaption(page, mode = 'balanced', variation = 0) {
   const type = contentType(page)
   const subject = product || title || 'benda ni'
   const facts = splitFacts(brief)
+  const signals = sourceSignals(`${title} ${brief} ${product} ${type}`)
 
   const hookPools = {
     'Brand Awareness': [
@@ -119,6 +208,21 @@ function buildSoulCaption(page, mode = 'balanced', variation = 0) {
       'Offer tu bonus. Yang penting fungsi dia memang masuk dengan apa yang kamu perlukan.',
     ],
   }
+
+  if (signals.origin) hookPools['Brand Awareness'] = [
+    'Kalau tinguk balik dari mana Brutti bermula, memang lain macam rasa dia. 👀',
+    'Ada cerita yang kalau ingat balik, terus teringat kenapa kami mula dari awal.',
+    ...hookPools['Brand Awareness'],
+  ]
+  if (signals.artisan) hookPools['Behind the Scenes'] = [
+    'Satu piece tu nampak macam furniture ja, tapi ada orang sebenar di belakang dia.',
+    'Sebelum hasil tu sampai depan mata kamu, ada tangan artisan yang bikin satu-satu. 👀',
+    ...hookPools['Behind the Scenes'],
+  ]
+  if (signals.funny) hookPools['Brand Awareness'] = [
+    'Nah, benda macam ni la yang kadang bikin satu office ketawa sendiri. 😂',
+    ...hookPools['Brand Awareness'],
+  ]
 
   const supportByType = {
     'Brand Awareness': [
@@ -156,7 +260,8 @@ function buildSoulCaption(page, mode = 'balanced', variation = 0) {
   const hookPool = hookPools[type] || hookPools['Brand Awareness']
   const hookShift = mode === 'hook' ? 1 : mode === 'engaging' ? 2 : 0
   const hook = hookPool[(variation + hookShift) % hookPool.length]
-  const supports = [...(supportByType[type] || supportByType['Brand Awareness'])]
+  const sourceLines = sourceSupportLines(signals, subject)
+  const supports = [...sourceLines, ...(supportByType[type] || supportByType['Brand Awareness'])]
 
   if (mode === 'professional') {
     for (let i = 0; i < supports.length; i += 1) {
@@ -169,7 +274,7 @@ function buildSoulCaption(page, mode = 'balanced', variation = 0) {
 
   let lines = [hook, ...facts, ...supports]
   if (mode === 'shorten') lines = lines.slice(0, 6)
-  else lines = lines.slice(0, 8)
+  else lines = lines.slice(0, 9)
 
   const ctas = [
     'Kalau kamu mau tahu mana yang ngam dengan ruang kamu, roger ja team Brutti.',
@@ -182,6 +287,7 @@ function buildSoulCaption(page, mode = 'balanced', variation = 0) {
   return lines
     .map((line) => clean(line))
     .filter(Boolean)
+    .slice(0, 13)
     .join('\n')
     .replace(/#[\p{L}\p{N}_-]+/gu, '')
     .replace(/\n{3,}/g, '\n\n')
@@ -201,7 +307,7 @@ function patchSoulChecklist(page) {
   if (!checks || checks.querySelector('.soul-lite-check')) return
   const item = document.createElement('span')
   item.className = 'pass soul-lite-check'
-  item.textContent = '✓ Brutti Soul · no hashtags · human review'
+  item.textContent = '✓ Full Brutti Soul .md · no hashtags · human review'
   checks.prepend(item)
 }
 
@@ -211,7 +317,7 @@ function patchStudio(page) {
   if (!page.querySelector('.soul-source-strip')) {
     const strip = document.createElement('section')
     strip.className = 'soul-source-strip'
-    strip.innerHTML = `<div><span class="soul-live-dot"></span><div><strong>${SOURCE.title} · Active source</strong><p>${SOURCE.evidence}</p></div></div><div class="soul-source-rules">${SOURCE.rules.map((rule) => `<span>${rule}</span>`).join('')}</div>`
+    strip.innerHTML = `<div><span class="soul-live-dot"></span><div><strong>${SOURCE.title} · Full .md active</strong><p>${SOURCE.evidence}</p></div></div><div class="soul-source-rules">${SOURCE.rules.map((rule) => `<span>${rule}</span>`).join('')}</div>`
     page.querySelector('.page-header')?.insertAdjacentElement('afterend', strip)
   }
 
@@ -239,7 +345,7 @@ function patchBrand(page) {
   if (!page || page.querySelector('.soul-brand-panel')) return
   const panel = document.createElement('section')
   panel.className = 'panel soul-brand-panel'
-  panel.innerHTML = `<div class="soul-brand-head"><div><span>BRAND SOURCE OF TRUTH</span><h2>Brutti Soul Master</h2><p>${SOURCE.evidence}</p></div></div><div class="soul-brand-grid"><article><small>VOICE</small><strong>First-person · kawan bercerita · Sabahan colloquial + sikit English</strong></article><article><small>HOOK</small><strong>Mula dengan scene, nama, nombor atau curiosity — bukan ayat corporate</strong></article><article><small>RED LINES</small><strong>No unsupported facts · no fake story · no mass-production voice</strong></article><article><small>POST CRAFT</small><strong>Short lines · 1–3 emoji · no hashtags · human review</strong></article></div>`
+  panel.innerHTML = `<div class="soul-brand-head"><div><span>BRAND SOURCE OF TRUTH</span><h2>Brutti Soul Master</h2><p>All 10 sections of the Master Soul .md are loaded once and available to the lightweight caption/idea source layer.</p></div></div><div class="soul-brand-grid"><article><small>VOICE</small><strong>First-person · kawan bercerita · Sabahan colloquial + sikit English</strong></article><article><small>HOOK</small><strong>Mula dengan scene, nama, nombor atau curiosity — bukan ayat corporate</strong></article><article><small>VALUES & RED LINES</small><strong>Maruah artisan · transparency · no fake story · no unsupported claims</strong></article><article><small>POST CRAFT</small><strong>Short lines · 1–3 emoji · no hashtags · human review</strong></article></div>`
   page.querySelector('.page-header')?.insertAdjacentElement('afterend', panel)
 }
 
@@ -261,10 +367,11 @@ function patchIdeas(page) {
   if (!page || page.querySelector('.soul-idea-library')) return
   const section = document.createElement('section')
   section.className = 'soul-idea-library'
-  section.innerHTML = '<div class="soul-idea-head"><div><span>BRUTTI SOUL CONTENT IDEAS</span><h2>Mula dengan benda real yang layak diceritakan.</h2><p>Pilih direction, kemudian tambah fakta sebenar sebelum generate.</p></div></div><div class="soul-idea-grid"></div>'
+  section.innerHTML = '<div class="soul-idea-head"><div><span>BRUTTI SOUL CONTENT IDEAS · FULL .MD</span><h2>Mula dengan benda real yang layak diceritakan.</h2><p>Idea datang daripada origin, voice, values, product, story pillars dan vision dalam Master Soul. Pilih direction, kemudian tambah fakta sebenar sebelum generate.</p></div></div><div class="soul-idea-grid"></div>'
   const grid = section.querySelector('.soul-idea-grid')
   IDEAS.forEach((idea) => {
     const card = document.createElement('article')
+    card.dataset.sourceReady = idea.source ? 'true' : 'false'
     card.innerHTML = `<span>${idea.pillar}</span><h3>${idea.title}</h3><p>${idea.direction}</p><button type="button">Use this direction →</button>`
     card.querySelector('button')?.addEventListener('click', () => loadIdea(idea))
     grid.append(card)
