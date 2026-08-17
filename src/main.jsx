@@ -15,6 +15,7 @@ import SocialEnterpriseIntelligenceEnhancer from './SocialEnterpriseIntelligence
 import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
 import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
 import LightModeAnalyticsContrastEnhancer from './LightModeAnalyticsContrastEnhancer.jsx'
+import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
 import './styles.css'
 import './phase2-audit.css'
 import './phase3-ranking.css'
@@ -48,6 +49,7 @@ createRoot(document.getElementById('root')).render(
     <NotificationCenterEnhancer />
     <ProductCatalogQualityEnhancer />
     <LightModeAnalyticsContrastEnhancer />
+    <BrandCasingEnhancer />
   </StrictMode>,
 )
 
