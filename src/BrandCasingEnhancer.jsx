@@ -40,34 +40,44 @@ function normalizeVisibleText(root) {
 
 export default function BrandCasingEnhancer() {
   useEffect(() => {
-    document.title = normalizeBrandCase(document.title)
+    const sync = () => {
+      document.title = normalizeBrandCase(document.title)
+      document
+        .querySelectorAll('meta[name="description"], meta[name="apple-mobile-web-app-title"]')
+        .forEach((meta) => {
+          const content = meta.getAttribute('content')
+          if (content?.includes('BRUTTI')) meta.setAttribute('content', normalizeBrandCase(content))
+        })
+      normalizeVisibleText(document.body)
+    }
 
-    document
-      .querySelectorAll('meta[name="description"], meta[name="apple-mobile-web-app-title"]')
-      .forEach((meta) => {
-        const content = meta.getAttribute('content')
-        if (content?.includes('BRUTTI')) meta.setAttribute('content', normalizeBrandCase(content))
-      })
+    let timer = 0
+    const schedule = (delay = 80) => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, delay)
+    }
+    const scheduleBurst = () => {
+      schedule(60)
+      window.setTimeout(sync, 320)
+    }
 
-    normalizeVisibleText(document.body)
+    const onClick = (event) => {
+      if (event.target.closest?.('button, a')) scheduleBurst()
+    }
+    const onSubmit = () => scheduleBurst()
+    const onChange = () => schedule(100)
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'characterData') normalizeVisibleText(mutation.target)
-        if (mutation.type === 'childList') mutation.addedNodes.forEach(normalizeVisibleText)
-        if (mutation.type === 'attributes') normalizeElementAttributes(mutation.target)
-      })
-    })
+    sync()
+    document.addEventListener('click', onClick, true)
+    document.addEventListener('submit', onSubmit, true)
+    document.addEventListener('change', onChange, true)
 
-    observer.observe(document.body, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'],
-    })
-
-    return () => observer.disconnect()
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+      document.removeEventListener('submit', onSubmit, true)
+      document.removeEventListener('change', onChange, true)
+    }
   }, [])
 
   return null
