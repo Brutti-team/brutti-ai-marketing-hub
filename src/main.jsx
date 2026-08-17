@@ -51,9 +51,25 @@ createRoot(document.getElementById('root')).render(
 )
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
-      .catch(() => {})
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(
+        registrations
+          .filter((registration) => registration.scope.includes('/brutti-ai-marketing-hub/'))
+          .map((registration) => registration.unregister()),
+      )
+
+      if ('caches' in window) {
+        const keys = await window.caches.keys()
+        await Promise.all(
+          keys
+            .filter((key) => key.startsWith('brutti-hub-'))
+            .map((key) => window.caches.delete(key)),
+        )
+      }
+    } catch {
+      // Cache cleanup is best-effort only; the website remains usable without it.
+    }
   })
 }
