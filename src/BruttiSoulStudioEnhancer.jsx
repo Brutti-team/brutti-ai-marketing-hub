@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BRUTTI_SOUL, buildSoulDraft, soulSourceReady } from './lib/bruttiSoulSource'
+import { BRUTTI_SOUL, SOUL_SOURCE_LABEL, buildSoulDraft, soulSourceReady } from './lib/bruttiSoulSource'
 
 const CAPTION_GUIDE = [
   ['HOOK', 'Mula dengan babak, nombor atau nama — bukan label produk, “New Product Alert” atau ayat promo.'],
@@ -63,11 +63,11 @@ function applySoulDraft(mode = 'balanced', variation = 0, attempt = 0) {
 function addCaptionDirectionGuide(page) {
   const form = page.querySelector('.generator-form')
   if (!form || form.querySelector('.soul-caption-direction-guide')) return
-  if (!BRUTTI_SOUL.voice || !BRUTTI_SOUL.craft || !BRUTTI_SOUL.checklist) return
+  if (!BRUTTI_SOUL.full || !BRUTTI_SOUL.voice || !BRUTTI_SOUL.craft || !BRUTTI_SOUL.checklist) return
 
   const heading = form.querySelector('.form-section-head')
   const headingCopy = heading?.querySelector('p')
-  if (headingCopy) headingCopy.textContent = 'Masukkan fakta sebenar; Brutti Soul Master akan susun suara caption.'
+  if (headingCopy) headingCopy.textContent = 'Masukkan fakta sebenar; full Brutti Soul Master akan jadi source untuk susun caption.'
 
   const brief = field(page, 'Verified facts / direction', 'textarea')
   if (brief) {
@@ -83,7 +83,7 @@ function addCaptionDirectionGuide(page) {
   guide.style.cssText = 'margin:12px 0 18px;padding:14px 16px;border:1px solid rgba(20,74,58,.18);border-radius:16px;background:rgba(238,246,239,.72);display:grid;gap:10px;'
 
   const top = document.createElement('div')
-  top.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#164a3a">Brutti Soul · Caption Guide</strong><span style="display:block;margin-top:4px;font-size:12px;line-height:1.5;opacity:.75">Source untuk caption sahaja: Voice + How We Write A Post + Quick Checklist.</span>'
+  top.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#164a3a">Brutti Soul · Caption Source</strong><span style="display:block;margin-top:4px;font-size:12px;line-height:1.5;opacity:.75">Full .md digunakan sebagai source brand: Origin, Voice, Values, Product, Content Craft, Story Pillars, Vision, Checklist & Golden Examples. Untuk bentuk ayat caption, Voice + Content Craft + Checklist diberi keutamaan.</span>'
   guide.append(top)
 
   const grid = document.createElement('div')
@@ -122,7 +122,7 @@ function syncStudioSourceRules() {
   if (hashtagButton) hashtagButton.style.display = 'none'
 
   const sourceLabel = page.querySelector('.smart-rewrite-head > span')
-  if (sourceLabel) sourceLabel.textContent = 'Brutti Soul Master · No API'
+  if (sourceLabel) sourceLabel.textContent = `${SOUL_SOURCE_LABEL} · No API`
 }
 
 function rewriteMode(button) {
