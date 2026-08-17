@@ -1,8 +1,8 @@
 {
   "id": "/brutti-ai-marketing-hub/",
-  "name": "BRUTTI AI Marketing Hub",
-  "short_name": "BRUTTI Hub",
-  "description": "Personal install of the BRUTTI AI Marketing Hub for internal marketing work.",
+  "name": "Brutti AI Marketing Hub",
+  "short_name": "Brutti Hub",
+  "description": "Personal install of the Brutti AI Marketing Hub for internal marketing work.",
   "start_url": "/brutti-ai-marketing-hub/",
   "scope": "/brutti-ai-marketing-hub/",
   "display": "standalone",
