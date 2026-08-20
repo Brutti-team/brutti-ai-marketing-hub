@@ -14,6 +14,7 @@ import {
   systemFiles,
   type FacebookRequest,
 } from "./brutti-facebook-data";
+import type { MarketingRequestRecord } from "./lib/brutti-store";
 
 type View = "overview" | "requests" | "content" | "products" | "calendar" | "reports";
 
@@ -26,10 +27,7 @@ const navigation: Array<{ id: View; icon: string; label: string }> = [
   { id: "reports", icon: "↗", label: "Reports" },
 ];
 
-const LOCAL_REQUESTS_KEY = "brutti-marketing-requests";
-
 const mobilePrimaryNavigation: View[] = ["overview", "requests", "content", "calendar"];
-
 function FacebookBadge() {
   return <span className="focus-badge">Facebook only</span>;
 }
@@ -56,25 +54,34 @@ function RequestsList({ requests, compact = false }: { requests: FacebookRequest
 export default function HubDashboard() {
   const [activeView, setActiveView] = useState<View>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [localRequests, setLocalRequests] = useState<FacebookRequest[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return JSON.parse(localStorage.getItem(LOCAL_REQUESTS_KEY) || "[]") as FacebookRequest[];
-    } catch {
-      return [];
-    }
-  });
+  const [savedRequests, setSavedRequests] = useState<FacebookRequest[]>([]);
 
   useEffect(() => {
-    const refresh = () => {
+    let active = true;
+    const refresh = async () => {
       try {
-        setLocalRequests(JSON.parse(localStorage.getItem(LOCAL_REQUESTS_KEY) || "[]") as FacebookRequest[]);
+        const response = await fetch("/api/marketing-request", { cache: "no-store" });
+        const data = await response.json() as { items?: MarketingRequestRecord[] };
+        if (!active) return;
+        setSavedRequests((data.items || []).map((item) => ({
+          name: item.name,
+          product: item.productName || "General BRUTTI brand",
+          objective: item.objective,
+          status: "New",
+          time: new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(item.submittedAt)),
+          hasContent: false,
+        })));
       } catch {
-        setLocalRequests([]);
+        if (active) setSavedRequests([]);
       }
     };
-    window.addEventListener("brutti-request-created", refresh);
-    return () => window.removeEventListener("brutti-request-created", refresh);
+    void refresh();
+    const handleCreated = () => void refresh();
+    window.addEventListener("brutti-request-created", handleCreated);
+    return () => {
+      active = false;
+      window.removeEventListener("brutti-request-created", handleCreated);
+    };
   }, []);
 
   useEffect(() => {
@@ -100,7 +107,7 @@ export default function HubDashboard() {
     };
   }, [mobileMenuOpen]);
 
-  const allRequests = useMemo(() => [...localRequests, ...facebookRequests], [localRequests]);
+  const allRequests = useMemo(() => [...savedRequests, ...facebookRequests], [savedRequests]);
   function goTo(view: View) {
     setActiveView(view);
     setMobileMenuOpen(false);
@@ -127,7 +134,7 @@ export default function HubDashboard() {
         </nav>
         <div className="sync-card">
           <span className="sync-dot" />
-          <div><strong>Make submission connected</strong><small>Facebook · checks every 15 minutes</small></div>
+          <div><strong>Hub storage active</strong><small>Facebook requests stay on this website</small></div>
         </div>
       </aside>
 
@@ -150,16 +157,16 @@ export default function HubDashboard() {
                   <button className="secondary-button" onClick={() => goTo("content")}>Review generated content</button>
                 </div>
               </div>
-              <div className="workflow-orbit" aria-label="Website to Make and Notion workflow connected">
+              <div className="workflow-orbit" aria-label="Website requests are saved in the Hub">
                 <div className="orbit-core"><img className="hero-logo" src={BRUTTI_LOGO_DATA_URL} alt="BRUTTI" /></div>
-                <span className="orbit-tag notion-tag">Notion</span><span className="orbit-tag make-tag">Make</span><span className="orbit-status">Connected</span>
+                <span className="orbit-tag hub-tag">Hub</span><span className="orbit-status">Saved</span>
               </div>
             </section>
 
             <section className="metric-grid" aria-label="Facebook workflow summary">
               <article className="metric-card"><span className="metric-icon moss">F</span><div><p>Facebook followers</p><strong>{facebookAnalytics.followers.toLocaleString()}</strong><small>Exported follower records</small></div></article>
               <article className="metric-card"><span className="metric-icon amber">♡</span><div><p>Incoming reactions</p><strong>{facebookAnalytics.incomingReactionRows.toLocaleString()}</strong><small>{facebookAnalytics.uniqueReactors} unique accounts</small></div></article>
-              <article className="metric-card"><span className="metric-icon clay">✓</span><div><p>Automation</p><strong>On</strong><small>Request submission via Make</small></div></article>
+              <article className="metric-card"><span className="metric-icon clay">✓</span><div><p>Requests</p><strong>Saved</strong><small>Stored directly in the Hub</small></div></article>
               <article className="metric-card"><span className="metric-icon ink">▦</span><div><p>Products</p><strong>88</strong><small>Details available; 10 photos confirmed</small></div></article>
             </section>
 
@@ -180,11 +187,11 @@ export default function HubDashboard() {
         {activeView === "requests" && (
           <>
             <section className="panel form-panel">
-              <div className="panel-heading form-heading"><div><p className="eyebrow">Website → Make</p><h3>Create a Facebook marketing request</h3><p>The request is submitted directly from this website.</p></div><span className="connection-badge"><i /> Connected</span></div>
+              <div className="panel-heading form-heading"><div><p className="eyebrow">Website → Hub</p><h3>Create a Facebook marketing request</h3><p>The request is saved directly in this website.</p></div><span className="connection-badge"><i /> Stored here</span></div>
               <MarketingRequestForm />
             </section>
             <section className="panel section-gap">
-              <div className="panel-heading"><div><p className="eyebrow">Request history</p><h3>Facebook requests</h3></div><span className="snapshot-label">Verified + current browser submissions</span></div>
+              <div className="panel-heading"><div><p className="eyebrow">Request history</p><h3>Facebook requests</h3></div><span className="snapshot-label">Verified + requests saved in this Hub</span></div>
               <RequestsList requests={allRequests} />
             </section>
           </>

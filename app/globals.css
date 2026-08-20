@@ -709,12 +709,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.notion-tag {
-  left: -18px;
-  top: 46px;
-}
-
-.make-tag {
+.hub-tag {
   right: -12px;
   bottom: 42px;
 }

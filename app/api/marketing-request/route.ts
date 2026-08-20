@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createMarketingRequest, listMarketingRequests } from "../../lib/brutti-store";
 
 const requiredFields = [
   "name",
@@ -19,15 +20,6 @@ function clean(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  const webhookUrl = process.env.MAKE_WEBHOOK_URL;
-
-  if (!webhookUrl) {
-    return NextResponse.json(
-      { error: "The Make connection is not configured yet." },
-      { status: 503 },
-    );
-  }
-
   let body: Partial<MarketingRequest>;
 
   try {
@@ -45,7 +37,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const payload = {
+  const item = await createMarketingRequest({
     name: clean(body.name),
     platform: clean(body.platform),
     contentType: clean(body.contentType),
@@ -54,30 +46,15 @@ export async function POST(request: Request) {
     keyMessage: clean(body.keyMessage),
     promotion: clean(body.promotion),
     language: clean(body.language),
-    status: "New",
-    source: "BRUTTI AI Marketing Hub",
-    submittedAt: new Date().toISOString(),
-  };
+  });
 
+  return NextResponse.json({ ok: true, item });
+}
+
+export async function GET() {
   try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Make could not receive this request. Please try again." },
-        { status: 502 },
-      );
-    }
+    return NextResponse.json({ items: await listMarketingRequests() });
   } catch {
-    return NextResponse.json(
-      { error: "Make could not receive this request. Please try again." },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Requests could not be loaded." }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true });
 }

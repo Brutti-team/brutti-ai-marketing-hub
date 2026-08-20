@@ -2,9 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { bruttiProducts } from "./brutti-product-data";
-import type { FacebookRequest } from "./brutti-facebook-data";
-
-const LOCAL_REQUESTS_KEY = "brutti-marketing-requests";
 
 const initialForm = {
   name: "",
@@ -43,32 +40,11 @@ export default function MarketingRequestForm() {
         throw new Error(result.error || "Request could not be sent.");
       }
 
-      const requestRecord: FacebookRequest = {
-        name: form.name,
-        product: form.productName || "General BRUTTI brand",
-        objective: form.objective,
-        status: "New",
-        time: new Intl.DateTimeFormat("en-MY", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        }).format(new Date()),
-        hasContent: false,
-      };
-
-      try {
-        const saved = JSON.parse(localStorage.getItem(LOCAL_REQUESTS_KEY) || "[]") as FacebookRequest[];
-        localStorage.setItem(LOCAL_REQUESTS_KEY, JSON.stringify([requestRecord, ...saved].slice(0, 30)));
-        window.dispatchEvent(new Event("brutti-request-created"));
-      } catch {
-        // The Make submission succeeded even if browser storage is unavailable.
-      }
+      window.dispatchEvent(new Event("brutti-request-created"));
 
       setForm(initialForm);
       setState("success");
-      setMessage("Request sent successfully and added to the website request history.");
+      setMessage("Request saved successfully in the Hub.");
     } catch (error) {
       setState("error");
       setMessage(error instanceof Error ? error.message : "Request could not be sent.");
@@ -178,7 +154,7 @@ export default function MarketingRequestForm() {
 
       <div className="form-footer">
         <p className={`form-message ${state}`} aria-live="polite">
-          {message || "The request will be sent securely to Make."}
+          {message || "The request will be saved securely in this Hub."}
         </p>
         <button className="submit-button" type="submit" disabled={state === "sending"}>
           {state === "sending" ? "Sending…" : "Send marketing request"}

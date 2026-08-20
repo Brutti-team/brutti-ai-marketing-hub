@@ -29,6 +29,21 @@ export type CalendarRecord = {
   updatedAt: string;
 };
 
+export type MarketingRequestRecord = {
+  id: string;
+  name: string;
+  platform: string;
+  contentType: string;
+  productName: string;
+  objective: string;
+  keyMessage: string;
+  promotion: string;
+  language: string;
+  status: "New";
+  source: string;
+  submittedAt: string;
+};
+
 export async function database() {
   const { env } = await import("cloudflare:workers");
   if (!env.DB) throw new Error("Website database is unavailable.");
@@ -61,6 +76,20 @@ export async function ensureStore() {
     status TEXT NOT NULL DEFAULT 'Draft',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+  )`).run();
+  await db.prepare(`CREATE TABLE IF NOT EXISTS marketing_requests (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    platform TEXT NOT NULL DEFAULT 'Facebook',
+    content_type TEXT NOT NULL DEFAULT 'Facebook Post',
+    product_name TEXT NOT NULL DEFAULT '',
+    objective TEXT NOT NULL,
+    key_message TEXT NOT NULL DEFAULT '',
+    promotion TEXT NOT NULL DEFAULT '',
+    language TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'New',
+    source TEXT NOT NULL,
+    submitted_at TEXT NOT NULL
   )`).run();
 
   const contentCount = await db.prepare("SELECT COUNT(*) AS count FROM marketing_content").first<{ count: number }>();
@@ -114,4 +143,29 @@ export async function listCalendar(): Promise<CalendarRecord[]> {
     created_at AS createdAt, updated_at AS updatedAt
     FROM content_calendar ORDER BY date, time`).all<CalendarRecord>();
   return (data as D1Result<CalendarRecord>).results || [];
+}
+
+export async function createMarketingRequest(input: Omit<MarketingRequestRecord, "id" | "status" | "source" | "submittedAt">) {
+  await ensureStore();
+  const item: MarketingRequestRecord = {
+    ...input,
+    id: crypto.randomUUID(),
+    status: "New",
+    source: "BRUTTI AI Marketing Hub",
+    submittedAt: new Date().toISOString(),
+  };
+  await (await database()).prepare(`INSERT INTO marketing_requests
+    (id, name, platform, content_type, product_name, objective, key_message, promotion, language, status, source, submitted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .bind(item.id, item.name, item.platform, item.contentType, item.productName, item.objective, item.keyMessage, item.promotion, item.language, item.status, item.source, item.submittedAt)
+    .run();
+  return item;
+}
+
+export async function listMarketingRequests(): Promise<MarketingRequestRecord[]> {
+  await ensureStore();
+  const data = await (await database()).prepare(`SELECT id, name, platform, content_type AS contentType,
+    product_name AS productName, objective, key_message AS keyMessage, promotion, language, status, source,
+    submitted_at AS submittedAt FROM marketing_requests ORDER BY submitted_at DESC`).all<MarketingRequestRecord>();
+  return (data as D1Result<MarketingRequestRecord>).results || [];
 }
