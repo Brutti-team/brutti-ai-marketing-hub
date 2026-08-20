@@ -80,7 +80,6 @@ export function getHistoricalPostingTime(targetDate = new Date(), respectCurrent
 
   const start = hourDate(date, chosenHour)
   const end = new Date(start.getTime() + 60 * 60 * 1000)
-  const confidence = confidenceFor(stats)
 
   return {
     date,
@@ -88,7 +87,7 @@ export function getHistoricalPostingTime(targetDate = new Date(), respectCurrent
     dayLabel: stats.label,
     time: formatTime(start),
     window: `${formatTime(start)}–${formatTime(end)}`,
-    confidence,
+    confidence: confidenceFor(stats),
     reactions: stats.reactions,
     urls: stats.urls,
     shiftedToNextDay,
@@ -105,6 +104,10 @@ function dashboardPage() {
 function plannerPage() {
   return [...document.querySelectorAll('#root .page')]
     .find((page) => page.offsetParent !== null && page.querySelector('h1')?.textContent?.trim() === 'Campaign Planner') || null
+}
+
+function setMarkup(node, markup) {
+  if (node && node.innerHTML !== markup) node.innerHTML = markup
 }
 
 function timingCardMarkup(timing) {
@@ -138,7 +141,7 @@ function syncDashboardTiming() {
     if (buttons) buttons.insertAdjacentElement('beforebegin', card)
     else heroContent.append(card)
   }
-  card.innerHTML = timingCardMarkup(timing)
+  setMarkup(card, timingCardMarkup(timing))
 }
 
 function syncPlannerTiming() {
@@ -156,7 +159,8 @@ function syncPlannerTiming() {
     summary.insertAdjacentElement('afterend', strip)
   }
   const when = timing.shiftedToNextDay ? `Tomorrow · ${timing.dayLabel}` : `Today · ${timing.dayLabel}`
-  strip.innerHTML = `<span><strong>Historical Smart Timing</strong> · ${when}: <strong>${timing.time}</strong> <span style="opacity:.68">(${timing.window})</span></span><span style="opacity:.68">${timing.confidence} confidence · not live Meta</span>`
+  const markup = `<span><strong>Historical Smart Timing</strong> · ${when}: <strong>${timing.time}</strong> <span style="opacity:.68">(${timing.window})</span></span><span style="opacity:.68">${timing.confidence} confidence · not live Meta</span>`
+  setMarkup(strip, markup)
 }
 
 function syncPlanModalTiming() {
@@ -177,7 +181,8 @@ function syncPlanModalTiming() {
     const dateRow = dateInput.closest('.two-fields')
     dateRow?.insertAdjacentElement('afterend', note)
   }
-  note.innerHTML = `<strong>Recommended posting time: ${timing.time}</strong><br><span style="opacity:.7">${timing.dayLabel} historical activity window ${timing.window} · ${timing.confidence} confidence · not live Meta Insights.</span>`
+  const markup = `<strong>Recommended posting time: ${timing.time}</strong><br><span style="opacity:.7">${timing.dayLabel} historical activity window ${timing.window} · ${timing.confidence} confidence · not live Meta Insights.</span>`
+  setMarkup(note, markup)
 
   if (dateInput.dataset.smartTimingBound !== '1') {
     dateInput.dataset.smartTimingBound = '1'
@@ -199,8 +204,11 @@ export default function HistoricalPostingTimeEnhancer() {
       timer = window.setTimeout(syncAll, 45)
     }
 
+    const root = document.getElementById('root')
+    if (!root) return undefined
+
     const observer = new MutationObserver(schedule)
-    observer.observe(document.getElementById('root'), { childList: true, subtree: true })
+    observer.observe(root, { childList: true, subtree: true })
     const minuteTimer = window.setInterval(syncAll, 60 * 1000)
     document.addEventListener('click', schedule, true)
     schedule()
