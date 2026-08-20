@@ -114,11 +114,11 @@ if (document.readyState === 'loading') {
   applyStaticVisualFix()
 }
 
-let observerTimer = 0
+let refreshTimer = 0
 const scheduleStaticVisualFix = () => {
-  window.clearTimeout(observerTimer)
-  observerTimer = window.setTimeout(forceLogo, 50)
+  window.clearTimeout(refreshTimer)
+  refreshTimer = window.setTimeout(forceLogo, 70)
 }
 
-const observer = new MutationObserver(scheduleStaticVisualFix)
-observer.observe(document.documentElement, { childList: true, subtree: true })
+document.addEventListener('click', scheduleStaticVisualFix, true)
+document.addEventListener('change', scheduleStaticVisualFix, true)
