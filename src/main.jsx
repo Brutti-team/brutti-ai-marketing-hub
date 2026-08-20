@@ -15,17 +15,15 @@ import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
 import './product-image-integration.css'
-import './historical-analytics.css'
 import './responsive-clarity.css'
 import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
 import './asset-library-upgrade.css'
 import './campaign-planner-cleanup.css'
 import './pwa-mobile.css'
+import './interface-cleanup.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
-const loadHistoricalAnalytics = () => import('./HistoricalAnalyticsEnhancer.jsx')
-const loadMetaDeferred = () => import('./MetaDeferredEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
 const loadNotificationCenter = () => import('./NotificationCenterEnhancer.jsx')
 const loadProductCatalogQuality = () => import('./ProductCatalogQualityEnhancer.jsx')
@@ -35,8 +33,6 @@ const loadSmartRewriteDirection = () => import('./SmartRewriteDirectionEnhancer.
 const loadAssetLibrary = () => import('./AssetLibraryEnhancer.jsx')
 
 const ProductImageEnhancer = lazy(loadProductImage)
-const HistoricalAnalyticsEnhancer = lazy(loadHistoricalAnalytics)
-const MetaDeferredEnhancer = lazy(loadMetaDeferred)
 const AnalyticsCopyPolish = lazy(loadAnalyticsCopy)
 const NotificationCenterEnhancer = lazy(loadNotificationCenter)
 const ProductCatalogQualityEnhancer = lazy(loadProductCatalogQuality)
@@ -60,7 +56,6 @@ function preloadForPage(label) {
   }
   if (label === 'Asset Library') loadAssetLibrary()
   if (label === 'Analytics') {
-    loadHistoricalAnalytics()
     loadAnalyticsCopy()
     loadLightModeAnalyticsContrast()
   }
@@ -112,13 +107,11 @@ export function DeferredEnhancers() {
     <Suspense fallback={null}>
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
-      {backgroundReady ? <MetaDeferredEnhancer /> : null}
 
       {(page === 'Product Library' || page === 'Content Studio') ? <ProductImageEnhancer /> : null}
       {page === 'Product Library' ? <ProductCatalogQualityEnhancer /> : null}
       {page === 'Content Studio' ? <SmartRewriteDirectionEnhancer /> : null}
       {page === 'Asset Library' ? <AssetLibraryEnhancer /> : null}
-      {page === 'Analytics' ? <HistoricalAnalyticsEnhancer /> : null}
       {page === 'Analytics' ? <AnalyticsCopyPolish /> : null}
       {page === 'Analytics' ? <LightModeAnalyticsContrastEnhancer /> : null}
     </Suspense>
