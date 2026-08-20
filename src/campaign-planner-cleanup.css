@@ -1,0 +1,5 @@
+/* Campaign Planner cleanup: keep the weekly calendar as the single planning view.
+   Existing plan data is preserved; only the duplicate Campaign Ideas + All Plans panels are hidden. */
+.planner-bottom-grid {
+  display: none !important;
+}
