@@ -21,6 +21,7 @@ import './dark-impact-contrast-fix.css'
 import './light-mode-analytics-contrast.css'
 import './asset-library-upgrade.css'
 import './campaign-planner-cleanup.css'
+import './pwa-mobile.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadHistoricalAnalytics = () => import('./HistoricalAnalyticsEnhancer.jsx')
@@ -65,7 +66,7 @@ function preloadForPage(label) {
   }
 }
 
-function DeferredEnhancers() {
+export function DeferredEnhancers() {
   const [page, setPage] = useState('Dashboard')
   const [backgroundReady, setBackgroundReady] = useState(false)
 
@@ -136,9 +137,11 @@ createRoot(document.getElementById('root')).render(
 )
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  const registerServiceWorker = () => {
     navigator.serviceWorker
       .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
       .catch(() => {})
-  })
+  }
+  if (document.readyState === 'complete') registerServiceWorker()
+  else window.addEventListener('load', registerServiceWorker, { once: true })
 }

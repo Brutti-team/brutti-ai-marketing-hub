@@ -1,0 +1,258 @@
+html {
+  min-height: 100%;
+  background: var(--ivory);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+.app-shell,
+.app-main {
+  min-height: 100dvh;
+}
+
+.pwa-install-button {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid rgba(18,55,42,.17);
+  border-radius: 10px;
+  background: rgba(255,255,255,.72);
+  color: var(--forest);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(18,55,42,.06);
+}
+
+.pwa-install-button span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: #e7efe9;
+  font-size: 14px;
+}
+
+.pwa-install-button strong {
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.pwa-offline-banner {
+  position: fixed;
+  z-index: 180;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  width: min(92vw, 480px);
+  transform: translateX(-50%);
+  padding: 11px 14px;
+  border-radius: 11px;
+  background: #7d4e3a;
+  color: #fff;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 14px 38px rgba(32,37,34,.24);
+}
+
+.pwa-guide-backdrop {
+  position: fixed;
+  z-index: 190;
+  inset: 0;
+  padding: 18px;
+  display: grid;
+  place-items: end center;
+  background: rgba(13,27,21,.58);
+  backdrop-filter: blur(8px);
+}
+
+.pwa-guide-sheet {
+  width: min(100%, 520px);
+  padding: 12px 24px max(24px, env(safe-area-inset-bottom));
+  border-radius: 24px 24px 17px 17px;
+  background: var(--paper);
+  box-shadow: 0 25px 80px rgba(13,27,21,.34);
+}
+
+.pwa-sheet-handle {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 19px;
+  border-radius: 999px;
+  background: #d4d8d3;
+}
+
+.pwa-guide-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 18px;
+}
+
+.pwa-guide-logo {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--forest);
+  color: #fff;
+  font: italic 700 24px 'Playfair Display', serif;
+}
+
+.pwa-guide-heading small {
+  color: var(--terracotta);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.pwa-guide-heading h2 {
+  margin: 5px 0 0;
+  font: 600 23px/1.15 'Playfair Display', serif;
+}
+
+.pwa-guide-sheet ol,
+.pwa-guide-sheet > p {
+  margin: 0 0 20px;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.pwa-guide-sheet > p { padding-left: 0; }
+
+.mobile-bottom-navigation { display: none; }
+
+@media (display-mode: standalone) {
+  .pwa-install-button { display: none; }
+}
+
+@media (max-width: 980px) {
+  .app-main > main {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .mobile-bottom-navigation {
+    position: fixed;
+    z-index: 70;
+    right: 12px;
+    bottom: max(9px, env(safe-area-inset-bottom));
+    left: 12px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    padding: 7px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px;
+    background: rgba(18,55,42,.97);
+    box-shadow: 0 14px 45px rgba(18,55,42,.29);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-bottom-navigation button {
+    min-width: 0;
+    min-height: 52px;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(255,255,255,.62);
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+
+  .mobile-bottom-navigation button svg { width: 19px; height: 19px; }
+  .mobile-bottom-navigation button small { max-width: 100%; overflow: hidden; font-size: 8px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-bottom-navigation button.active { color: #fff; background: rgba(255,255,255,.1); }
+  .mobile-bottom-navigation button.active svg { color: #efb69d; }
+
+  .toast {
+    bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+
+  footer {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+
+  .sidebar {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  .button,
+  .icon-button,
+  .text-button,
+  .nav-link {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 650px) {
+  .topbar {
+    height: auto;
+    min-height: calc(62px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pwa-install-button {
+    width: 39px;
+    min-height: 39px;
+    padding: 0;
+    border-radius: 11px;
+  }
+
+  .pwa-install-button strong { display: none; }
+  .pwa-install-button span { background: transparent; font-size: 17px; }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .modal {
+    max-height: calc(94dvh - env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 470px) {
+  .topbar-status .status-chip { display: none; }
+  .topbar-status { gap: 6px !important; }
+  .avatar { width: 32px; height: 32px; }
+}
+
+@media (max-width: 370px) {
+  .mobile-bottom-navigation { right: 6px; left: 6px; }
+  .mobile-bottom-navigation button small { font-size: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

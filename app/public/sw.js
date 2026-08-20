@@ -1,8 +1,13 @@
-const CACHE_NAME = 'brutti-hub-shell-v2'
+const CACHE_NAME = 'brutti-hub-shell-v3'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
   `${APP_SCOPE}manifest.webmanifest`,
+  `${APP_SCOPE}offline.html`,
+  `${APP_SCOPE}icons/brutti-app-icon-192.png`,
+  `${APP_SCOPE}icons/brutti-app-icon-512.png`,
+  `${APP_SCOPE}icons/brutti-app-icon-maskable-512.png`,
+  `${APP_SCOPE}icons/brutti-apple-touch-icon.png`,
 ]
 
 self.addEventListener('install', (event) => {
@@ -33,10 +38,14 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(APP_SCOPE, copy))
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
           return response
         })
-        .catch(() => caches.match(APP_SCOPE)),
+        .catch(async () => (
+          (await caches.match(request))
+          || (await caches.match(APP_SCOPE))
+          || caches.match(`${APP_SCOPE}offline.html`)
+        )),
     )
     return
   }

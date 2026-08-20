@@ -22,6 +22,7 @@ import {
   setWorkspaceKey,
 } from './lib/googleWorkspace'
 import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
+import PWAInstallControl from './PWAInstallControl'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -120,12 +121,39 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
   )
 }
 
+const mobileNavigation = [
+  { id: 'dashboard', label: 'Home', icon: 'dashboard' },
+  { id: 'studio', label: 'Content', icon: 'sparkles' },
+  { id: 'planner', label: 'Planner', icon: 'calendar' },
+  { id: 'assets', label: 'Assets', icon: 'image' },
+]
+
+function MobileBottomNavigation({ page, setPage, openMore }) {
+  const navigate = (id) => {
+    setPage(id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const primaryPage = mobileNavigation.some((item) => item.id === page)
+  return (
+    <nav className="mobile-bottom-navigation" aria-label="Mobile navigation">
+      {mobileNavigation.map((item) => (
+        <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => navigate(item.id)} aria-current={page === item.id ? 'page' : undefined}>
+          <Icon name={item.icon}/><small>{item.label}</small>
+        </button>
+      ))}
+      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Open all sections">
+        <Icon name="menu"/><small>More</small>
+      </button>
+    </nav>
+  )
+}
+
 function Topbar({ setOpen, workspaceActive }) {
   const todayLabel = new Date().toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' })
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">{todayLabel}</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><PWAInstallControl/><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">{todayLabel}</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -749,7 +777,10 @@ function PlanEditor({ item, onClose, onSave, onDelete, productOptions }) {
 }
 
 function App() {
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('page')
+    return navigation.some((item) => item.id === requested) ? requested : 'dashboard'
+  })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [content, setContent] = useStoredState('brutti-content-v2', initialContent)
   const [plans, setPlans] = useStoredState('brutti-plans-v2', initialPlans)
@@ -913,6 +944,7 @@ function App() {
     <div className="app-shell">
       <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:productData.length}}/>
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
+      <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={productData}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>

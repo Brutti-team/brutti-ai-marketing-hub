@@ -1,27 +1,55 @@
 {
   "id": "/brutti-ai-marketing-hub/",
   "name": "Brutti AI Marketing Hub",
-  "short_name": "Brutti Hub",
-  "description": "Personal install of the Brutti AI Marketing Hub for internal marketing work.",
+  "short_name": "BRUTTI AI",
+  "description": "Plan, create, review and manage BRUTTI marketing from any device.",
   "start_url": "/brutti-ai-marketing-hub/",
   "scope": "/brutti-ai-marketing-hub/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#f7f3ea",
   "theme_color": "#12372a",
   "orientation": "any",
   "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "https://drive.google.com/thumbnail?id=1NyserkCTmZYybJWH6bptPubwdDHljDK3&sz=w192",
+      "src": "icons/brutti-app-icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://drive.google.com/thumbnail?id=1NyserkCTmZYybJWH6bptPubwdDHljDK3&sz=w512",
+      "src": "icons/brutti-app-icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/brutti-app-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create content",
+      "short_name": "Content Studio",
+      "url": "/brutti-ai-marketing-hub/?page=studio",
+      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Open campaign planner",
+      "short_name": "Planner",
+      "url": "/brutti-ai-marketing-hub/?page=planner",
+      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Browse approved assets",
+      "short_name": "Assets",
+      "url": "/brutti-ai-marketing-hub/?page=assets",
+      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
