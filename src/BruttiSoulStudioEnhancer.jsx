@@ -1,14 +1,5 @@
 import { useEffect } from 'react'
-import { BRUTTI_SOUL, SOUL_SOURCE_LABEL, buildSoulDraft, soulSourceReady } from './lib/bruttiSoulSource'
-
-const CAPTION_GUIDE = [
-  ['HOOK', 'Mula dengan babak, nombor atau nama — bukan label produk, “New Product Alert” atau ayat promo.'],
-  ['VOICE', 'First person: aku / sia / kami. Bunyi macam kawan bercerita; Sabahan colloquial + sikit English, bukan corporate.'],
-  ['STRUCTURE', 'Ayat pendek satu-satu baris. Guna jeda bila perlu, 1–3 emoji sahaja dan tiada hashtag.'],
-  ['REAL DETAIL', 'Guna benda yang betul-betul berlaku dan fakta yang sudah confirm. Jangan reka cerita, harga, claim atau detail proses.'],
-  ['PEOPLE', 'Kalau cerita artisan, guna nama + latar hanya bila memang diketahui. Elak ayat kosong macam “staff kami sangat berdedikasi”.'],
-  ['EMOTION', 'Boleh lucu, jujur, sebak atau syukur — tapi kaitkan emosi dengan sebab yang spesifik, bukan filler.'],
-]
+import { SOUL_SOURCE_LABEL, buildSoulDraft, soulSourceReady } from './lib/bruttiSoulSource'
 
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
@@ -60,57 +51,32 @@ function applySoulDraft(mode = 'balanced', variation = 0, attempt = 0) {
   setReactValue(output, buildSoulDraft(form, mode, variation))
 }
 
-function addCaptionDirectionGuide(page) {
+function syncContentDirection(page) {
   const form = page.querySelector('.generator-form')
-  if (!form || form.querySelector('.soul-caption-direction-guide')) return
-  if (!BRUTTI_SOUL.full || !BRUTTI_SOUL.voice || !BRUTTI_SOUL.craft || !BRUTTI_SOUL.checklist) return
+  if (!form) return
 
-  const heading = form.querySelector('.form-section-head')
-  const headingCopy = heading?.querySelector('p')
-  if (headingCopy) headingCopy.textContent = 'Masukkan fakta sebenar; full Brutti Soul Master akan jadi source untuk susun caption.'
+  const oldGuide = form.querySelector('.soul-caption-direction-guide')
+  if (oldGuide) oldGuide.remove()
+
+  const headingCopy = form.querySelector('.form-section-head p')
+  if (headingCopy) {
+    headingCopy.textContent = 'Full Brutti Soul Master digunakan sebagai source untuk susun caption.'
+  }
 
   const brief = field(page, 'Verified facts / direction', 'textarea')
   if (brief) {
-    brief.placeholder = 'Masukkan benda sebenar yang berlaku: siapa / apa, piece atau project, masalah atau keperluan, satu detail proses, sebab ia penting, dan momen lucu / jujur jika ada. Jangan tambah fakta yang belum confirm.'
+    brief.placeholder = 'Masukkan fakta sebenar yang sudah confirm: siapa / apa, piece atau project, masalah atau keperluan, detail proses, sebab ia penting, dan momen lucu / jujur jika ada. Soul Master akan susun gaya caption tanpa mereka fakta.'
   }
 
-  const polishNote = form.querySelector('.brief-polish-row span')
-  if (polishNote) polishNote.textContent = 'Kemaskan wording sahaja. Fakta asal mesti kekal dan tidak boleh direka.'
-
-  const guide = document.createElement('section')
-  guide.className = 'soul-caption-direction-guide'
-  guide.setAttribute('aria-label', 'Brutti Soul caption guide')
-  guide.style.cssText = 'margin:12px 0 18px;padding:14px 16px;border:1px solid rgba(20,74,58,.18);border-radius:16px;background:rgba(238,246,239,.72);display:grid;gap:10px;'
-
-  const top = document.createElement('div')
-  top.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#164a3a">Brutti Soul · Caption Source</strong><span style="display:block;margin-top:4px;font-size:12px;line-height:1.5;opacity:.75">Full .md digunakan sebagai source brand: Origin, Voice, Values, Product, Content Craft, Story Pillars, Vision, Checklist & Golden Examples. Untuk bentuk ayat caption, Voice + Content Craft + Checklist diberi keutamaan.</span>'
-  guide.append(top)
-
-  const grid = document.createElement('div')
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;'
-  CAPTION_GUIDE.forEach(([label, copy]) => {
-    const card = document.createElement('div')
-    card.style.cssText = 'padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.62);font-size:12px;line-height:1.45;'
-    const key = document.createElement('strong')
-    key.textContent = label
-    key.style.cssText = 'display:block;margin-bottom:3px;font-size:10px;letter-spacing:.08em;color:#164a3a;'
-    const text = document.createElement('span')
-    text.textContent = copy
-    card.append(key, text)
-    grid.append(card)
-  })
-  guide.append(grid)
-
-  const firstDisclaimer = form.querySelector('.form-disclaimer')
-  if (firstDisclaimer) firstDisclaimer.insertAdjacentElement('afterend', guide)
-  else heading?.insertAdjacentElement('afterend', guide)
+  const polishRow = form.querySelector('.brief-polish-row')
+  if (polishRow) polishRow.style.display = 'none'
 }
 
 function syncStudioSourceRules() {
   const page = activeStudio()
   if (!page || !soulSourceReady) return
 
-  addCaptionDirectionGuide(page)
+  syncContentDirection(page)
 
   const hashtagCheckbox = page.querySelector('.checkbox-row input[type="checkbox"]')
   if (hashtagCheckbox?.checked) hashtagCheckbox.click()
