@@ -13,15 +13,6 @@ function normalizeElementAttributes(element) {
 
 function normalizeVisibleText(root) {
   if (!root) return
-
-  if (root.nodeType === Node.TEXT_NODE) {
-    const parent = root.parentElement
-    if (!parent?.closest('script, style') && root.nodeValue?.includes('BRUTTI')) {
-      root.nodeValue = normalizeBrandCase(root.nodeValue)
-    }
-    return
-  }
-
   if (!(root instanceof Element) && root !== document.body) return
 
   if (root instanceof Element) normalizeElementAttributes(root)
@@ -40,34 +31,32 @@ function normalizeVisibleText(root) {
 
 export default function BrandCasingEnhancer() {
   useEffect(() => {
-    document.title = normalizeBrandCase(document.title)
+    let timer = 0
 
-    document
-      .querySelectorAll('meta[name="description"], meta[name="apple-mobile-web-app-title"]')
-      .forEach((meta) => {
-        const content = meta.getAttribute('content')
-        if (content?.includes('BRUTTI')) meta.setAttribute('content', normalizeBrandCase(content))
-      })
+    const sync = () => {
+      document.title = normalizeBrandCase(document.title)
+      document
+        .querySelectorAll('meta[name="description"], meta[name="apple-mobile-web-app-title"]')
+        .forEach((meta) => {
+          const content = meta.getAttribute('content')
+          if (content?.includes('BRUTTI')) meta.setAttribute('content', normalizeBrandCase(content))
+        })
+      normalizeVisibleText(document.body)
+    }
 
-    normalizeVisibleText(document.body)
+    const schedule = (delay = 50) => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, delay)
+    }
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'characterData') normalizeVisibleText(mutation.target)
-        if (mutation.type === 'childList') mutation.addedNodes.forEach(normalizeVisibleText)
-        if (mutation.type === 'attributes') normalizeElementAttributes(mutation.target)
-      })
-    })
+    sync()
+    const onClick = () => schedule(70)
+    document.addEventListener('click', onClick, true)
 
-    observer.observe(document.body, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'],
-    })
-
-    return () => observer.disconnect()
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   return null
