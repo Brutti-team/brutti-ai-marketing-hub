@@ -2,6 +2,15 @@
 
 An internal marketing workspace for BRUTTI, a Sabah-based custom furniture and interior brand, with a zero-cost AI Assist workflow.
 
+## Install on phone or tablet
+
+The GitHub Pages website is an installable Progressive Web App (PWA). It keeps the same URL and content while opening from the home screen like an app.
+
+- Android: open the website in Chrome and select **Install app**.
+- iPhone or iPad: open the website in Safari, select **Share → Add to Home Screen → Add**.
+- The mobile layout includes bottom navigation for Dashboard, Content Studio, Campaign Planner and Asset Library, plus access to every other section through **More**.
+- A branded offline screen is available when the device loses its connection. Shared data changes still require internet access.
+
 ## Free AI Assist Mode
 
 The production website does not call a paid AI API and does not require staff to open a separate AI platform. Instead it provides a no-cost assisted workflow:
@@ -34,6 +43,7 @@ Free Smart Rewrite is deterministic rather than generative AI: it combines verif
 - Verified Facebook activity snapshot without fabricated Meta KPI
 - Session-only internal workspace key; it is never committed or built into the site
 - Browser fallback when the Google backend is not connected
+- Installable mobile/tablet PWA with app icons, touch-friendly navigation and safe-area support
 
 ## Google Apps Script setup
 
