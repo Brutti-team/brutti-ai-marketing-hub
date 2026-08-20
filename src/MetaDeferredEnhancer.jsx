@@ -11,10 +11,10 @@ function syncMetaStatus(page) {
   if (!row) return
 
   const status = row.querySelector('.status-pill')
-  if (!status || !/not connected/i.test(status.textContent || '')) return
+  if (!status) return
 
   const detail = row.querySelector('p')
-  if (detail) detail.textContent = 'Skipped for now — enable only when verified Meta access and data are available.'
+  if (detail) detail.textContent = 'Facebook publishing is paused. Keep approved content in BRUTTI and post manually until verified Meta access is ready.'
   status.textContent = 'Deferred'
   status.className = 'status-pill archived'
 }

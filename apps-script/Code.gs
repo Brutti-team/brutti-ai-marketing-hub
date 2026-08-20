@@ -58,7 +58,7 @@ function doPost(e) {
       list_drive_assets: listDriveAssets_,
       sync_notion_products: syncNotionProducts_,
       sync_notion_planner: syncNotionPlanner_,
-      publish_meta: () => publishMeta_(payload.contentId)
+      publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); }
     };
     if (!handlers[action]) throw new Error('Unsupported action: ' + action);
     return json_({ ok: true, data: handlers[action]() });
@@ -91,7 +91,7 @@ function integrationStatus_() {
     sheets: Boolean(tests.sheets && tests.sheets.connected),
     drive: Boolean(tests.drive && tests.drive.connected),
     notion: Boolean(tests.notion && tests.notion.connected),
-    meta: Boolean(properties.getProperty('META_PAGE_ID') && properties.getProperty('META_PAGE_ACCESS_TOKEN') && properties.getProperty('META_GRAPH_VERSION')),
+    meta: false,
     details: tests
   };
 }
