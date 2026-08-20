@@ -26,41 +26,33 @@ function syncMetaStatus(page) {
 
   const detail = row.querySelector('p')
 
-  if (detail && detail.textContent !== DEFERRED_DETAIL) {
-    detail.textContent = DEFERRED_DETAIL
-  }
-
-  if (status.textContent?.trim() !== 'Deferred') {
-    status.textContent = 'Deferred'
-  }
-
-  if (status.className !== 'status-pill archived') {
-    status.className = 'status-pill archived'
-  }
+  if (detail && detail.textContent !== DEFERRED_DETAIL) detail.textContent = DEFERRED_DETAIL
+  if (status.textContent?.trim() !== 'Deferred') status.textContent = 'Deferred'
+  if (status.className !== 'status-pill archived') status.className = 'status-pill archived'
 }
 
 export default function MetaDeferredEnhancer() {
   useEffect(() => {
-    const main = document.querySelector('#root .app-main main')
-    if (!main) return undefined
+    let timer = 0
 
     const sync = () => {
       const page = activeSettingsPage()
       if (page) syncMetaStatus(page)
     }
 
+    const schedule = (delay = 70) => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, delay)
+    }
+
     sync()
+    const onClick = () => schedule()
+    document.addEventListener('click', onClick, true)
 
-    const observer = new MutationObserver(() => {
-      sync()
-    })
-
-    observer.observe(main, {
-      childList: true,
-      subtree: true,
-    })
-
-    return () => observer.disconnect()
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   return null
