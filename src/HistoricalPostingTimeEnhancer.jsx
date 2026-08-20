@@ -199,25 +199,24 @@ function syncAll() {
 export default function HistoricalPostingTimeEnhancer() {
   useEffect(() => {
     let timer = 0
-    const schedule = () => {
+    const schedule = (delay = 55) => {
       window.clearTimeout(timer)
-      timer = window.setTimeout(syncAll, 45)
+      timer = window.setTimeout(syncAll, delay)
     }
 
-    const root = document.getElementById('root')
-    if (!root) return undefined
-
-    const observer = new MutationObserver(schedule)
-    observer.observe(root, { childList: true, subtree: true })
     const minuteTimer = window.setInterval(syncAll, 60 * 1000)
-    document.addEventListener('click', schedule, true)
-    schedule()
+    const onClick = () => {
+      schedule(55)
+      window.setTimeout(syncAll, 180)
+    }
+
+    syncAll()
+    document.addEventListener('click', onClick, true)
 
     return () => {
       window.clearTimeout(timer)
       window.clearInterval(minuteTimer)
-      observer.disconnect()
-      document.removeEventListener('click', schedule, true)
+      document.removeEventListener('click', onClick, true)
     }
   }, [])
 
