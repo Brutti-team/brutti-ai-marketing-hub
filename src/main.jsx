@@ -74,13 +74,15 @@ export function DeferredEnhancers() {
     let pageTimer = 0
     const syncPage = () => {
       window.clearTimeout(pageTimer)
-      pageTimer = window.setTimeout(() => setPage(activePageLabel()), 20)
+      pageTimer = window.setTimeout(() => setPage(activePageLabel()), 35)
     }
 
     syncPage()
-    const nav = document.querySelector('#root .sidebar nav')
-    const navObserver = nav ? new MutationObserver(syncPage) : null
-    navObserver?.observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] })
+
+    const onClick = (event) => {
+      if (event.target.closest?.('.nav-link, .mobile-bottom-navigation button')) syncPage()
+    }
+    document.addEventListener('click', onClick, true)
 
     const onPointerOver = (event) => {
       const navButton = event.target.closest?.('.nav-link')
@@ -101,7 +103,7 @@ export function DeferredEnhancers() {
       window.clearTimeout(pageTimer)
       window.clearTimeout(fallbackTimer)
       if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId)
-      navObserver?.disconnect()
+      document.removeEventListener('click', onClick, true)
       document.removeEventListener('pointerover', onPointerOver, true)
     }
   }, [])
@@ -139,7 +141,11 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   const registerServiceWorker = () => {
     navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
+      .register(`${import.meta.env.BASE_URL}sw.js`, {
+        scope: import.meta.env.BASE_URL,
+        updateViaCache: 'none',
+      })
+      .then((registration) => registration.update())
       .catch(() => {})
   }
   if (document.readyState === 'complete') registerServiceWorker()
