@@ -72,6 +72,20 @@ function readDashboardSignals() {
   return alerts
 }
 
+function alertsMatch(current, next) {
+  if (current.length !== next.length) return false
+  return current.every((alert, index) => {
+    const candidate = next[index]
+    return candidate
+      && alert.id === candidate.id
+      && alert.level === candidate.level
+      && alert.title === candidate.title
+      && alert.detail === candidate.detail
+      && alert.action === candidate.action
+      && alert.button === candidate.button
+  })
+}
+
 function NotificationItem({ alert, onSelect }) {
   return (
     <button className={`brutti-notification-item ${alert.level === 'alert' ? 'is-alert' : ''}`} onClick={() => onSelect(alert)}>
@@ -96,7 +110,7 @@ export default function NotificationCenterEnhancer() {
     const refresh = () => {
       if (cancelled) return
       const nextTopbar = document.querySelector('.topbar-status')
-      if (nextTopbar) setTopbarTarget(nextTopbar)
+      if (nextTopbar) setTopbarTarget((current) => current === nextTopbar ? current : nextTopbar)
 
       const dashboard = document.querySelector('.dashboard-page')
       const header = dashboard?.querySelector('.page-header')
@@ -107,12 +121,13 @@ export default function NotificationCenterEnhancer() {
           mount.className = 'brutti-notification-banner-mount'
           header.insertAdjacentElement('afterend', mount)
         }
-        setBannerTarget(mount)
+        setBannerTarget((current) => current === mount ? current : mount)
       } else {
-        setBannerTarget(null)
+        setBannerTarget((current) => current === null ? current : null)
       }
 
-      setAlerts(readDashboardSignals())
+      const nextAlerts = readDashboardSignals()
+      setAlerts((current) => alertsMatch(current, nextAlerts) ? current : nextAlerts)
     }
 
     refresh()
