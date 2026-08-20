@@ -44,11 +44,10 @@ export default function Core7MarketingTools() {
 
       root.querySelectorAll('.nav-link').forEach((button) => {
         const label = button.querySelector('span')?.textContent?.trim() || ''
-        button.hidden = hiddenNavigation.has(label)
+        const shouldHide = hiddenNavigation.has(label)
+        if (button.hidden !== shouldHide) button.hidden = shouldHide
       })
 
-      // Remove non-daily audit/reference panels from the operational interface.
-      // Their source files remain in the repository and can be restored later.
       root.querySelectorAll('.phase2-audit-panel, .phase3-ranking-panel, .social-enterprise-intelligence, .workspace-readiness-panel')
         .forEach((panel) => panel.remove())
 
@@ -56,36 +55,34 @@ export default function Core7MarketingTools() {
         if (label.textContent?.trim() === 'SMART CAMPAIGN IDEAS') label.textContent = 'CAMPAIGN IDEAS'
       })
 
-      // Keep Free Assist clean: remove legacy/duplicate starter panels if an older cached
-      // version injected them before this enhancer runs.
       root.querySelectorAll('.core7-prompt-panel, .core7-studio-extras').forEach((panel) => panel.remove())
       root.querySelectorAll('.brutti-platform-status-strip').forEach((strip) => strip.remove())
 
-      // Publishing stays unavailable while Meta is intentionally read-only/deferred.
       root.querySelectorAll('button').forEach((button) => {
         const text = button.textContent?.trim() || ''
-        if (/publish\s+(to\s+facebook|photo\s*\+\s*caption|to\s+meta)/i.test(text)) button.hidden = true
+        if (/publish\s+(to\s+facebook|photo\s*\+\s*caption|to\s+meta)/i.test(text) && !button.hidden) button.hidden = true
       })
 
       const avatar = root.querySelector('.topbar .avatar')
-      if (avatar) avatar.hidden = true
+      if (avatar && !avatar.hidden) avatar.hidden = true
 
       const sidebarStatus = root.querySelector('.sidebar .system-card')
-      if (sidebarStatus) sidebarStatus.hidden = true
+      if (sidebarStatus && !sidebarStatus.hidden) sidebarStatus.hidden = true
 
       if (title === 'Content Studio' && activePage) {
         const platformLabel = [...activePage.querySelectorAll('label')]
           .find((label) => /^Platform/i.test(label.textContent || ''))
         const platformSelect = platformLabel?.querySelector('select')
         platformSelect?.querySelectorAll('option').forEach((option) => {
-          option.hidden = option.textContent?.trim() !== 'Facebook'
+          const shouldHide = option.textContent?.trim() !== 'Facebook'
+          if (option.hidden !== shouldHide) option.hidden = shouldHide
         })
       }
 
       if (title === 'Asset Library' && activePage) {
         const addAsset = [...activePage.querySelectorAll('button')]
           .find((button) => /add asset/i.test(button.textContent || ''))
-        if (addAsset) addAsset.hidden = true
+        if (addAsset && !addAsset.hidden) addAsset.hidden = true
 
         const connected = [...activePage.querySelectorAll('.status-chip')]
           .some((chip) => /drive connected/i.test(chip.textContent || ''))
@@ -93,8 +90,8 @@ export default function Core7MarketingTools() {
 
         const summary = activePage.querySelector('.asset-summary')
         const assetPanel = activePage.querySelector('.asset-panel')
-        if (summary) summary.hidden = !connected
-        if (assetPanel) assetPanel.hidden = !connected
+        if (summary && summary.hidden === connected) summary.hidden = !connected
+        if (assetPanel && assetPanel.hidden === connected) assetPanel.hidden = !connected
       } else {
         setDriveConnected(false)
       }
@@ -102,11 +99,13 @@ export default function Core7MarketingTools() {
       if (title === 'Settings' && activePage) {
         activePage.querySelectorAll('.connections-list article').forEach((row) => {
           const name = row.querySelector('strong')?.textContent?.trim() || ''
-          row.hidden = hiddenSettingsRows.has(name)
-          row.querySelectorAll('button').forEach((button) => { button.hidden = true })
+          const shouldHide = hiddenSettingsRows.has(name)
+          if (row.hidden !== shouldHide) row.hidden = shouldHide
+          row.querySelectorAll('button').forEach((button) => {
+            if (!button.hidden) button.hidden = true
+          })
         })
 
-        // These are fixed workflow rules, not interactive toggles. Present them as status badges.
         activePage.querySelectorAll('.setting-row').forEach((row) => {
           const name = row.querySelector('strong')?.textContent?.trim() || ''
           const status = row.querySelector('.switch')
@@ -129,26 +128,29 @@ export default function Core7MarketingTools() {
 
       if (title === 'Analytics' && activePage) {
         activePage.querySelectorAll('.page-header .status-chip').forEach((chip) => {
-          if (/meta/i.test(chip.textContent || '')) chip.hidden = true
+          if (/meta/i.test(chip.textContent || '') && !chip.hidden) chip.hidden = true
         })
       }
     }
 
     let timer = 0
-    const schedule = () => {
+    const schedule = (delay = 60) => {
       window.clearTimeout(timer)
-      timer = window.setTimeout(sync, 40)
+      timer = window.setTimeout(sync, delay)
     }
 
     sync()
-    const observer = new MutationObserver(schedule)
-    observer.observe(root, { childList: true, subtree: true, characterData: true })
-    document.addEventListener('click', schedule, true)
+    window.setTimeout(sync, 250)
+    window.setTimeout(sync, 900)
+    const onClick = () => {
+      schedule(60)
+      window.setTimeout(sync, 180)
+    }
+    document.addEventListener('click', onClick, true)
 
     return () => {
       window.clearTimeout(timer)
-      observer.disconnect()
-      document.removeEventListener('click', schedule, true)
+      document.removeEventListener('click', onClick, true)
     }
   }, [])
 
