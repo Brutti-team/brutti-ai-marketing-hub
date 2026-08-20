@@ -47,81 +47,212 @@ function isTeamActivity(form) {
 }
 
 function isDirectionLine(line) {
-  return /buat caption|susun caption|gaya caption|tone|bukan hard sell|jangan hard sell|tidak hard sell|fokus (pada|kepada)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan/i.test(line)
+  return /buat caption|susun caption|gaya caption|tone|bukan hard sell|jangan hard sell|tidak hard sell|fokus (pada|kepada)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan menjual|tidak menjual|non-selling/i.test(line)
 }
 
 function isSellingOrProductLine(line) {
   return /\bpiece\b|\bproduk\b|\bproduct\b|\bfurniture\b|\bcustomer\b|\bclient\b|\bpelanggan\b|\border\b|\bruang\b|\bsolution\b|mesej ja|mesej kami|roger ja|detail dia lebih lanjut|mau bincang/i.test(line)
 }
 
-const activityHooks = [
-  'Dua hari ni, kami tukar suasana sekejap. 🌿',
-  'Kali ni cerita Brutti bukan dari workshop dulu.',
-  'Ada masa kerja sama-sama, ada masa keluar dari rutin sama-sama juga.',
-  'Bukan semua cerita Brutti kena pasal furniture — yang ni pasal team kami pula. 👀',
-]
+function sentence(value = '') {
+  const text = clean(value).replace(/[.!?]+$/g, '')
+  return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}.` : ''
+}
 
-const activitySupport = [
-  'Kadang-kadang keluar sekejap dari rutin pun bagi ruang untuk team duduk dan luang masa sama-sama.',
-  'Yang kami mau simpan dari moment macam ni bukan ayat corporate — cukup cerita apa yang betul-betul berlaku.',
-  'Bagi kami, orang di belakang Brutti pun sebahagian daripada cerita brand ni.',
-  'Moment macam ni simple, tapi tetap jadi sebahagian daripada perjalanan team Brutti.',
-]
+function activityFacts(brief = '') {
+  return String(brief || '')
+    .split(/(?<=[.!?])\s+|\s*;\s*|\n+/)
+    .map(sentence)
+    .filter(Boolean)
+    .filter((line) => !isDirectionLine(line))
+    .filter((line) => !isSellingOrProductLine(line))
+    .slice(0, 6)
+}
 
-const activityClosers = [
-  'Balik kerja nanti, sekurang-kurangnya ada juga cerita baru mau dibawa balik. 😄',
-  'Yang penting, dua hari ni kami kasi ruang untuk jadi team di luar rutin biasa juga.',
-  'Kadang cerita yang paling senang diingat memang datang dari moment macam ni.',
-  'Kalau kamu, retreat paling penting makan dulu ka games dulu? 😆',
+const activityHooks = {
+  balanced: [
+    'Dua hari ni, kami tukar suasana sekejap. 🌿',
+    'Kali ni cerita Brutti bukan dari workshop dulu.',
+    'Ada masa kerja sama-sama, ada masa keluar dari rutin sama-sama juga.',
+  ],
+  engaging: [
+    'Bila kali terakhir satu team betul-betul keluar dari rutin sama-sama? 👀',
+    'Kerja sama-sama tiap hari tu satu hal. Pergi retreat sama-sama tu cerita lain pula. 😄',
+    'Dua hari jauh dari rutin kerja — apa yang paling kami bawa balik nanti?',
+  ],
+  casual: [
+    'Nah, kali ni kami kasi rehat kepala sekejap bah. 😄',
+    'Office tinggal dulu. Dua hari ni tukar angin sekejap.',
+    'Kerja tu kerja juga, tapi sekali-sekala kena juga keluar ramai-ramai bah.',
+  ],
+  professional: [
+    'Dua hari ini, team Brutti mengambil masa seketika di luar rutin kerja biasa.',
+    'Ada masa untuk bekerja bersama, dan ada masa untuk mengenali team di luar rutin harian.',
+    'Retreat kali ini memberi ruang untuk team Brutti berhenti seketika daripada rutin biasa.',
+  ],
+  hook: [
+    'Bukan semua cerita Brutti bermula dengan kayu, workshop atau project.',
+    'Dua hari. Satu team. Kali ni cerita dia jauh sikit dari rutin biasa. 🌿',
+    'Kalau selalu nampak kami masa kerja, kali ni tengok versi luar office pula. 👀',
+  ],
+  cta: [
+    'Ada satu benda best bila satu team dapat keluar dari rutin sama-sama.',
+    'Kadang moment paling senang diingat bukan masa meeting pun.',
+    'Retreat ni bukan pasal agenda panjang sangat — lebih kepada masa bersama.',
+  ],
+}
+
+const activitySupport = {
+  balanced: [
+    'Kadang-kadang keluar sekejap dari rutin pun bagi ruang untuk team duduk dan luang masa sama-sama.',
+    'Bagi kami, orang di belakang Brutti pun sebahagian daripada cerita brand ni.',
+    'Moment macam ni simple, tapi tetap jadi sebahagian daripada perjalanan team Brutti.',
+  ],
+  engaging: [
+    'Yang best, bila suasana berubah sikit, perangai sebenar team pun kadang-kadang keluar juga. 😄',
+    'Bukan semua bonding kena formal — kadang makan, main dan duduk sama-sama pun sudah cukup.',
+    'Dari moment kecil macam ni la selalunya cerita team jadi lebih hidup.',
+  ],
+  casual: [
+    'Yang penting boleh duduk sama-sama tanpa tengok kerja tiap lima minit.',
+    'Makan sama-sama, main sama-sama, sembang pun lain macam bila bukan dalam suasana kerja.',
+    'Simple ja sebenarnya, tapi benda macam ni yang nanti paling banyak jadi bahan cerita.',
+  ],
+  professional: [
+    'Aktiviti seperti ini memberi ruang untuk team berinteraksi di luar konteks kerja harian.',
+    'Ia juga menjadi sebahagian daripada usaha membina hubungan kerja yang lebih baik secara natural.',
+    'Bagi Brutti, budaya team turut menjadi sebahagian daripada perjalanan brand.',
+  ],
+  hook: [
+    'Yang ni bukan cerita jualan. Cuma satu babak sebenar dari kehidupan team Brutti.',
+    'Kadang cerita brand yang paling jujur datang dari benda yang berlaku di luar kerja.',
+    'Bila suasana berubah, kita nampak sisi team yang jarang masuk dalam feed.',
+  ],
+  cta: [
+    'Masing-masing mungkin balik dengan cerita kegemaran yang lain-lain.',
+    'Ada yang ingat games, ada yang ingat makan, ada juga yang mungkin ingat part paling santai.',
+    'Yang penting, ada moment yang boleh dibawa balik bersama bila rutin kerja sambung semula.',
+  ],
+}
+
+const activityClosers = {
+  balanced: [
+    'Balik kerja nanti, sekurang-kurangnya ada juga cerita baru mau dibawa balik. 😄',
+    'Yang penting, dua hari ni kami kasi ruang untuk jadi team di luar rutin biasa juga.',
+  ],
+  engaging: [
+    'Kalau kamu, retreat paling penting makan dulu ka games dulu? 😆',
+    'Kalau satu team outing, kamu jenis join semua games atau cari tempat duduk dulu? 😄',
+  ],
+  casual: [
+    'Esok-esok kalau ada inside joke baru, faham-faham ja la. 😆',
+    'Lepas ni sambung kerja balik — tapi kali ni ada bahan cerita lebih sikit la.',
+  ],
+  professional: [
+    'Dua hari yang sederhana, tetapi bermakna untuk perjalanan team Brutti.',
+    'Semoga masa seperti ini membantu team kembali kepada rutin dengan hubungan yang lebih kuat.',
+  ],
+  hook: [
+    'Kadang satu cerita baru memang bermula bila kita keluar sekejap dari rutin.',
+    'Yang ini kami simpan sebagai satu lagi bab kecil dalam perjalanan Brutti.',
+  ],
+  cta: [
+    'Kalau kamu pernah join team retreat, moment apa yang paling susah lupa?',
+    'Team kamu kalau outing, siapa biasanya paling awal excited? 😄',
+  ],
+}
+
+const variationProfiles = [
+  {
+    hook: 'Bila tengok balik, dua hari macam ni mungkin nampak simple — tapi ada benda yang kita bawa balik sama-sama.',
+    support: 'Kadang moment yang tidak dirancang sangat tu la yang paling senang tinggal dalam ingatan.',
+    closer: 'Yang ni kami simpan sebagai salah satu cerita kecil team Brutti. 🌿',
+  },
+  {
+    hook: 'Kalau satu team sudah keluar ramai-ramai, memang ada ja cerita dia. 😄',
+    support: 'Games, makan-makan dan sembang di luar kerja biasanya cukup untuk keluarkan sisi lain masing-masing.',
+    closer: 'Kalau lepas ni banyak inside joke baru, kamu tau la dari mana datang dia. 😆',
+  },
+  {
+    hook: 'Retreat ni bukan sekadar tukar tempat — yang penting masa yang team dapat luang sama-sama.',
+    support: 'Bila rutin kerja berhenti sekejap, ada ruang untuk kenal orang di sebelah kita dengan cara yang lain.',
+    closer: 'Balik nanti, kerja sambung macam biasa. Tapi hopefully team balik dengan connection yang lebih kuat.',
+  },
 ]
 
 function stableChoice(value, length) {
+  if (!length) return 0
   let hash = 0
   for (let index = 0; index < value.length; index += 1) hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0
   return Math.abs(hash) % length
 }
 
+function rotate(items, offset) {
+  if (!items.length) return []
+  const start = ((offset % items.length) + items.length) % items.length
+  return [...items.slice(start), ...items.slice(0, start)]
+}
+
+function uniqueLines(lines, limit = 11) {
+  const seen = new Set()
+  const result = []
+  for (const line of lines) {
+    const next = clean(line)
+    if (!next || seen.has(next)) continue
+    seen.add(next)
+    result.push(next)
+    if (result.length >= limit) break
+  }
+  return result
+}
+
 function adaptTeamActivityDraft(draft, form, mode, variation) {
   if (!isTeamActivity(form)) return draft
 
-  const originalLines = String(draft || '')
-    .split(/\n+/)
-    .map(clean)
-    .filter(Boolean)
-
+  const facts = activityFacts(form.brief)
   const seed = `${form.title}|${form.brief}|${mode}|${variation}`
-  let hookIndex = stableChoice(seed, activityHooks.length)
-  if (mode === 'hook') hookIndex = (hookIndex + 1) % activityHooks.length
-  let hook = activityHooks[hookIndex]
-  if (mode === 'casual') hook = `Nah, ${hook.charAt(0).toLowerCase()}${hook.slice(1)}`
-  if (mode === 'engaging') hook = `Kamu pernah juga tunggu moment macam ni ka? ${hook}`
-  if (mode === 'professional') hook = hook.replace('kami tukar suasana sekejap', 'kami mengambil masa seketika di luar rutin biasa')
+  const profile = variationProfiles[Math.min(Math.max(variation, 0), variationProfiles.length - 1)]
+  const activeMode = variation > 0 ? 'balanced' : mode
+  const hookPool = activityHooks[activeMode] || activityHooks.balanced
+  const supportPool = activitySupport[activeMode] || activitySupport.balanced
+  const closerPool = activityClosers[activeMode] || activityClosers.balanced
 
-  const kept = originalLines
-    .slice(1)
-    .filter((line) => !isDirectionLine(line))
-    .filter((line) => !isSellingOrProductLine(line))
+  let hook = variation > 0
+    ? profile.hook
+    : hookPool[stableChoice(`${seed}|hook`, hookPool.length)]
+  const factOffset = variation > 0 ? variation : stableChoice(`${seed}|facts`, Math.max(facts.length, 1))
+  const orderedFacts = rotate(facts, factOffset)
 
-  const body = [hook, ...kept]
-  const supportOffset = stableChoice(`${seed}|support`, activitySupport.length)
-  for (let index = 0; index < activitySupport.length && body.length < (mode === 'shorten' ? 6 : 8); index += 1) {
-    const line = activitySupport[(supportOffset + index) % activitySupport.length]
-    if (!body.includes(line)) body.push(line)
+  let supportLines = variation > 0
+    ? [profile.support]
+    : rotate(supportPool, stableChoice(`${seed}|support`, supportPool.length))
+
+  let closer = variation > 0
+    ? profile.closer
+    : closerPool[stableChoice(`${seed}|closer`, closerPool.length)]
+
+  if (mode === 'professional' && variation === 0) {
+    supportLines = supportLines.slice(0, 2)
   }
 
-  const closerOffset = mode === 'cta' ? 1 : 0
-  const closer = activityClosers[(stableChoice(`${seed}|closer`, activityClosers.length) + closerOffset) % activityClosers.length]
-  body.push(closer)
-
-  const unique = []
-  for (const line of body) {
-    const next = clean(line)
-    if (!next || unique.includes(next)) continue
-    unique.push(next)
+  if (mode === 'shorten' && variation === 0) {
+    hook = 'Dua hari keluar dari rutin kerja. 🌿'
+    supportLines = ['Makan, games dan masa bersama — simple, tapi cukup untuk tukar suasana.']
+    closer = 'Lepas ni sambung kerja balik dengan cerita baru pula.'
   }
 
-  return unique
-    .slice(0, mode === 'shorten' ? 7 : 11)
+  if (mode === 'hook' && variation === 0) {
+    supportLines = supportLines.slice(0, 2)
+  }
+
+  if (mode === 'cta' && variation === 0) {
+    supportLines = supportLines.slice(0, 2)
+  }
+
+  const maxLines = mode === 'shorten' && variation === 0 ? 7 : 11
+  const body = uniqueLines([hook, ...orderedFacts, ...supportLines, closer], maxLines)
+
+  return body
     .join('\n')
     .replace(/#[\p{L}\p{N}_-]+/gu, '')
     .trim()
