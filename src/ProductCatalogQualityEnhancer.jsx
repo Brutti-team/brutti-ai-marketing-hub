@@ -1,11 +1,39 @@
 import { useEffect } from 'react'
 
+const PRODUCT_ACRONYMS = new Set(['XL', 'TV', 'M', 'L', 'ID'])
+
 function activeProductPage() {
   return [...document.querySelectorAll('#root .page')]
     .find((page) => page.offsetParent !== null && page.querySelector('h1')?.textContent?.trim() === 'Product Library') || null
 }
 
+function formatProductDisplayName(value = '') {
+  return String(value || '')
+    .split(/(\s+|[-–—/])/)
+    .map((part) => {
+      if (!part || /^\s+$/.test(part) || /^[-–—/]$/.test(part)) return part
+      if (PRODUCT_ACRONYMS.has(part.toUpperCase())) return part.toUpperCase()
+      if (/^\d+(?:\.\d+)?$/.test(part)) return part
+      if (/^[A-ZÀ-ÖØ-Þ0-9'.]+$/.test(part) && /[A-ZÀ-ÖØ-Þ]/.test(part)) {
+        const lower = part.toLocaleLowerCase('en-MY')
+        return lower.charAt(0).toLocaleUpperCase('en-MY') + lower.slice(1)
+      }
+      return part
+    })
+    .join('')
+}
+
+function syncProductNameCasing(page) {
+  page.querySelectorAll('.product-card h3').forEach((heading) => {
+    const current = heading.textContent?.trim() || ''
+    const formatted = formatProductDisplayName(current)
+    if (formatted && formatted !== current) heading.textContent = formatted
+  })
+}
+
 function syncProductCatalogCopy(page) {
+  syncProductNameCasing(page)
+
   const countText = page.querySelector('.source-count')?.textContent || ''
   const count = Number((countText.match(/\d+/) || [0])[0])
   if (count !== 84) return
