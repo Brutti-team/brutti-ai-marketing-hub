@@ -1,20 +1,10 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
-import ProductImageEnhancer from './ProductImageEnhancer.jsx'
-import HistoricalAnalyticsEnhancer from './HistoricalAnalyticsEnhancer.jsx'
-import MetaDeferredEnhancer from './MetaDeferredEnhancer.jsx'
-import AnalyticsCopyPolish from './AnalyticsCopyPolish.jsx'
-import NotificationCenterEnhancer from './NotificationCenterEnhancer.jsx'
-import ProductCatalogQualityEnhancer from './ProductCatalogQualityEnhancer.jsx'
-import LightModeAnalyticsContrastEnhancer from './LightModeAnalyticsContrastEnhancer.jsx'
-import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
-import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
-import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
 import BruttiSoulStudioEnhancer from './BruttiSoulStudioEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
 import './styles.css'
@@ -32,6 +22,106 @@ import './light-mode-analytics-contrast.css'
 import './asset-library-upgrade.css'
 import './campaign-planner-cleanup.css'
 
+const loadProductImage = () => import('./ProductImageEnhancer.jsx')
+const loadHistoricalAnalytics = () => import('./HistoricalAnalyticsEnhancer.jsx')
+const loadMetaDeferred = () => import('./MetaDeferredEnhancer.jsx')
+const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
+const loadNotificationCenter = () => import('./NotificationCenterEnhancer.jsx')
+const loadProductCatalogQuality = () => import('./ProductCatalogQualityEnhancer.jsx')
+const loadLightModeAnalyticsContrast = () => import('./LightModeAnalyticsContrastEnhancer.jsx')
+const loadBrandCasing = () => import('./BrandCasingEnhancer.jsx')
+const loadSmartRewriteDirection = () => import('./SmartRewriteDirectionEnhancer.jsx')
+const loadAssetLibrary = () => import('./AssetLibraryEnhancer.jsx')
+
+const ProductImageEnhancer = lazy(loadProductImage)
+const HistoricalAnalyticsEnhancer = lazy(loadHistoricalAnalytics)
+const MetaDeferredEnhancer = lazy(loadMetaDeferred)
+const AnalyticsCopyPolish = lazy(loadAnalyticsCopy)
+const NotificationCenterEnhancer = lazy(loadNotificationCenter)
+const ProductCatalogQualityEnhancer = lazy(loadProductCatalogQuality)
+const LightModeAnalyticsContrastEnhancer = lazy(loadLightModeAnalyticsContrast)
+const BrandCasingEnhancer = lazy(loadBrandCasing)
+const SmartRewriteDirectionEnhancer = lazy(loadSmartRewriteDirection)
+const AssetLibraryEnhancer = lazy(loadAssetLibrary)
+
+function activePageLabel() {
+  return document.querySelector('#root .nav-link.active span')?.textContent?.trim() || 'Dashboard'
+}
+
+function preloadForPage(label) {
+  if (label === 'Product Library') {
+    loadProductImage()
+    loadProductCatalogQuality()
+  }
+  if (label === 'Content Studio') {
+    loadProductImage()
+    loadSmartRewriteDirection()
+  }
+  if (label === 'Asset Library') loadAssetLibrary()
+  if (label === 'Analytics') {
+    loadHistoricalAnalytics()
+    loadAnalyticsCopy()
+    loadLightModeAnalyticsContrast()
+  }
+}
+
+function DeferredEnhancers() {
+  const [page, setPage] = useState('Dashboard')
+  const [backgroundReady, setBackgroundReady] = useState(false)
+
+  useEffect(() => {
+    let pageTimer = 0
+    const syncPage = () => {
+      window.clearTimeout(pageTimer)
+      pageTimer = window.setTimeout(() => setPage(activePageLabel()), 20)
+    }
+
+    syncPage()
+    const nav = document.querySelector('#root .sidebar nav')
+    const navObserver = nav ? new MutationObserver(syncPage) : null
+    navObserver?.observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] })
+
+    const onPointerOver = (event) => {
+      const navButton = event.target.closest?.('.nav-link')
+      const label = navButton?.querySelector('span')?.textContent?.trim()
+      if (label) preloadForPage(label)
+    }
+    document.addEventListener('pointerover', onPointerOver, { passive: true, capture: true })
+
+    let idleId = 0
+    let fallbackTimer = 0
+    if ('requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(() => setBackgroundReady(true), { timeout: 1200 })
+    } else {
+      fallbackTimer = window.setTimeout(() => setBackgroundReady(true), 500)
+    }
+
+    return () => {
+      window.clearTimeout(pageTimer)
+      window.clearTimeout(fallbackTimer)
+      if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId)
+      navObserver?.disconnect()
+      document.removeEventListener('pointerover', onPointerOver, true)
+    }
+  }, [])
+
+  return (
+    <Suspense fallback={null}>
+      {backgroundReady ? <NotificationCenterEnhancer /> : null}
+      {backgroundReady ? <BrandCasingEnhancer /> : null}
+      {backgroundReady ? <MetaDeferredEnhancer /> : null}
+
+      {(page === 'Product Library' || page === 'Content Studio') ? <ProductImageEnhancer /> : null}
+      {page === 'Product Library' ? <ProductCatalogQualityEnhancer /> : null}
+      {page === 'Content Studio' ? <SmartRewriteDirectionEnhancer /> : null}
+      {page === 'Asset Library' ? <AssetLibraryEnhancer /> : null}
+      {page === 'Analytics' ? <HistoricalAnalyticsEnhancer /> : null}
+      {page === 'Analytics' ? <AnalyticsCopyPolish /> : null}
+      {page === 'Analytics' ? <LightModeAnalyticsContrastEnhancer /> : null}
+    </Suspense>
+  )
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
@@ -39,18 +129,9 @@ createRoot(document.getElementById('root')).render(
     <AccessibilityThemeEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
-    <ProductImageEnhancer />
-    <HistoricalAnalyticsEnhancer />
-    <MetaDeferredEnhancer />
-    <AnalyticsCopyPolish />
-    <NotificationCenterEnhancer />
-    <ProductCatalogQualityEnhancer />
-    <LightModeAnalyticsContrastEnhancer />
-    <BrandCasingEnhancer />
-    <SmartRewriteDirectionEnhancer />
-    <AssetLibraryEnhancer />
     <BruttiSoulStudioEnhancer />
     <BruttiSoulSystemEnhancer />
+    <DeferredEnhancers />
   </StrictMode>,
 )
 
