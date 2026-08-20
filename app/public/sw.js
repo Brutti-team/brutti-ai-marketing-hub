@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brutti-hub-shell-v5'
+const CACHE_NAME = 'brutti-hub-shell-v6'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
@@ -26,6 +26,19 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request, { cache: 'no-store' })
+    if (response.ok) {
+      const copy = response.clone()
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+    }
+    return response
+  } catch {
+    return caches.match(request)
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.method !== 'GET') return
@@ -35,18 +48,17 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
-          return response
-        })
-        .catch(async () => (
-          (await caches.match(request))
-          || (await caches.match(APP_SCOPE))
-          || caches.match(`${APP_SCOPE}offline.html`)
-        )),
+      networkFirst(request).then(async (response) => (
+        response
+        || (await caches.match(APP_SCOPE))
+        || caches.match(`${APP_SCOPE}offline.html`)
+      )),
     )
+    return
+  }
+
+  if (request.destination === 'script' || request.destination === 'style') {
+    event.respondWith(networkFirst(request))
     return
   }
 
