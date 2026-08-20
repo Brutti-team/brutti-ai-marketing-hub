@@ -1,0 +1,8 @@
+/* Keep the operational interface compact without deleting useful stored data. */
+.source-table-panel,
+.settings-grid,
+.analytics-notice,
+.historical-facebook-reports,
+button[title="Facebook publishing is currently deferred"] {
+  display: none !important;
+}
