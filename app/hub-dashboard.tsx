@@ -5,6 +5,7 @@ import MarketingRequestForm from "./marketing-request-form";
 import ProductDatabase from "./product-database";
 import ContentManager from "./content-manager";
 import CalendarManager from "./calendar-manager";
+import PwaControls from "./pwa-controls";
 import { BRUTTI_LOGO_DATA_URL } from "./brutti-logo-data";
 import {
   facebookAnalytics,
@@ -26,6 +27,8 @@ const navigation: Array<{ id: View; icon: string; label: string }> = [
 ];
 
 const LOCAL_REQUESTS_KEY = "brutti-marketing-requests";
+
+const mobilePrimaryNavigation: View[] = ["overview", "requests", "content", "calendar"];
 
 function FacebookBadge() {
   return <span className="focus-badge">Facebook only</span>;
@@ -52,6 +55,7 @@ function RequestsList({ requests, compact = false }: { requests: FacebookRequest
 
 export default function HubDashboard() {
   const [activeView, setActiveView] = useState<View>("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [localRequests, setLocalRequests] = useState<FacebookRequest[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -73,9 +77,37 @@ export default function HubDashboard() {
     return () => window.removeEventListener("brutti-request-created", refresh);
   }, []);
 
+  useEffect(() => {
+    const readViewFromUrl = () => {
+      const requested = new URLSearchParams(window.location.search).get("view") as View | null;
+      if (requested && navigation.some((item) => item.id === requested)) setActiveView(requested);
+      else setActiveView("overview");
+    };
+    readViewFromUrl();
+    window.addEventListener("popstate", readViewFromUrl);
+    return () => window.removeEventListener("popstate", readViewFromUrl);
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-menu-open", mobileMenuOpen);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.classList.remove("mobile-menu-open");
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+
   const allRequests = useMemo(() => [...localRequests, ...facebookRequests], [localRequests]);
   function goTo(view: View) {
     setActiveView(view);
+    setMobileMenuOpen(false);
+    const url = new URL(window.location.href);
+    if (view === "overview") url.searchParams.delete("view");
+    else url.searchParams.set("view", view);
+    window.history.pushState({}, "", url);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -101,8 +133,9 @@ export default function HubDashboard() {
 
       <section className="workspace">
         <header className="topbar">
-          <div><p className="eyebrow">BRUTTI AI Marketing System</p><h1>{navigation.find((item) => item.id === activeView)?.label}</h1></div>
-          <FacebookBadge />
+          <img className="mobile-header-logo" src={BRUTTI_LOGO_DATA_URL} alt="" aria-hidden="true" />
+          <div className="topbar-title"><p className="eyebrow">BRUTTI AI Marketing System</p><h1>{navigation.find((item) => item.id === activeView)?.label}</h1></div>
+          <div className="topbar-actions"><FacebookBadge /><PwaControls /></div>
         </header>
 
         {activeView === "overview" && (
@@ -220,6 +253,39 @@ export default function HubDashboard() {
 
         <footer><span>BRUTTI AI Marketing System</span><span>Website workspace · Facebook only · Snapshot verified 11 Aug 2026</span></footer>
       </section>
+
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        {mobilePrimaryNavigation.map((id) => {
+          const item = navigation.find((entry) => entry.id === id)!;
+          return (
+            <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)} aria-current={activeView === item.id ? "page" : undefined}>
+              <span aria-hidden="true">{item.icon}</span><small>{item.label === "Marketing Requests" ? "Requests" : item.label === "Generated Content" ? "Content" : item.label === "Content Calendar" ? "Calendar" : "Home"}</small>
+            </button>
+          );
+        })}
+        <button className={mobileMenuOpen || activeView === "products" || activeView === "reports" ? "active" : ""} onClick={() => setMobileMenuOpen(true)} aria-expanded={mobileMenuOpen}>
+          <span aria-hidden="true">•••</span><small>More</small>
+        </button>
+      </nav>
+
+      {mobileMenuOpen && (
+        <div className="mobile-menu-layer" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setMobileMenuOpen(false);
+        }}>
+          <section className="mobile-menu-sheet" role="dialog" aria-modal="true" aria-label="All BRUTTI AI sections">
+            <div className="mobile-menu-handle" aria-hidden="true" />
+            <div className="mobile-menu-heading"><div><p className="eyebrow">BRUTTI AI</p><h2>All sections</h2></div><button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">×</button></div>
+            <div className="mobile-menu-grid">
+              {navigation.map((item) => (
+                <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)}>
+                  <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
+                </button>
+              ))}
+            </div>
+            <div className="mobile-sync-status"><span className="sync-dot" /><div><strong>BRUTTI workspace ready</strong><small>Best experience with an internet connection</small></div></div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

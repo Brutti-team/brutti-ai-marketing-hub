@@ -1,23 +1,55 @@
 {
   "name": "BRUTTI AI Marketing Hub",
   "short_name": "BRUTTI AI",
-  "description": "Internal marketing workspace for BRUTTI.",
+  "id": "/",
+  "description": "Plan, create and manage BRUTTI marketing from any device.",
+  "lang": "en-MY",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#f4f0e7",
   "theme_color": "#1f3128",
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "/api/icon?v=brutti",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/api/icon?v=brutti",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New marketing request",
+      "short_name": "New request",
+      "url": "/?view=requests",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Review content",
+      "short_name": "Content",
+      "url": "/?view=content",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Content calendar",
+      "short_name": "Calendar",
+      "url": "/?view=calendar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

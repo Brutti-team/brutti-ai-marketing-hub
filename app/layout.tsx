@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,24 +13,52 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://brutti-ai-marketing-hub.michelle-clairea22.chatgpt.site"),
   title: "BRUTTI AI Marketing Hub",
-  description: "Internal marketing workspace for BRUTTI.",
+  description: "Plan, create and manage BRUTTI marketing from any device.",
   manifest: "/manifest.webmanifest",
   applicationName: "BRUTTI AI",
-  themeColor: "#1f3128",
+  formatDetection: {
+    telephone: false,
+  },
   appleWebApp: {
     capable: true,
     title: "BRUTTI AI",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   other: {
     "codex-preview": "development",
   },
   icons: {
-    icon: "/api/icon?v=brutti",
-    shortcut: "/api/icon?v=brutti",
-    apple: "/api/icon?v=brutti",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icon-192.png",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  openGraph: {
+    type: "website",
+    url: "https://brutti-ai-marketing-hub.michelle-clairea22.chatgpt.site",
+    siteName: "BRUTTI AI",
+    title: "BRUTTI AI Marketing Hub",
+    description: "Plan, create and manage marketing from any device.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "BRUTTI AI Marketing Hub on mobile and tablet" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BRUTTI AI Marketing Hub",
+    description: "Plan, create and manage marketing from any device.",
+    images: ["/og.png"],
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#1f3128",
 };
 
 export default function RootLayout({
@@ -39,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-MY">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
