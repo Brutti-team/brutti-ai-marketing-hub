@@ -15,6 +15,7 @@ import BrandCasingEnhancer from './BrandCasingEnhancer.jsx'
 import SmartRewriteDirectionEnhancer from './SmartRewriteDirectionEnhancer.jsx'
 import AssetLibraryEnhancer from './AssetLibraryEnhancer.jsx'
 import BruttiSoulStudioEnhancer from './BruttiSoulStudioEnhancer.jsx'
+import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')).render(
     <SmartRewriteDirectionEnhancer />
     <AssetLibraryEnhancer />
     <BruttiSoulStudioEnhancer />
+    <BruttiSoulSystemEnhancer />
   </StrictMode>,
 )
 
