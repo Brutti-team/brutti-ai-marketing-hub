@@ -87,7 +87,7 @@ function forceLogo() {
     favicon.rel = 'icon'
     document.head.appendChild(favicon)
   }
-  favicon.href = BRUTTI_LOGO_URL
+  if (favicon.href !== new URL(BRUTTI_LOGO_URL, window.location.href).href) favicon.href = BRUTTI_LOGO_URL
 
   let touchIcon = document.querySelector('link[rel="apple-touch-icon"]')
   if (!touchIcon) {
@@ -95,7 +95,7 @@ function forceLogo() {
     touchIcon.rel = 'apple-touch-icon'
     document.head.appendChild(touchIcon)
   }
-  touchIcon.href = BRUTTI_LOGO_URL
+  if (touchIcon.href !== new URL(BRUTTI_LOGO_URL, window.location.href).href) touchIcon.href = BRUTTI_LOGO_URL
 }
 
 function applyStaticVisualFix() {
@@ -114,5 +114,11 @@ if (document.readyState === 'loading') {
   applyStaticVisualFix()
 }
 
-const observer = new MutationObserver(() => applyStaticVisualFix())
+let observerTimer = 0
+const scheduleStaticVisualFix = () => {
+  window.clearTimeout(observerTimer)
+  observerTimer = window.setTimeout(forceLogo, 50)
+}
+
+const observer = new MutationObserver(scheduleStaticVisualFix)
 observer.observe(document.documentElement, { childList: true, subtree: true })
