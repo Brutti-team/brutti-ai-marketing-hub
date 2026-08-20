@@ -1,4 +1,4 @@
-const BRUTTI_LOGO_URL = 'https://drive.google.com/thumbnail?id=1NyserkCTmZYybJWH6bptPubwdDHljDK3&sz=w512'
+const BRUTTI_LOGO_URL = `${import.meta.env.BASE_URL}icons/brutti-app-icon-192.png`
 
 const facebookSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#1877F2"/><path fill="#fff" d="M13.6 20v-7h2.45l.37-2.86H13.6V8.3c0-.83.23-1.39 1.42-1.39h1.52V4.36c-.26-.04-1.17-.11-2.22-.11-2.2 0-3.7 1.34-3.7 3.8v2.09H8.14V13h2.48v7h2.98Z"/></svg>'
 
@@ -46,18 +46,29 @@ function addStyles() {
 function forceLogo() {
   const selectors = ['.logo-mark', '.brand-monogram', '[data-brand-logo]', '[data-brutti-logo]']
   document.querySelectorAll(selectors.join(',')).forEach((element) => {
-    if (element.dataset.bruttiStaticLogo === 'true') return
+    const currentImage = element.querySelector(':scope > img.brutti-static-brand-logo')
+    if (
+      element.dataset.bruttiStaticLogo === 'true'
+      && currentImage?.getAttribute('src') === BRUTTI_LOGO_URL
+    ) return
+
     const image = document.createElement('img')
     image.src = BRUTTI_LOGO_URL
     image.alt = 'BRUTTI'
     image.className = 'brutti-static-brand-logo'
-    image.referrerPolicy = 'no-referrer'
     image.addEventListener('error', () => {
+      const fallback = document.createElement('span')
+      fallback.textContent = 'B'
+      fallback.setAttribute('aria-hidden', 'true')
+      element.replaceChildren(fallback)
+      element.classList.remove('brutti-logo-forced')
       element.dataset.bruttiStaticLogo = 'failed'
+      element.dataset.bruttiOfficialLogo = 'failed'
     }, { once: true })
     element.replaceChildren(image)
     element.classList.add('brutti-logo-forced')
     element.dataset.bruttiStaticLogo = 'true'
+    element.dataset.bruttiOfficialLogo = 'true'
   })
 
   document.querySelectorAll('.content-channel').forEach((element) => {
