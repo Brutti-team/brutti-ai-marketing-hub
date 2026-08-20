@@ -740,7 +740,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   )
 }
 
-function ContentEditor({ item, onClose, onSave, onPublish, toast, workspaceActive }) {
+function ContentEditor({ item, onClose, onSave, toast, workspaceActive }) {
   const [draft, setDraft] = useState(item)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
   const act = (stage, message) => { const next = { ...draft, stage, aiReview: stage === 'Approved' || stage === 'Published' ? 'Rule Check Passed' : 'Human Review Required', updatedAt:formatTimestamp() }; setDraft(next); onSave(next); toast(message) }
@@ -753,7 +753,7 @@ function ContentEditor({ item, onClose, onSave, onPublish, toast, workspaceActiv
         <div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option></select></label><label>Workflow stage<select value={draft.stage} onChange={update('stage')}>{[...pipelineStages,'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></label></div>
         <label>Content<textarea rows="12" value={draft.copy} onChange={update('copy')}/></label>
         <div className="modal-guardrail"><Icon name="alert"/><span>Check price, availability, delivery dates, dimensions and claims before approval.</span></div>
-        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:formatTimestamp()}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button primary" onClick={() => draft.stage === 'Approved' ? workspaceActive ? onPublish(draft) : toast('Meta publishing needs the Google Apps Script backend and Meta credentials.') : toast('Approve this content before publishing.')}>{draft.driveFileId ? 'Publish photo + caption' : 'Publish to Facebook'}</button></div></div>
+        <div className="modal-action-groups"><div><button className="button danger-subtle" onClick={() => act('Rejected','Content rejected and returned for revision.')}>Reject</button><button className="button secondary" onClick={() => { onSave({...draft, updatedAt:formatTimestamp()}); toast('Edits saved.') }}>Save edits</button></div><div><button className="button secondary" onClick={() => act('Approved','Content approved for scheduling.')}>Approve</button><button className="button secondary" type="button" disabled title="Facebook publishing is currently deferred">Facebook publishing deferred</button></div></div>
       </div>
     </div>
   )
@@ -911,16 +911,6 @@ function App() {
       toast('Content deleted.')
     } catch (error) { toast(error.message) }
   }
-  const publishContent = async (item) => {
-    try {
-      await saveGoogleContent({...item, stage:'Approved'})
-      const result = await callMarketingApi('publish_meta', { contentId:item.id })
-      const published = {...item, stage:'Published', aiReview:'Rule Check Passed', publishLink:result.publishLink || '', updatedAt:formatTimestamp()}
-      setContent((items) => items.map((current) => current.id === item.id ? published : current))
-      setActiveContent(null)
-      toast(`Published to Facebook successfully: ${result.postId}`)
-    } catch (error) { toast(error.message) }
-  }
   const useProduct = (product) => { const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; '); setGenerator((form) => ({...form, product:product.name, title:`${product.name} – Product Highlight`, type:'Product Highlight', brief:details || form.brief})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
   const useAsset = (asset) => { setGenerator((form) => ({...form, driveFileId:asset.id || '', assetName:asset.name || '', driveLink:asset.url || ''})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${asset.name} attached to the next content draft.`) }
   const syncProducts = async () => { setSyncingProducts(true); try { const result = await syncNotionProducts(); setProductData(result.products?.length ? result.products : productData); toast(`${result.products?.length || 0} verified products synced from Notion.`) } catch (error) { toast(error.message) } finally { setSyncingProducts(false) } }
@@ -945,7 +935,7 @@ function App() {
       <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:productData.length}}/>
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
       <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
-      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} onPublish={publishContent} toast={toast} workspaceActive={workspaceActive}/> : null}
+      {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={productData}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
     </div>
