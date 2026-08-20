@@ -53,7 +53,7 @@ function confidenceFor(stats) {
   return 'Low'
 }
 
-export function getHistoricalPostingTime(targetDate = new Date(), respectCurrentTime = false) {
+function getHistoricalPostingTime(targetDate = new Date(), respectCurrentTime = false) {
   const now = new Date()
   let date = new Date(targetDate)
   date.setHours(0, 0, 0, 0)
