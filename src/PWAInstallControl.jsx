@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+const BRUTTI_LOGO_URL = `${import.meta.env.BASE_URL}icons/brutti-app-icon-192.png`
+
 function isStandalone() {
   if (typeof window === 'undefined') return false
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
@@ -61,7 +63,7 @@ export default function PWAInstallControl() {
         <div className="pwa-guide-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setGuide(null)}>
           <section className="pwa-guide-sheet" role="dialog" aria-modal="true" aria-labelledby="pwa-guide-title">
             <div className="pwa-sheet-handle" aria-hidden="true" />
-            <div className="pwa-guide-heading"><span className="pwa-guide-logo">B</span><div><small>BRUTTI AI</small><h2 id="pwa-guide-title">Add to your home screen</h2></div></div>
+            <div className="pwa-guide-heading"><span className="pwa-guide-logo"><img src={BRUTTI_LOGO_URL} alt="BRUTTI logo" /></span><div><small>BRUTTI AI</small><h2 id="pwa-guide-title">Add to your home screen</h2></div></div>
             {guide === 'ios' ? (
               <ol><li>Tap the <strong>Share</strong> button in Safari.</li><li>Choose <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>.</li></ol>
             ) : (
