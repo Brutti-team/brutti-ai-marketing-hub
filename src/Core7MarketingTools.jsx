@@ -112,14 +112,19 @@ export default function Core7MarketingTools() {
           const status = row.querySelector('.switch')
           const label = staticSettingLabels.get(name)
           if (!status || !label) return
-          status.className = 'status-pill connected static-setting-status'
-          status.textContent = label
-          status.setAttribute('aria-label', `${name}: ${label}`)
+
+          const className = 'status-pill connected static-setting-status'
+          const ariaLabel = `${name}: ${label}`
+          if (status.className !== className) status.className = className
+          if (status.textContent !== label) status.textContent = label
+          if (status.getAttribute('aria-label') !== ariaLabel) status.setAttribute('aria-label', ariaLabel)
         })
 
         const refreshButton = [...activePage.querySelectorAll('button')]
           .find((button) => /^Refresh status$/i.test(button.textContent?.trim() || ''))
-        if (refreshButton) refreshButton.textContent = 'Refresh integration status'
+        if (refreshButton && refreshButton.textContent !== 'Refresh integration status') {
+          refreshButton.textContent = 'Refresh integration status'
+        }
       }
 
       if (title === 'Analytics' && activePage) {
@@ -129,10 +134,22 @@ export default function Core7MarketingTools() {
       }
     }
 
+    let timer = 0
+    const schedule = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(sync, 40)
+    }
+
     sync()
-    const observer = new MutationObserver(sync)
+    const observer = new MutationObserver(schedule)
     observer.observe(root, { childList: true, subtree: true, characterData: true })
-    return () => observer.disconnect()
+    document.addEventListener('click', schedule, true)
+
+    return () => {
+      window.clearTimeout(timer)
+      observer.disconnect()
+      document.removeEventListener('click', schedule, true)
+    }
   }, [])
 
   if (!pageNode) return null
