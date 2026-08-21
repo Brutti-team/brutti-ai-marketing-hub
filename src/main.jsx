@@ -5,6 +5,7 @@ import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import AppLanguageEnhancer from './AppLanguageEnhancer.jsx'
 import IntegrationLogoEnhancer from './IntegrationLogoEnhancer.jsx'
+import AssetLibrarySafetyEnhancer from './AssetLibrarySafetyEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
@@ -15,6 +16,7 @@ import './box-polish.css'
 import './accessibility-theme.css'
 import './app-language.css'
 import './integration-logos.css'
+import './asset-library-safety.css'
 import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
@@ -125,6 +127,7 @@ createRoot(document.getElementById('root')).render(
     <AccessibilityThemeEnhancer />
     <AppLanguageEnhancer />
     <IntegrationLogoEnhancer />
+    <AssetLibrarySafetyEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
     <ContentStudioV2Enhancer />
