@@ -360,7 +360,6 @@ textarea {
     line-height: 1.45 !important;
   }
 }
-}
 
 /* Laptop dashboard cards */
 @media (min-width: 721px) and (max-width: 1400px) {
