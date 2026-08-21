@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import {
+  CONTENT_VERSION_LABELS,
   buildContentStudioDirection,
   buildContentStudioDraft,
   buildContentStudioHashtags,
   contentStudioEngineMeta,
 } from './lib/contentStudioEngineV2'
+import { polishContentStudioCaption } from './lib/contentStudioCopyPolish'
 
 const WEEKDAY_TIMING = {
   0: { label: 'Sunday', slots: [10, 21, 18, 11, 16, 19], confidence: 'Low' },
@@ -19,6 +21,7 @@ const WEEKDAY_TIMING = {
 const MIN_LEAD_MINUTES = 35
 let activeMode = 'balanced'
 let activeVariation = 0
+let rewriteCycle = 0
 let controls = {
   objective: 'Auto',
   audience: 'Homeowners, customers & Brutti followers in Sabah',
@@ -71,7 +74,7 @@ function rewriteMode(button) {
   if (/engaging/i.test(label)) return 'engaging'
   if (/casual/i.test(label)) return 'casual'
   if (/professional/i.test(label)) return 'professional'
-  if (/shorter/i.test(label)) return 'shorten'
+  if (/shorter|7 lines/i.test(label)) return 'shorten'
   if (/hook/i.test(label)) return 'hook'
   if (/cta/i.test(label)) return 'cta'
   return 'balanced'
@@ -179,6 +182,32 @@ function makeSection(className, number, title) {
   return section
 }
 
+function labelRewriteControls(outputPanel) {
+  const rewriteButtons = [...outputPanel.querySelectorAll('.rewrite-actions button')]
+  rewriteButtons.forEach((button) => {
+    const mode = rewriteMode(button)
+    const labels = {
+      engaging: 'More engaging · Interaction',
+      casual: 'More casual · Conversational',
+      professional: 'More professional · Clean',
+      shorten: 'Shorter · 7 lines',
+      hook: 'New hook · Fresh angle',
+      cta: 'New CTA · Different action',
+    }
+    if (labels[mode]) button.textContent = labels[mode]
+  })
+
+  const variationRow = outputPanel.querySelector('.variation-row')
+  if (variationRow) {
+    const label = variationRow.querySelector('span')
+    if (label) label.textContent = 'Caption structure'
+    const buttons = [...variationRow.querySelectorAll('button')]
+    buttons.forEach((button, index) => {
+      if (CONTENT_VERSION_LABELS[index]) button.textContent = `Version ${index + 1} · ${CONTENT_VERSION_LABELS[index]}`
+    })
+  }
+}
+
 function ensureOutputStructure(page, form) {
   const outputPanel = page.querySelector('.generator-output.has-output')
   const captionLabel = outputPanel?.querySelector('.output-editor-label')
@@ -231,14 +260,15 @@ function ensureOutputStructure(page, form) {
     engineNote.className = 'content-studio-v2-engine-note'
     outputPanel.querySelector('.output-toolbar')?.insertAdjacentElement('afterend', engineNote)
   }
-  const meta = contentStudioEngineMeta(form, controls, activeMode, activeVariation)
-  engineNote.textContent = `${meta.engine} · ${meta.strategy.objective} · ${meta.strategy.angle} · verified facts: ${meta.verifiedFactCount}`
+  const meta = contentStudioEngineMeta(form, controls, activeMode, activeVariation, rewriteCycle)
+  engineNote.textContent = `${meta.engine} · ${meta.versionLabel} · ${meta.strategy.objective} · ${meta.strategy.angle} · verified facts: ${meta.verifiedFactCount}`
 
   const sourceLabel = outputPanel.querySelector('.smart-rewrite-head > span')
   if (sourceLabel) sourceLabel.textContent = 'Content Studio Engine V2 · Brutti Soul Master · Single final-output engine'
 
   const hashtagButton = [...outputPanel.querySelectorAll('.rewrite-actions button')].find((button) => /hashtag/i.test(button.textContent))
   if (hashtagButton) hashtagButton.style.display = 'none'
+  labelRewriteControls(outputPanel)
 }
 
 function applyV2Draft(mode = activeMode, variation = activeVariation, attempt = 0) {
@@ -252,7 +282,8 @@ function applyV2Draft(mode = activeMode, variation = activeVariation, attempt = 
     return
   }
 
-  const draft = buildContentStudioDraft(form, controls, mode, variation)
+  const rawDraft = buildContentStudioDraft(form, controls, mode, variation, rewriteCycle)
+  const draft = polishContentStudioCaption(rawDraft, form, mode)
   if (!draft) return
   setReactValue(textarea, draft)
   ensureOutputStructure(page, form)
@@ -292,6 +323,7 @@ export default function ContentStudioV2Enhancer() {
       if (!event.target.matches?.('.generator-form')) return
       activeMode = 'balanced'
       activeVariation = 0
+      rewriteCycle = 0
       window.setTimeout(() => applyV2Draft('balanced', 0), 110)
       window.setTimeout(sync, 170)
     }
@@ -300,12 +332,15 @@ export default function ContentStudioV2Enhancer() {
       const button = event.target.closest?.('button')
       if (button?.closest('.rewrite-actions')) {
         const mode = rewriteMode(button)
+        if (mode === 'hook' || mode === 'cta') rewriteCycle += 1
+        else rewriteCycle = 0
         activeMode = mode === 'hook' || mode === 'cta' ? activeMode : mode
         window.setTimeout(() => applyV2Draft(mode, activeVariation), 110)
       } else if (button?.closest('.variation-row')) {
-        const match = clean(button.textContent).match(/(\d+)/)
+        const match = clean(button.textContent).match(/Version\s+(\d+)/i)
         activeVariation = Math.max(0, Number(match?.[1] || 1) - 1)
         activeMode = 'balanced'
+        rewriteCycle = 0
         window.setTimeout(() => applyV2Draft('balanced', activeVariation), 110)
       }
       schedule(150)
