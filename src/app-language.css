@@ -1,0 +1,58 @@
+.app-language-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 24px;
+  align-items: center;
+}
+
+.app-language-panel h3 {
+  margin: 5px 0 7px;
+}
+
+.app-language-panel p {
+  margin: 0;
+  max-width: 780px;
+}
+
+.app-language-panel > small {
+  grid-column: 1 / -1;
+  opacity: .72;
+}
+
+.app-language-options {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line, rgba(0,0,0,.12));
+  border-radius: 12px;
+}
+
+.app-language-options button {
+  border: 0;
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.app-language-options button.active {
+  background: var(--surface-strong, rgba(18,55,42,.12));
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .app-language-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .app-language-options {
+    width: 100%;
+  }
+
+  .app-language-options button {
+    flex: 1;
+  }
+}
