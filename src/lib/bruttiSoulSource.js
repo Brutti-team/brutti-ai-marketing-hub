@@ -38,11 +38,19 @@ function sentence(value = '') {
   return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`
 }
 
+function isDirectionLine(line = '') {
+  return /ambil satu|buat caption|susun caption|gaya caption|tone|mulakan dengan|kemudian sambung|fokus (pada|kepada)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|non-selling|self-deprecating|new hook|new cta/i.test(clean(line))
+}
+
 function verifiedFacts(value = '') {
-  const normalized = clean(value)
-  if (!normalized) return []
-  return normalized
+  const raw = String(value || '').trim()
+  if (!raw) return []
+
+  return raw
     .split(/(?<=[.!?])\s+|\s*;\s*|\n+/)
+    .map(clean)
+    .filter(Boolean)
+    .filter((line) => !isDirectionLine(line))
     .map(sentence)
     .filter(Boolean)
     .slice(0, 6)
@@ -181,13 +189,9 @@ const ctas = [
 
 function professionalise(line) {
   return line
-    .replace(/tinguk/gi, 'lihat')
-    .replace(/\bja\b/gi, 'sahaja')
-    .replace(/\bmau\b/gi, 'mahu')
-    .replace(/\bngam\b/gi, 'sesuai')
-    .replace(/roger ja/gi, 'mesej')
-    .replace(/tidak payah/gi, 'tidak perlu')
-    .replace(/kasi /gi, '')
+    .replace(/\bteda\b/gi, 'tiada')
+    .replace(/\bantam\b/gi, 'buat')
+    .replace(/roger ja/gi, 'mesej ja')
 }
 
 function enforceSoulShape(lines) {
@@ -207,41 +211,199 @@ function enforceSoulShape(lines) {
 }
 
 export function buildSoulDraft(form, mode = 'balanced', variation = 0) {
-  const product = form.product && form.product !== 'General / No Product' ? form.product : ''
+  const product =
+    form.product && form.product !== 'General / No Product'
+      ? form.product
+      : ''
+
   const subject = product || clean(form.title) || 'piece ni'
   const type = hooks[form.type] ? form.type : 'Brand Awareness'
   const facts = verifiedFacts(form.brief)
-  const sourceSignals = signals(`${form.title} ${form.brief} ${product} ${type}`)
-  const seed = stableIndex(`${form.title}|${form.brief}|${product}|${type}|${mode}|${variation}|${BRUTTI_SOUL.full.length}`, 997)
 
-  const pool = hooks[type]
-  let hookIndex = (seed + Math.abs(variation)) % pool.length
-  if (mode === 'hook') hookIndex = (hookIndex + 1) % pool.length
-  let hook = pool[hookIndex]
-  if (mode === 'engaging') hook = `Kamu pernah fikir ka pasal benda ni? ${hook}`
-  if (mode === 'casual') hook = `Nah, ${hook.charAt(0).toLowerCase()}${hook.slice(1)}`
+  const sourceSignals = signals(
+    `${form.title} ${form.brief} ${product} ${type}`,
+  )
 
-  let source = soulFacts(sourceSignals, subject)
-  let supportLines = [...source, ...support[type]]
+  // Keep the base story stable.
+  // Rewrite buttons should change style, not randomly change the whole caption.
+  const seed = stableIndex(
+    `${form.title}|${form.brief}|${product}|${type}|${BRUTTI_SOUL.full.length}`,
+    997,
+  )
+
+  const version = Math.min(Math.max(Number(variation) || 0, 0), 2)
+
+  const hookPool = hooks[type]
+  const supportPool = support[type]
+
+  const factOffset = facts.length
+    ? version % facts.length
+    : 0
+
+  const orderedFacts = facts.length
+    ? [
+        ...facts.slice(factOffset),
+        ...facts.slice(0, factOffset),
+      ]
+    : []
+
+  const supportOffset = version % supportPool.length
+
+  const orderedSupport = [
+    ...supportPool.slice(supportOffset),
+    ...supportPool.slice(0, supportOffset),
+  ]
+
+  /*
+   * Version 1 = story-led / verified fact first
+   * Version 2 = playful Sabahan
+   * Version 3 = reflective / human
+   */
+  let hook
+
+  if (version === 0) {
+    hook =
+      orderedFacts[0]
+      || hookPool[seed % hookPool.length]
+  } else if (version === 1) {
+    const selected =
+      hookPool[(seed + 1) % hookPool.length]
+
+    hook = `Nah, ${selected.charAt(0).toLowerCase()}${selected.slice(1)}`
+  } else {
+    const selected =
+      hookPool[(seed + 2) % hookPool.length]
+
+    hook = `Bila fikir balik, ${selected.charAt(0).toLowerCase()}${selected.slice(1)}`
+  }
+
+  /*
+   * New Hook changes the hook only.
+   * The verified facts and body stay stable.
+   */
+  if (mode === 'hook') {
+    hook =
+      hookPool[
+        (seed + version + 1) % hookPool.length
+      ]
+  }
+
+  if (mode === 'engaging') {
+    hook =
+      `${hook.replace(/[.!?]+$/g, '')} — yang ni memang ada cerita dia. 👀`
+  }
+
+  if (mode === 'casual') {
+    if (!/^nah[, ]/i.test(hook)) {
+      hook =
+        `Nah, ${hook.charAt(0).toLowerCase()}${hook.slice(1)}`
+    }
+
+    if (!/\bbah\b/i.test(hook)) {
+      hook =
+        `${hook.replace(/[.!?]+$/g, '')} bah. 😄`
+    }
+  }
 
   if (mode === 'professional') {
     hook = professionalise(hook)
-    source = source.map(professionalise)
-    supportLines = [...source, ...support[type].map(professionalise)]
+      .replace(/\p{Extended_Pictographic}/gu, '')
+      .trim()
   }
 
-  const target = mode === 'shorten' ? 7 : 10
-  const candidate = [hook, ...facts, ...supportLines]
+  let source = soulFacts(sourceSignals, subject)
+
+  let supportLines = [
+    ...source,
+    ...orderedSupport,
+  ]
+
+  if (mode === 'professional') {
+    source = source.map(professionalise)
+
+    supportLines = [
+      ...source,
+      ...orderedSupport.map(professionalise),
+    ]
+  }
+
+  /*
+   * Shorter Lines keeps the same real story,
+   * but removes extra supporting lines.
+   */
+  const target =
+    mode === 'shorten'
+      ? 7
+      : 10
+
+  const candidate = [
+    hook,
+    ...orderedFacts,
+    ...supportLines,
+  ]
+
   const body = []
+
   for (const line of candidate) {
-    if (!clean(line) || body.includes(clean(line))) continue
-    body.push(clean(line))
+    const next = clean(line)
+
+    if (!next || body.includes(next)) continue
+
+    body.push(next)
+
     if (body.length >= target - 1) break
   }
 
-  const ctaOffset = mode === 'cta' ? 1 : 0
-  let cta = ctas[(seed + variation + ctaOffset) % ctas.length]
-  if (mode === 'professional') cta = professionalise(cta)
+  const engagingCtas = [
+    'Kalau kamu pernah lalui benda macam ni juga, kasi tau bah. 😄',
+    'Kamu pula macam mana kalau kena situasi macam ni?',
+    'Kalau kamu ada cerita yang lebih kurang sama, share ja sama kami.',
+  ]
+
+  const casualCtas = [
+    'Kalau kamu pernah kena macam ni juga, kasi tau ja bah. 😄',
+    'Kalau ada cerita sama macam ni, roger ja kami.',
+    'Kamu pula jenis ketawa dulu ka fikir dulu kalau jadi macam ni? 😄',
+  ]
+
+  const professionalCtas = [
+    'Kalau ada detail yang kamu mahu semak, mesej ja team Brutti.',
+    'Kalau mahu tahu lebih lanjut, boleh mesej ja team Brutti.',
+    'Kalau ada perkara yang mahu dibincangkan, mesej ja kami.',
+  ]
+
+  let ctaPool = ctas
+
+  if (mode === 'engaging') {
+    ctaPool = engagingCtas
+  }
+
+  if (mode === 'casual') {
+    ctaPool = casualCtas
+  }
+
+  if (mode === 'professional') {
+    ctaPool = professionalCtas
+  }
+
+  /*
+   * New CTA changes the ending only.
+   */
+  const ctaOffset =
+    mode === 'cta'
+      ? 1
+      : 0
+
+  let cta =
+    ctaPool[
+      (seed + version * 2 + ctaOffset) %
+        ctaPool.length
+    ]
+
+  if (mode === 'professional') {
+    cta = professionalise(cta)
+  }
+
   body.push(cta)
 
   return enforceSoulShape(body)
