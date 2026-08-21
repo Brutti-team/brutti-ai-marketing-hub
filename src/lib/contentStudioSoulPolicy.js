@@ -144,8 +144,7 @@ function ensureFirstPerson(lines, form, factSet, mode) {
 function ensureBilingual(lines, form, factSet) {
   if (form.language !== 'BM + English') return lines
   const accent = bilingualAccent(form)
-  const alreadyMixed = lines.some((line) => /\b(function|real|keep|local|clear|solution|styling|honest|team|moment)\b/i.test(line))
-  if (alreadyMixed) return lines
+  if (lines.some((line) => normalized(line) === normalized(accent))) return lines
 
   const next = [...lines]
   const replaceIndex = next.findIndex((line, index) => index > 1 && index < next.length - 1 && !factSet.has(normalized(line)))
