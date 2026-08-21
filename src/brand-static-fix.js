@@ -1,4 +1,4 @@
-const BRUTTI_LOGO_URL = `${import.meta.env.BASE_URL}icons/brutti-app-icon-192.png`
+const BRUTTI_LOGO_URL = `${import.meta.env.BASE_URL}icons/brutti-official-logo.svg`
 
 const facebookSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#1877F2"/><path fill="#fff" d="M13.6 20v-7h2.45l.37-2.86H13.6V8.3c0-.83.23-1.39 1.42-1.39h1.52V4.36c-.26-.04-1.17-.11-2.22-.11-2.2 0-3.7 1.34-3.7 3.8v2.09H8.14V13h2.48v7h2.98Z"/></svg>'
 
@@ -11,15 +11,16 @@ function addStyles() {
       width: 100%;
       height: 100%;
       display: block;
-      object-fit: cover;
+      object-fit: contain;
       object-position: center;
       border-radius: inherit;
+      background: #fff;
     }
     .logo-mark.brutti-logo-forced,
     .brand-monogram.brutti-logo-forced {
       padding: 0 !important;
       overflow: hidden !important;
-      background: #203b35 !important;
+      background: #fff !important;
       color: transparent !important;
     }
     .content-channel.brutti-facebook-logo {
