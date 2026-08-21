@@ -1,6 +1,6 @@
 import { BRUTTI_SOUL, SOUL_SOURCE_LABEL } from './bruttiSoulSource'
 
-const DIRECTION_RE = /buat caption|susun caption|gaya caption|tone|mulakan dengan|kemudian sambung|fokus (pada|kepada)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|non-selling|new hook|new cta|minimum|maksimum|baris/i
+const DIRECTION_RE = /buat caption|susun caption|gaya caption|tone|mulakan dengan|kemudian sambung|fokus (pada|kepada)|fokus posting|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan tambah|jangan masukkan|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|non-selling|new hook|new cta|minimum|maksimum|baris/i
 
 const UNSUPPORTED_RE = /\b(RM\s?\d|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|no\.?\s?1|terbaik|sold|reach|views?|followers?)\b/i
 
@@ -9,9 +9,15 @@ function clean(value = '') {
 }
 
 function sentence(value = '') {
-  const next = clean(value).replace(/[.!?]+$/g, '')
+  let next = clean(value)
   if (!next) return ''
-  return `${next.charAt(0).toUpperCase()}${next.slice(1)}.`
+  const emojiMatch = next.match(/(\p{Extended_Pictographic})+$/u)
+  const trailingEmoji = emojiMatch?.[0] || ''
+  if (trailingEmoji) next = next.slice(0, -trailingEmoji.length).trim()
+  next = next.replace(/[.!?]+$/g, '')
+  if (!next) return trailingEmoji
+  const punctuation = /\?$/.test(clean(value).replace(trailingEmoji, '').trim()) ? '?' : '.'
+  return `${next.charAt(0).toUpperCase()}${next.slice(1)}${punctuation}${trailingEmoji ? ` ${trailingEmoji}` : ''}`
 }
 
 function stableIndex(value = '', length = 1) {
@@ -130,9 +136,8 @@ function enforceShape(lines, verifiedText, mode) {
 
   const minLines = mode === 'shorten' ? 7 : 8
   const maxLines = mode === 'shorten' ? 8 : 13
-  const fillers = languageKey({ language: '' }) === 'en' ? [] : []
   while (unique.length < minLines) {
-    const additions = [
+    const additions = languageKey({ language: '' }) === 'en' ? [] : [
       'Fakta yang belum confirm memang kita tinggalkan dulu.',
       'Biar ayat santai, tapi maksud asal jangan lari.',
       'Cerita sebenar lebih penting daripada bunyi terlalu menjual.',
@@ -142,7 +147,6 @@ function enforceShape(lines, verifiedText, mode) {
     if (!next) break
     unique.splice(Math.max(1, unique.length - 1), 0, next)
   }
-  void fillers
   return unique.slice(0, maxLines)
 }
 
