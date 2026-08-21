@@ -459,11 +459,19 @@ textarea {
   }
 }
 
-/* Keep both dashboard cards balanced on normal laptop screens */
-@media (min-width: 1081px) and (max-width: 1400px) {
+/* Keep dashboard cards compact on laptop and desktop */
+@media (min-width: 1081px) {
   .dashboard-grid {
-    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.8fr) !important;
-    align-items: start;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.72fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+  }
+
+  .pipeline-panel,
+  .focus-panel {
+    align-self: start !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
