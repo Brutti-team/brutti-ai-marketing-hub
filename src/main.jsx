@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
+import AppLanguageEnhancer from './AppLanguageEnhancer.jsx'
+import IntegrationLogoEnhancer from './IntegrationLogoEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
@@ -11,6 +13,8 @@ import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
 import './accessibility-theme.css'
+import './app-language.css'
+import './integration-logos.css'
 import './dark-contrast-fix.css'
 import './dark-mode-contrast-pass-2.css'
 import './dark-mode-readable-mint.css'
@@ -119,6 +123,8 @@ createRoot(document.getElementById('root')).render(
     <App />
     <Core7MarketingTools />
     <AccessibilityThemeEnhancer />
+    <AppLanguageEnhancer />
+    <IntegrationLogoEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
     <ContentStudioV2Enhancer />
