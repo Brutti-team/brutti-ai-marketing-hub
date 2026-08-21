@@ -58,10 +58,10 @@ function soulLockOutput(applyCaption = true) {
 
   const outputPanel = page.querySelector('.generator-output.has-output')
   if (!outputPanel) return
+  const form = readForm(page)
 
   const textarea = outputPanel.querySelector('.output-editor-label textarea')
   if (applyCaption && textarea?.value) {
-    const form = readForm(page)
     const next = applyBruttiSoulPolicy(textarea.value, form, activeSoulMode)
     if (next && next !== textarea.value) setReactValue(textarea, next)
   }
@@ -85,7 +85,7 @@ function soulLockOutput(applyCaption = true) {
     soulNote.style.cssText = 'display:block;margin-top:8px;opacity:.66;line-height:1.45;'
     engineNote?.insertAdjacentElement('afterend', soulNote)
   }
-  if (soulNote) soulNote.textContent = soulPolicyLabel()
+  if (soulNote) soulNote.textContent = soulPolicyLabel(form)
 }
 
 export default function ContentStudioController() {
