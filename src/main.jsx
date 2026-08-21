@@ -6,7 +6,7 @@ import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
-import ContentStudioV2Enhancer from './ContentStudioV2Enhancer.jsx'
+import ContentStudioController from './ContentStudioController.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -121,7 +121,7 @@ createRoot(document.getElementById('root')).render(
     <AccessibilityThemeEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
-    <ContentStudioV2Enhancer />
+    <ContentStudioController />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
