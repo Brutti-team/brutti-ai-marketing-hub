@@ -211,25 +211,36 @@ function adaptTeamActivityDraft(draft, form, mode, variation) {
 
   const facts = activityFacts(form.brief)
   const seed = `${form.title}|${form.brief}|${mode}|${variation}`
-  const profile = variationProfiles[Math.min(Math.max(variation, 0), variationProfiles.length - 1)]
-  const activeMode = variation > 0 ? 'balanced' : mode
-  const hookPool = activityHooks[activeMode] || activityHooks.balanced
-  const supportPool = activitySupport[activeMode] || activitySupport.balanced
-  const closerPool = activityClosers[activeMode] || activityClosers.balanced
+const profile = variationProfiles[Math.min(Math.max(variation, 0), variationProfiles.length - 1)]
+const activeMode = mode
+const hookPool = activityHooks[activeMode] || activityHooks.balanced
+const supportPool = activitySupport[activeMode] || activitySupport.balanced
+const closerPool = activityClosers[activeMode] || activityClosers.balanced
 
-  let hook = variation > 0
-    ? profile.hook
-    : hookPool[stableChoice(`${seed}|hook`, hookPool.length)]
+const useVersionProfile = variation > 0 && mode === 'balanced'
+
+let hook = useVersionProfile
+  ? profile.hook
+  : hookPool[
+      (stableChoice(`${seed}|hook`, hookPool.length) + variation) %
+        hookPool.length
+    ]
   const factOffset = variation > 0 ? variation : stableChoice(`${seed}|facts`, Math.max(facts.length, 1))
   const orderedFacts = rotate(facts, factOffset)
 
-  let supportLines = variation > 0
-    ? [profile.support]
-    : rotate(supportPool, stableChoice(`${seed}|support`, supportPool.length))
+let supportLines = useVersionProfile
+  ? [profile.support]
+  : rotate(
+      supportPool,
+      stableChoice(`${seed}|support`, supportPool.length) + variation,
+    )
 
-  let closer = variation > 0
-    ? profile.closer
-    : closerPool[stableChoice(`${seed}|closer`, closerPool.length)]
+ let closer = useVersionProfile
+  ? profile.closer
+  : closerPool[
+      (stableChoice(`${seed}|closer`, closerPool.length) + variation) %
+        closerPool.length
+    ]
 
   if (mode === 'professional' && variation === 0) {
     supportLines = supportLines.slice(0, 2)
@@ -323,6 +334,8 @@ function rewriteMode(button) {
   return 'balanced'
 }
 
+let activeRewriteMode = 'balanced'
+
 export default function BruttiSoulStudioEnhancer() {
   useEffect(() => {
     if (!soulSourceReady) return undefined
@@ -337,32 +350,33 @@ export default function BruttiSoulStudioEnhancer() {
       const button = event.target.closest?.('button')
       if (!button) return
 
-      if (button.closest('.rewrite-actions')) {
-        const mode = rewriteMode(button)
-        window.setTimeout(() => applySoulDraft(mode, 0), 35)
-        return
-      }
+     if (button.closest('.rewrite-actions')) {
+  const mode = rewriteMode(button)
 
-      if (button.closest('.variation-row')) {
-        const match = clean(button.textContent).match(/(\d+)/)
-        const variation = Math.max(0, Number(match?.[1] || 1) - 1)
-        window.setTimeout(() => applySoulDraft('balanced', variation), 35)
-        return
-      }
+  if (mode !== 'hook' && mode !== 'cta') {
+    activeRewriteMode = mode
+  }
 
-      if (button.closest('.nav-link') || button.closest('.tab-bar')) scheduleSync()
-    }
+  window.setTimeout(
+    () => applySoulDraft(mode, 0),
+    35,
+  )
 
-    const onSubmit = (event) => {
-      if (!event.target.matches?.('.generator-form')) return
-      window.setTimeout(() => applySoulDraft('balanced', 0), 35)
-      window.setTimeout(syncStudioSourceRules, 90)
-    }
+return
+}
 
-    scheduleSync()
-    document.addEventListener('click', onClick, true)
-    document.addEventListener('submit', onSubmit, true)
+if (button.closest('.nav-link') || button.closest('.tab-bar')) scheduleSync()
+}
 
+const onSubmit = (event) => {
+  if (!event.target.matches?.('.generator-form')) return
+  window.setTimeout(() => applySoulDraft('balanced', 0), 35)
+  window.setTimeout(syncStudioSourceRules, 90)
+}
+
+scheduleSync()
+document.addEventListener('click', onClick, true)
+document.addEventListener('submit', onSubmit, true)
     return () => {
       window.clearTimeout(syncTimer)
       document.removeEventListener('click', onClick, true)
