@@ -6,6 +6,7 @@ import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import AppLanguageEnhancer from './AppLanguageEnhancer.jsx'
 import IntegrationLogoEnhancer from './IntegrationLogoEnhancer.jsx'
 import AssetLibrarySafetyEnhancer from './AssetLibrarySafetyEnhancer.jsx'
+import LowRiskUiPolishEnhancer from './LowRiskUiPolishEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
@@ -30,6 +31,7 @@ import './pwa-mobile.css'
 import './interface-cleanup.css'
 import './free-assist-output.css'
 import './content-studio-v2.css'
+import './low-risk-ui-polish.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
@@ -128,6 +130,7 @@ createRoot(document.getElementById('root')).render(
     <AppLanguageEnhancer />
     <IntegrationLogoEnhancer />
     <AssetLibrarySafetyEnhancer />
+    <LowRiskUiPolishEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
     <ContentStudioV2Enhancer />
