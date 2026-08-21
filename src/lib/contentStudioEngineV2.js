@@ -1,7 +1,7 @@
 import { BRUTTI_SOUL, SOUL_SOURCE_LABEL } from './bruttiSoulSource'
 
 const DIRECTION_RE = /buat caption|susun caption|gaya caption|tone|style caption|mulakan dengan|kemudian sambung|fokus (?:pada|kepada|posting)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan tambah|jangan masukkan|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|minimum|maksimum|baris|objective|target audience|cta|content angle/i
-const UNSUPPORTED_RE = /\b(RM\s?\d|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|no\.?\s?1|terbaik|sold|reach|views?|followers?|viral)\b/i
+const UNSUPPORTED_RE = /\b(RM\s?\d|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|no\.?\s?1|terbaik|paling murah|paling tahan|tahan lama|waterproof|premium|sold|reach|views?|followers?|viral)\b/i
 
 const OBJECTIVE_DEFAULTS = {
   'Brand Awareness': 'Awareness',
@@ -21,11 +21,7 @@ const ANGLE_DEFAULTS = {
   Promotion: 'Offer + Reason to Act',
 }
 
-export const CONTENT_VERSION_LABELS = [
-  'Story-led',
-  'Audience-led',
-  'Human / reflective',
-]
+export const CONTENT_VERSION_LABELS = ['Story-led', 'Audience-led', 'Human / reflective']
 
 const CTA_ROTATION = ['Comment / Reply', 'WhatsApp / DM', 'Save', 'Share', 'Natural CTA']
 
@@ -68,7 +64,7 @@ function verifiedClaimAllowed(line, verifiedText) {
   if (!UNSUPPORTED_RE.test(line)) return true
   const claim = clean(line).toLowerCase()
   const facts = clean(verifiedText).toLowerCase()
-  const tokens = claim.match(/rm\s?\d+[\d,.]*|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|sold|reach|views?|followers?|viral/gi) || []
+  const tokens = claim.match(/rm\s?\d+[\d,.]*|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|no\.?\s?1|terbaik|paling murah|paling tahan|tahan lama|waterproof|premium|sold|reach|views?|followers?|viral/gi) || []
   return tokens.every((token) => facts.includes(token.toLowerCase()))
 }
 
@@ -77,12 +73,16 @@ function subjectFor(form) {
   return clean(form.title) || 'cerita Brutti ni'
 }
 
+function typeFor(form) {
+  return form.type || 'Brand Awareness'
+}
+
 function isEnglish(form) {
   return form.language === 'English'
 }
 
 function strategyFor(form, controls = {}) {
-  const type = form.type || 'Brand Awareness'
+  const type = typeFor(form)
   return {
     objective: controls.objective && controls.objective !== 'Auto' ? controls.objective : OBJECTIVE_DEFAULTS[type] || 'Awareness',
     audience: clean(controls.audience) || 'Homeowners dan pelanggan Brutti di Sabah',
@@ -93,213 +93,282 @@ function strategyFor(form, controls = {}) {
   }
 }
 
-function baseHookPool(form, strategy) {
+function productHooks(form, version) {
   const subject = subjectFor(form)
   const en = isEnglish(form)
-  const angle = strategy.angle
-
-  if (angle === 'Problem → Solution') {
-    return [
-      en ? `Sometimes the real problem is not the space — it is how ${subject} needs to work in it.` : `Kadang masalah sebenar bukan ruang tu kecil — tapi macam mana ${subject} perlu berfungsi dalam ruang tu. 👀`,
-      en ? `Before choosing ${subject}, start with the problem it actually needs to solve.` : `Sebelum pilih ${subject}, tengok dulu masalah apa yang dia memang perlu selesaikan.`,
-      en ? `A better choice starts by asking what ${subject} needs to make easier.` : `Pilihan yang lebih ngam mula dari satu soalan: ${subject} ni perlu kasi apa jadi lebih senang?`,
-    ]
-  }
-
-  if (angle === 'Practical Tip') {
-    return [
-      en ? `One useful point about ${subject} can make the next decision much easier.` : `Ada satu point pasal ${subject} yang boleh kasi keputusan seterusnya jauh lebih senang. 👀`,
-      en ? `Keep this simple: start with what you actually need ${subject} to do.` : `Simple ja — mula dari apa yang kamu betul-betul perlukan ${subject} buat.`,
-      en ? `Before adding more, check whether ${subject} solves the everyday need first.` : `Sebelum tambah macam-macam, check dulu ${subject} ni selesaikan keperluan harian ka tidak.`,
-    ]
-  }
-
-  if (angle === 'Human / Behind the Scenes') {
-    return [
-      en ? `The final result is only one part of the story behind ${subject}.` : `Hasil akhir tu satu bahagian ja — cerita di belakang ${subject} sebenarnya lagi banyak. 👀`,
-      en ? `Here is the part of ${subject} people do not always get to see.` : `Kali ni kita kasi nampak sikit bahagian ${subject} yang orang selalu tidak nampak.`,
-      en ? `Before the finished result, there are real people and small moments behind ${subject}.` : `Sebelum nampak hasil siap, ada orang dan moment kecil yang bikin cerita ${subject} tu hidup.`,
-    ]
-  }
-
-  if (angle === 'Customer Journey') {
-    return [
-      en ? `Every customer starts with a different need, and that is where the story of ${subject} begins.` : `Setiap customer mula dengan keperluan yang lain-lain — dari situ la cerita ${subject} bermula.`,
-      en ? `Before the solution, there is always a real customer story.` : `Sebelum sampai solution, mesti ada cerita customer yang sebenar dulu. 👀`,
-      en ? `The useful part of ${subject} only makes sense when we start with the customer need.` : `Cerita ${subject} baru betul-betul masuk akal bila kita mula dari apa customer memang perlukan.`,
-    ]
-  }
-
-  if (angle === 'Offer + Reason to Act') {
-    return [
-      en ? `An offer only matters when it genuinely fits what you need.` : `Offer tu baru ada makna kalau memang ngam dengan apa yang kamu perlukan.`,
-      en ? `Before looking at the promotion, check whether the actual fit makes sense first.` : `Sebelum tengok promo, check dulu benda ni memang sesuai ka dengan keperluan kamu.`,
-      en ? `A promotion is useful only when the product itself already makes sense for the need.` : `Promo tu bonus ja — yang penting produk tu memang kena dengan apa yang kamu perlukan dulu.`,
-    ]
-  }
-
-  return [
-    en ? `${subject} has a real story behind it, and that is the best place to start.` : `${subject} ni ada cerita dia sendiri — jadi kita mula dari benda yang betul-betul berlaku.`,
-    en ? `Not every Brutti post needs to start with selling. Sometimes the real story is stronger.` : `Bukan semua post Brutti kena mula dengan jual barang. Kadang cerita sebenar tu lagi kuat.`,
-    en ? `The strongest part of ${subject} is usually the real reason it matters.` : `Yang paling kuat pasal ${subject} biasanya bukan ayat jualan — tapi sebab sebenar kenapa benda tu penting.`,
+  const pools = [
+    en
+      ? [`A useful product starts with one question: what does ${subject} need to make easier?`, `Before choosing ${subject}, start with the real need it has to solve.`, `${subject} makes more sense when we start with how it will actually be used.`]
+      : [`Pilihan yang ngam mula dari satu soalan: ${subject} ni perlu kasi apa jadi lebih senang?`, `Sebelum pilih ${subject}, tengok dulu keperluan apa yang dia memang perlu selesaikan.`, `${subject} lagi senang dinilai bila kita mula dari cara dia akan digunakan nanti.`],
+    en
+      ? [`If ${subject} is on your list, start with the part that matters in your own space.`, `When comparing ${subject}, the useful question is whether it fits the way you actually use the space.`, `Before deciding on ${subject}, picture where it needs to fit into your routine.`]
+      : [`Kalau ${subject} memang ada dalam list kamu, mula dari benda yang paling penting dalam ruang kamu sendiri.`, `Kalau tengah compare ${subject}, tengok dulu dia ngam ka dengan cara ruang kamu digunakan hari-hari.`, `Sebelum decide pasal ${subject}, cuba bayang dulu dia perlu masuk macam mana dalam rutin ruang kamu.`],
+    en
+      ? [`Sometimes one practical detail is enough to understand ${subject} better.`, `${subject} is easier to appreciate when the real use comes before the sales line.`, `The useful story behind ${subject} starts with what it needs to do in real life.`]
+      : [`Kadang satu detail praktikal ja sudah cukup kasi kita faham ${subject} dengan lebih jelas.`, `${subject} lagi senang dihargai bila kegunaan sebenar datang dulu sebelum ayat jualan.`, `Cerita yang berguna pasal ${subject} mula dari apa dia memang perlu buat dalam penggunaan sebenar.`],
   ]
+  return pools[version]
 }
 
-function audienceHookPool(form, strategy) {
-  const subject = subjectFor(form)
+function brandHooks(form, version) {
   const en = isEnglish(form)
-  return [
-    en ? `If ${subject} is on your list, what problem are you actually trying to solve first?` : `Kalau ${subject} memang ada dalam list kamu, masalah apa yang kamu sebenarnya mau selesaikan dulu? 👀`,
-    en ? `For anyone comparing options, ${subject} makes more sense when the real need is clear first.` : `Kalau kamu tengah compare pilihan, ${subject} lagi senang dinilai bila keperluan sebenar sudah jelas dulu.`,
-    en ? `Before deciding on ${subject}, picture how it needs to work in your own routine.` : `Sebelum decide pasal ${subject}, cuba bayang dulu macam mana benda ni perlu berfungsi dalam rutin kamu sendiri.`,
+  const pools = [
+    en
+      ? ['A brand becomes easier to understand when we start with what it stands for.', 'Brutti is not only about what we make — the way we think about the work matters too.', 'The Brutti story makes more sense when we start with where we come from and what we value.']
+      : ['Satu brand lagi senang difahami bila kita mula dari apa yang dia betul-betul pegang.', 'Brutti bukan setakat apa yang kami bikin — cara kami fikir pasal kerja tu pun penting.', 'Cerita Brutti lagi senang masuk bila kita mula dari mana kami datang dan apa yang kami pegang.'],
+    en
+      ? ['If you are only getting to know Brutti, this is one of the simplest places to start.', 'What should people understand first when they hear the name Brutti?', 'Before the products, there is a point of view behind the Brutti name.']
+      : ['Kalau kamu baru mau kenal Brutti, yang ni antara tempat paling senang untuk mula.', 'Bila orang dengar nama Brutti, apa benda pertama yang kami mau orang faham?', 'Sebelum cerita pasal produk, ada cara fikir yang datang dulu di belakang nama Brutti.'],
+    en
+      ? ['Some brand stories are strongest when they stay close to their roots.', 'The part of Brutti that matters most is not a slogan on its own, but what sits behind it.', 'A local identity means more when it shows up in the way the work is done.']
+      : ['Kadang cerita brand paling kuat bila dia tetap dekat dengan akar sendiri.', 'Yang penting pasal Brutti bukan slogan semata-mata, tapi apa yang ada di belakang dia.', 'Identiti tempatan lagi ada makna bila dia nampak dalam cara kerja dibuat.'],
   ]
+  return pools[version]
 }
 
-function reflectiveHookPool(form) {
+function behindScenesHooks(form, version) {
   const subject = subjectFor(form)
   const en = isEnglish(form)
-  return [
-    en ? `Sometimes the most useful story about ${subject} is the small detail people almost miss.` : `Kadang cerita paling kuat pasal ${subject} datang dari detail kecil yang orang hampir tidak perasan.`,
-    en ? `${subject} is easier to understand when we look at the real reason behind it.` : `${subject} ni lagi senang difahami bila kita tengok sebab sebenar di belakang dia.`,
-    en ? `The more we look at ${subject}, the more the real context matters than the sales line.` : `Lagi kita tengok ${subject}, lagi nampak yang konteks sebenar tu lebih penting daripada ayat jualan.`,
+  const pools = [
+    en
+      ? [`The finished post is only one part of ${subject} — the moments behind it tell the rest.`, `Here is a side of ${subject} that is less about work and more about the people doing it.`, `${subject} has its own story outside the usual work routine.`]
+      : [`Hasil akhir tu satu bahagian ja dari ${subject} — moment di belakang dia yang kasi cerita tu hidup.`, `Kali ni kita tengok sisi ${subject} yang bukan pasal kerja semata-mata, tapi pasal orang di belakang dia.`, `${subject} ada cerita dia sendiri di luar rutin kerja biasa.`],
+    en
+      ? [`If you enjoy seeing the people behind Brutti, ${subject} is one of those stories.`, `What does the Brutti team look like when the usual work routine pauses for a while?`, `Sometimes the best team stories happen away from the normal workday.`]
+      : [`Kalau kamu suka tengok sisi orang di belakang Brutti, ${subject} memang salah satu cerita dia.`, `Macam mana pula team Brutti bila rutin kerja berhenti sekejap?`, `Kadang cerita team yang paling best memang datang masa keluar sekejap dari rutin kerja.`],
+    en
+      ? [`Small team moments can say a lot about ${subject} without needing a big speech.`, `${subject} is easier to remember through the people and small moments inside it.`, `Not every meaningful team moment needs to look polished to be worth keeping.`]
+      : [`Moment kecil dengan team kadang lagi banyak cerita pasal ${subject} daripada ayat panjang-panjang.`, `${subject} lagi senang diingat bila kita tengok orang dan moment kecil yang ada dalam dia.`, `Bukan semua moment team kena nampak perfect baru berbaloi untuk disimpan dalam cerita.`],
   ]
+  return pools[version]
+}
+
+function educationalHooks(form, version) {
+  const subject = subjectFor(form)
+  const en = isEnglish(form)
+  const pools = [
+    en ? [`One practical point about ${subject} can make the next step easier.`, `Keep ${subject} simple: start with the part you can actually use.`, `A useful tip works best when it connects to a real situation.`] : [`Satu point praktikal pasal ${subject} boleh kasi langkah seterusnya lebih senang.`, `${subject} kita kasi simple ja — mula dari benda yang memang boleh digunakan.`, `Tip yang berguna lagi senang masuk bila dia dekat dengan situasi sebenar.`],
+    en ? [`If you are dealing with ${subject}, this is the part worth checking first.`, `Before doing more with ${subject}, check the simple part first.`, `For anyone planning around ${subject}, one clear point can save a lot of guessing.`] : [`Kalau kamu tengah urus ${subject}, yang ni part elok check dulu.`, `Sebelum buat macam-macam pasal ${subject}, check benda simple dulu.`, `Kalau tengah plan pasal ${subject}, satu point yang jelas boleh kurangkan banyak teka-teki.`],
+    en ? [`The most useful lessons usually come from ordinary situations.`, `${subject} does not need complicated advice to be useful.`, `Sometimes the simple way of looking at ${subject} is the one worth keeping.`] : [`Benda yang paling berguna selalunya datang dari situasi biasa-biasa ja.`, `${subject} tidak perlu advice yang complicated baru boleh membantu.`, `Kadang cara paling simple tengok ${subject} tu la yang berbaloi simpan.`],
+  ]
+  return pools[version]
+}
+
+function customerHooks(form, version) {
+  const subject = subjectFor(form)
+  const en = isEnglish(form)
+  const pools = [
+    en ? [`Every customer story starts with a real need, and that is where ${subject} begins.`, `Before the outcome, there is always a reason the customer needed ${subject}.`, `${subject} makes more sense when the customer need comes first.`] : [`Setiap cerita customer mula dari keperluan sebenar — dari situ la ${subject} bermula.`, `Sebelum cerita hasil, ada sebab sebenar kenapa customer perlukan ${subject}.`, `${subject} lagi senang difahami bila keperluan customer datang dulu.`],
+    en ? [`If you have faced a similar need, this customer story may feel familiar.`, `The useful part of this story is the situation the customer started with.`, `Before comparing outcomes, look at the need that shaped this story.`] : [`Kalau kamu pernah hadap keperluan yang sama, cerita customer ni mungkin rasa familiar.`, `Part paling berguna dari cerita ni ialah situasi customer masa mula-mula.`, `Sebelum compare hasil, tengok dulu keperluan yang membentuk cerita ni.`],
+    en ? [`A real customer detail usually says more than a broad testimonial line.`, `The human part of ${subject} is the reason behind the choice.`, `Customer stories are strongest when the real situation stays visible.`] : [`Satu detail customer yang sebenar selalunya lagi kuat daripada ayat testimonial umum.`, `Bahagian human pasal ${subject} datang dari sebab di belakang pilihan tu.`, `Cerita customer lagi kuat bila situasi sebenar masih nampak.`],
+  ]
+  return pools[version]
+}
+
+function promotionHooks(form, version) {
+  const subject = subjectFor(form)
+  const en = isEnglish(form)
+  const pools = [
+    en ? [`A promotion only matters when ${subject} already fits the need.`, `Start with why ${subject} makes sense before talking about the offer.`, `The offer is easier to evaluate when the product fit is clear first.`] : [`Promo baru ada makna bila ${subject} memang ngam dengan keperluan dulu.`, `Mula dari kenapa ${subject} sesuai dulu sebelum cerita pasal offer.`, `Offer lagi senang dinilai bila kesesuaian produk sudah jelas dulu.`],
+    en ? [`If ${subject} is already on your list, this is the part to look at next.`, `Before acting on the offer, check whether ${subject} fits what you actually need.`, `For anyone considering ${subject}, the offer should come after the fit.`] : [`Kalau ${subject} memang sudah ada dalam list kamu, yang ni part seterusnya untuk tengok.`, `Sebelum ambil offer, check dulu ${subject} memang ngam ka dengan apa yang kamu perlukan.`, `Kalau sedang consider ${subject}, offer tu datang lepas kesesuaian produk dulu.`],
+    en ? [`A good offer should not need exaggerated claims to be clear.`, `${subject} still has to make sense even before the promotion is mentioned.`, `The useful part of a promotion is clarity, not pressure.`] : [`Offer yang jelas tidak perlu claim besar-besar untuk nampak menarik.`, `${subject} tetap kena masuk akal walaupun sebelum promo disebut.`, `Part berguna dari promo ialah kejelasan, bukan pressure.`],
+  ]
+  return pools[version]
+}
+
+function hookPoolFor(form, version) {
+  const type = typeFor(form)
+  if (type === 'Product Highlight') return productHooks(form, version)
+  if (type === 'Brand Awareness') return brandHooks(form, version)
+  if (type === 'Behind the Scenes') return behindScenesHooks(form, version)
+  if (type === 'Educational') return educationalHooks(form, version)
+  if (type === 'Customer Story') return customerHooks(form, version)
+  if (type === 'Promotion') return promotionHooks(form, version)
+  return brandHooks(form, version)
+}
+
+function rewriteHookPool(form, mode) {
+  const subject = subjectFor(form)
+  const type = typeFor(form)
+  const en = isEnglish(form)
+
+  if (mode === 'engaging') {
+    if (type === 'Brand Awareness') return en ? ['What is the first thing you should know about Brutti?', 'What makes a local brand feel genuinely local?', 'If you only remembered one thing about Brutti, what should it be?'] : ['Kalau baru kenal Brutti, apa benda pertama yang patut kamu tahu? 👀', 'Apa yang bikin satu brand lokal betul-betul rasa lokal?', 'Kalau cuma satu benda mau ingat pasal Brutti, apa yang paling patut tinggal?']
+    if (type === 'Behind the Scenes') return en ? [`Which part of ${subject} would you want to see more of?`, `What makes a team moment worth remembering?`, `Which small moment usually tells you the most about a team?`] : [`Kalau pasal ${subject}, part mana kamu paling suka tengok? 👀`, 'Kalau cerita team, moment macam mana yang paling senang melekat dalam ingatan?', 'Kadang moment kecil ja yang paling banyak cerita — kamu setuju ka?']
+    return en ? [`What would make ${subject} genuinely useful to you?`, `Would ${subject} fit the way you actually use your space?`, `What is the first thing you would check about ${subject}?`] : [`Kalau ${subject} ada depan kamu sekarang, benda apa paling awal kamu mau check? 👀`, `${subject} ni kalau masuk ruang kamu, ngam ka dengan cara kamu guna ruang tu?`, `Apa benda yang paling penting untuk kamu sebelum pilih ${subject}?`]
+  }
+
+  if (mode === 'casual') {
+    if (type === 'Brand Awareness') return en ? ['Okay, this time let us talk about Brutti itself.', 'No product talk first — this one is about Brutti.', 'Simple one this time: who is Brutti, actually?'] : ['Nah, kali ni kita cerita pasal Brutti sendiri dulu bah.', 'Kali ni bukan cerita produk dulu — kita cerita pasal Brutti.', 'Yang ni simple ja: Brutti ni sebenarnya siapa?']
+    if (type === 'Behind the Scenes') return en ? [`Okay, here is the more relaxed side of ${subject}.`, `This one is less work talk, more team moment.`, `No formal story this time — just ${subject} as it happened.`] : [`Nah, yang ni sisi lebih santai dari ${subject}.`, 'Kali ni kurang cerita kerja, lebih kepada moment team ja.', `${subject} ni kita cerita macam dia berlaku ja — tidak payah formal sangat.`]
+    return en ? [`Okay, this time we are talking about ${subject}.`, `Let us keep this one simple and talk about ${subject}.`, `No long intro — straight to ${subject}.`] : [`Nah, kali ni kita cerita pasal ${subject} dulu bah.`, `Yang ni kita kasi simple ja — terus cerita pasal ${subject}.`, `Tidak payah intro panjang-panjang, terus pigi ${subject}.`]
+  }
+
+  if (mode === 'professional') {
+    if (type === 'Brand Awareness') return en ? ['This post introduces the verified identity and direction behind Brutti.', 'Brutti is best understood through its verified identity, values and local roots.', 'A clear brand story begins with the principles that guide the work.'] : ['Posting ini memperkenalkan identiti dan arah Brutti yang telah disahkan.', 'Brutti lebih mudah difahami melalui identiti, nilai dan akar tempatan yang telah disahkan.', 'Cerita brand yang jelas bermula dengan prinsip yang membimbing cara kerja.']
+    if (type === 'Behind the Scenes') return en ? [`This post highlights the verified people and moments behind ${subject}.`, `${subject} is presented through the real team context behind the activity.`, `The focus here is the verified team experience behind ${subject}.`] : [`Posting ini menampilkan orang dan moment sebenar di belakang ${subject}.`, `${subject} dikongsikan melalui konteks sebenar team di sebalik aktiviti tersebut.`, `Fokus kali ini ialah pengalaman team yang telah disahkan di belakang ${subject}.`]
+    return en ? [`This post focuses on the verified purpose and context of ${subject}.`, `The value of ${subject} is best understood through its verified function and context.`, `A clear assessment of ${subject} begins with the actual need it addresses.`] : [`Kali ini, fokus diberikan kepada fungsi dan konteks ${subject} berdasarkan maklumat yang telah disahkan.`, `Nilai ${subject} lebih jelas apabila dilihat melalui fungsi dan konteks sebenar.`, `Penilaian terhadap ${subject} bermula dengan keperluan sebenar yang ingin diselesaikan.`]
+  }
+
+  if (mode === 'hook') {
+    if (type === 'Brand Awareness') return en ? ['Brutti is easier to understand when we start with where it comes from.', 'There is more behind the Brutti name than a product list.', 'A local brand story starts long before the sales line.', 'Before the furniture, there is a reason Brutti chooses to work this way.'] : ['Brutti lagi senang difahami bila kita mula dari mana cerita ni datang. 👀', 'Di belakang nama Brutti, ada lebih banyak daripada senarai produk.', 'Cerita brand lokal bermula jauh sebelum ayat jualan.', 'Sebelum cerita furniture, ada sebab kenapa Brutti pilih untuk bekerja dengan cara ni.']
+    if (type === 'Behind the Scenes') return en ? [`There is a side of ${subject} the usual workday does not show.`, `The best part of ${subject} may be the small moments in between.`, `Before the work starts again, here is one team story worth keeping.`, `${subject} is not only about the schedule — it is about the people inside it.`] : [`Ada sisi ${subject} yang rutin kerja biasa tidak tunjuk. 👀`, `Part paling best dari ${subject} mungkin datang dari moment kecil di tengah-tengah tu.`, 'Sebelum masuk balik rutin kerja, yang ni satu cerita team memang berbaloi simpan.', `${subject} bukan pasal jadual saja — orang di dalam dia yang bikin cerita tu ada rasa.`]
+    return en ? [`There is more to ${subject} than the first thing you see.`, `The interesting part of ${subject} starts where the obvious part ends.`, `One real detail can change how you look at ${subject}.`, `Before you scroll past ${subject}, here is the part worth noticing.`] : [`${subject} ni bukan setakat apa yang nampak di depan mata. 👀`, `Part menarik pasal ${subject} mula lepas benda yang obvious tu.`, `Kadang satu detail ja boleh terus ubah cara kita tengok ${subject}.`, `Sebelum scroll lepas ${subject}, yang ni satu benda patut diperhatikan dulu.`]
+  }
+
+  return []
 }
 
 function hookFor(form, strategy, mode, version, cycle) {
-  const subject = subjectFor(form)
-  const en = isEnglish(form)
-  let pool = version === 1 ? audienceHookPool(form, strategy) : version === 2 ? reflectiveHookPool(form) : baseHookPool(form, strategy)
-
-  if (mode === 'engaging') {
-    pool = [
-      en ? `What would make ${subject} genuinely useful to you — not just nice to look at?` : `Kalau ${subject} ni ada depan kamu sekarang, apa benda yang paling kamu mau dia selesaikan? 👀`,
-      en ? `Would ${subject} actually make your daily routine easier?` : `${subject} ni kalau masuk dalam rutin kamu, betul-betul kasi senang ka?`,
-      en ? `Here is the question worth asking before anything else about ${subject}.` : `Sebelum cerita panjang pasal ${subject}, ada satu soalan yang lagi penting dulu.`,
-    ]
-  } else if (mode === 'casual') {
-    pool = [
-      en ? `Okay, this time we are talking about ${subject}.` : `Nah, kali ni kita cerita pasal ${subject} dulu bah.`,
-      en ? `Let us keep this one simple and talk about ${subject}.` : `Yang ni kita kasi simple ja — cerita terus pasal ${subject}.`,
-      en ? `No long intro this time. Here is the real point about ${subject}.` : `Tidak payah intro panjang-panjang, kita terus pigi point pasal ${subject}.`,
-    ]
-  } else if (mode === 'professional') {
-    pool = [
-      en ? `This post focuses on the verified purpose and context of ${subject}.` : `Kali ini, fokus diberikan kepada fungsi, konteks dan fakta yang telah disahkan untuk ${subject}.`,
-      en ? `The value of ${subject} is best understood through its verified function and context.` : `Nilai ${subject} lebih jelas apabila dilihat melalui fungsi dan konteks yang telah disahkan.`,
-      en ? `A clear assessment of ${subject} begins with the actual need it is intended to address.` : `Penilaian terhadap ${subject} bermula dengan keperluan sebenar yang ingin diselesaikan.`,
-    ]
-  } else if (mode === 'hook') {
-    pool = [
-      en ? `There is more to ${subject} than the first thing you see.` : `${subject} ni bukan setakat apa yang nampak di depan mata. 👀`,
-      en ? `The interesting part of ${subject} starts where the obvious part ends.` : `Part menarik pasal ${subject} sebenarnya mula lepas benda yang obvious tu.`,
-      en ? `One real detail can completely change how you look at ${subject}.` : `Kadang satu detail ja boleh terus ubah cara kita tengok ${subject}.`,
-      en ? `Before you scroll past ${subject}, here is the part worth noticing.` : `Sebelum scroll lepas ${subject}, yang ni satu benda memang patut diperhatikan dulu.`,
-    ]
-  }
-
-  const index = (stableIndex(`${subject}|${strategy.angle}|${mode}|${version}`, pool.length) + Number(cycle || 0)) % pool.length
+  let pool = hookPoolFor(form, version)
+  const rewritePool = rewriteHookPool(form, mode)
+  if (rewritePool.length) pool = rewritePool
+  const seed = `${subjectFor(form)}|${strategy.angle}|${typeFor(form)}|${mode}|${version}`
+  const index = (stableIndex(seed, pool.length) + Number(cycle || 0)) % pool.length
   return sentence(pool[index])
 }
 
 function keyMessageLine(form, strategy, version) {
   if (!strategy.keyMessage) return ''
+  const type = typeFor(form)
   const en = isEnglish(form)
-  if (version === 1) return sentence(en ? `For the people considering it, the key point is simple: ${strategy.keyMessage}` : `Untuk yang sedang consider benda ni, point paling penting dia simple: ${strategy.keyMessage}`)
-  if (version === 2) return sentence(en ? `When we strip away the marketing language, this is what matters: ${strategy.keyMessage}` : `Kalau buang ayat marketing semua, yang tinggal dan memang penting ialah: ${strategy.keyMessage}`)
+
+  if (type === 'Brand Awareness') {
+    if (version === 1) return sentence(en ? `If there is one thing to remember about Brutti, it is this: ${strategy.keyMessage}` : `Kalau satu benda ja mau ingat pasal Brutti, yang ni la: ${strategy.keyMessage}`)
+    if (version === 2) return sentence(en ? `Behind the brand language, this is the part that matters: ${strategy.keyMessage}` : `Di belakang semua ayat brand, yang ni part paling penting: ${strategy.keyMessage}`)
+    return sentence(en ? `The main Brutti point here is simple: ${strategy.keyMessage}` : `Point utama Brutti kali ni simple ja: ${strategy.keyMessage}`)
+  }
+
+  if (type === 'Behind the Scenes') {
+    if (version === 2) return sentence(en ? `When the formal work story is stripped away, this is what remains: ${strategy.keyMessage}` : `Kalau buang cerita kerja yang formal-formal, yang tinggal ialah: ${strategy.keyMessage}`)
+    return sentence(en ? `The main thing worth keeping from this story is: ${strategy.keyMessage}` : `Kalau ada satu benda mau simpan dari cerita ni, yang ni la: ${strategy.keyMessage}`)
+  }
+
+  if (version === 1) return sentence(en ? `For anyone considering it, the key point is simple: ${strategy.keyMessage}` : `Kalau sedang consider benda ni, point paling penting dia simple: ${strategy.keyMessage}`)
+  if (version === 2) return sentence(en ? `When the marketing language is stripped away, this is what matters: ${strategy.keyMessage}` : `Kalau buang ayat marketing semua, yang tinggal dan memang penting ialah: ${strategy.keyMessage}`)
   return sentence(en ? `The key thing to remember is this: ${strategy.keyMessage}` : `Kalau ada satu benda mau ingat, yang ni la: ${strategy.keyMessage}`)
 }
 
-function directionBridge(form, strategy, version) {
-  const en = isEnglish(form)
+function contentBridge(form, strategy, version, mode) {
+  const type = typeFor(form)
   const subject = subjectFor(form)
-  const direction = strategy.direction.toLowerCase()
-  if (!direction) return ''
+  const en = isEnglish(form)
 
-  if (/human|team|orang|people|story|cerita/.test(direction)) {
-    if (version === 2) return sentence(en ? `That is why the people and real moments behind ${subject} matter as much as the finished result.` : `Sebab tu orang dan moment sebenar di belakang ${subject} sama penting dengan hasil akhir dia.`)
-    return sentence(en ? `Keep the story close to the people and real moments behind ${subject}.` : `Cerita ni kita kasi dekat dengan orang dan moment sebenar di belakang ${subject}.`)
+  if (type === 'Brand Awareness') {
+    if (mode === 'engaging') return sentence(en ? 'A brand story becomes more interesting when people can connect it to something real.' : 'Cerita brand lagi ada rasa bila orang boleh kaitkan dia dengan benda yang betul-betul nyata.')
+    if (mode === 'casual') return sentence(en ? 'No need to make the brand story sound complicated — the real point is enough.' : 'Tidak payah kasi cerita brand bunyi complicated sangat — point sebenar tu sudah cukup.')
+    if (mode === 'professional') return sentence(en ? 'A clear brand identity is strongest when its values and origin remain consistent.' : 'Identiti brand lebih jelas apabila nilai dan asal-usulnya kekal konsisten.')
+    if (version === 1) return sentence(en ? 'For someone new to Brutti, the useful part is understanding what sits behind the name.' : 'Kalau baru kenal Brutti, yang berguna ialah faham apa yang ada di belakang nama tu.')
+    if (version === 2) return sentence(en ? 'Local identity feels more meaningful when it is visible in the way the work is approached.' : 'Identiti lokal lagi ada makna bila dia nampak dalam cara kerja dibuat.')
+    return sentence(en ? 'The story is not about sounding bigger — it is about making the Brutti point of view clear.' : 'Cerita ni bukan pasal kasi bunyi besar — yang penting cara Brutti fikir tu jelas.')
   }
 
-  if (/fungsi|function|practical|praktikal|guna/.test(direction)) {
-    if (version === 1) return sentence(en ? `For the audience, the useful question is how ${subject} actually fits into daily use.` : `Untuk orang yang baca, soalan paling berguna ialah macam mana ${subject} ni betul-betul masuk dalam penggunaan harian.`)
-    return sentence(en ? `The useful part is how ${subject} actually works in real use.` : `Yang paling penting, macam mana ${subject} betul-betul berguna bila dipakai nanti.`)
+  if (type === 'Behind the Scenes') {
+    if (mode === 'engaging') return sentence(en ? 'Team stories are easier to connect with when the small real moments stay visible.' : 'Cerita team lagi senang orang connect bila moment kecil yang sebenar tu masih nampak.')
+    if (mode === 'casual') return sentence(en ? 'The relaxed moments are part of the story too, not only the work itself.' : 'Moment santai pun sebahagian dari cerita — bukan kerja saja yang ada nilai.')
+    if (mode === 'professional') return sentence(en ? 'The team context gives the activity meaning beyond the event schedule itself.' : 'Konteks team memberi makna kepada aktiviti, bukan sekadar jadual event semata-mata.')
+    if (version === 1) return sentence(en ? 'For people following Brutti, this is the side that shows who is behind the daily work.' : 'Kalau follow Brutti, sisi macam ni la yang kasi nampak siapa orang di belakang kerja harian.')
+    if (version === 2) return sentence(en ? 'The small moments matter because they keep the team story human.' : 'Moment kecil tu penting sebab dia kasi cerita team kekal human.')
+    return sentence(en ? 'A behind-the-scenes story works best when the real team moment stays at the centre.' : 'Cerita behind the scenes lagi ngam bila moment team sebenar duduk di tengah cerita.')
   }
 
-  if (/awareness|brand/.test(direction)) {
-    return sentence(en ? `The point is to help people understand Brutti better, not force a sale.` : `Tujuan dia supaya orang lebih kenal cara Brutti fikir, bukan terus hard sell.`)
+  if (type === 'Product Highlight') {
+    if (mode === 'engaging') return sentence(en ? `The useful comparison is whether ${subject} fits the way the space is actually used.` : `Compare yang paling berguna ialah sama ada ${subject} ngam dengan cara ruang tu betul-betul digunakan.`)
+    if (mode === 'casual') return sentence(en ? 'Keep it simple: start with the function that matters to the space.' : 'Senang cerita, mula dari fungsi yang memang penting untuk ruang tu.')
+    if (mode === 'professional') return sentence(en ? 'The product is easier to assess when its verified function is connected to a real use case.' : 'Produk lebih mudah dinilai apabila fungsi yang disahkan dikaitkan dengan penggunaan sebenar.')
+    if (version === 1) return sentence(en ? `For the person considering it, the useful question is where ${subject} fits into the real need.` : `Kalau sedang consider, soalan paling berguna ialah ${subject} ni ngam di mana dengan keperluan sebenar.`)
+    if (version === 2) return sentence(en ? `A practical detail gives ${subject} more meaning than a broad sales claim.` : `Satu detail praktikal bagi ${subject} lebih banyak makna daripada ayat jualan umum.`)
+    return sentence(en ? `The important part is how ${subject} works in actual use.` : `Yang penting, macam mana ${subject} betul-betul berguna masa digunakan nanti.`)
   }
 
-  return ''
+  if (type === 'Educational') {
+    if (mode === 'engaging') return sentence(en ? 'A useful tip becomes easier to remember when it connects to a real situation.' : 'Tip lagi senang melekat bila dia terus kena dengan situasi sebenar.')
+    if (mode === 'professional') return sentence(en ? 'The guidance should remain practical, specific and easy to apply.' : 'Panduan perlu kekal praktikal, jelas dan mudah digunakan.')
+    return sentence(en ? 'The useful part is something people can actually apply later.' : 'Part berguna dia ialah benda yang orang memang boleh apply kemudian.')
+  }
+
+  if (type === 'Customer Story') {
+    if (version === 2) return sentence(en ? 'The human part comes from the customer situation itself, not from exaggerated emotion.' : 'Bahagian human datang dari situasi customer sendiri, bukan emosi yang dibesar-besarkan.')
+    return sentence(en ? 'The real customer need is what keeps the story grounded.' : 'Keperluan sebenar customer yang kasi cerita ni tetap grounded.')
+  }
+
+  if (type === 'Promotion') {
+    return sentence(en ? 'The offer should stay clear and secondary to whether the product actually fits the need.' : 'Offer kasi jelas, tapi kesesuaian produk dengan keperluan tetap datang dulu.')
+  }
+
+  return sentence(en ? `Keep ${subject} connected to the real context.` : `${subject} kita kasi dekat dengan konteks sebenar.`)
 }
 
-function objectiveBridge(form, strategy, version, mode) {
-  const en = isEnglish(form)
+function supportLine(form, version) {
+  const type = typeFor(form)
   const subject = subjectFor(form)
+  const en = isEnglish(form)
 
-  if (mode === 'engaging') return sentence(en ? `Give people one clear reason to react, compare or share their own experience with ${subject}.` : `Bagi orang satu sebab yang jelas untuk react, compare atau share pengalaman sendiri pasal ${subject}.`)
-  if (mode === 'casual') return sentence(en ? `No need to over-explain it — keep the useful point easy to follow.` : `Tidak payah explain sampai berat sangat — point penting tu kasi senang orang ikut.`)
-  if (mode === 'professional') return sentence(en ? `Keep the message concise, evidence-led and aligned with the verified context.` : `Mesej dikekalkan ringkas, berasaskan fakta dan selaras dengan konteks yang telah disahkan.`)
+  if (type === 'Brand Awareness') {
+    const lines = en ? ['That is where the Brutti identity becomes easier to recognise.', 'The point is to make the brand feel clear, not louder.', 'A consistent point of view is what gives the story its shape.'] : ['Dari situ identiti Brutti lagi senang orang kenal.', 'Yang penting bukan kasi brand bunyi lebih kuat, tapi kasi dia lebih jelas.', 'Cara fikir yang konsisten tu yang kasi cerita Brutti ada bentuk dia sendiri.']
+    return sentence(lines[version])
+  }
 
-  if (version === 1) return sentence(en ? `The audience should be able to see where ${subject} fits into a real need, not just a product list.` : `Orang yang baca patut boleh nampak ${subject} ni ngam di mana dalam keperluan sebenar, bukan setakat nampak nama produk.`)
-  if (version === 2) return sentence(en ? `A real detail gives ${subject} more meaning than a broad brand claim ever could.` : `Satu detail sebenar boleh bagi ${subject} lebih banyak makna daripada claim brand yang terlalu umum.`)
+  if (type === 'Behind the Scenes') {
+    const lines = en ? ['The people and the shared moment are already enough to carry the story.', 'That is the part that makes a team story feel close and real.', 'Small moments like these are what keep the story from feeling staged.'] : ['Orang dan moment yang dikongsi tu sudah cukup untuk bawa cerita ni.', 'Yang ni la bikin cerita team rasa dekat dan sebenar.', 'Moment kecil macam ni yang kasi cerita tu tidak rasa dibuat-buat.']
+    return sentence(lines[version])
+  }
 
-  if (strategy.objective === 'Engagement') return sentence(en ? 'The story should give people something natural to react or reply to.' : 'Cerita dia kena ada ruang untuk orang react atau balas secara natural.')
-  if (strategy.objective === 'Education') return sentence(en ? 'Keep the useful lesson clear enough for people to save and use later.' : 'Point yang berguna tu kasi jelas supaya orang senang save dan refer balik.')
-  if (strategy.objective === 'Trust') return sentence(en ? 'Trust comes from specific real details, not bigger claims.' : 'Trust datang dari detail sebenar, bukan dari claim yang dibesar-besarkan.')
-  if (strategy.objective === 'Conversion') return sentence(en ? 'Make the next step clear without turning the caption into a hard sell.' : 'Next step kasi jelas, tapi jangan sampai caption terus rasa hard sell.')
-  return sentence(en ? `Help ${strategy.audience} understand why ${subject} matters without overexplaining it.` : `Biar ${strategy.audience} senang faham kenapa ${subject} ni penting, tanpa explain berlebihan.`)
+  if (type === 'Product Highlight') {
+    const lines = en ? [`That makes ${subject} easier to judge based on fit, not hype.`, 'Function and real context give the product story enough weight.', 'The real use is more useful than adding a bigger claim.'] : [`Dari situ ${subject} lagi senang dinilai ikut kesesuaian, bukan hype.`, 'Fungsi dan konteks sebenar sudah cukup kasi cerita produk tu ada isi.', 'Kegunaan sebenar lagi berguna daripada tambah claim besar-besar.']
+    return sentence(lines[version])
+  }
+
+  if (type === 'Educational') return sentence(en ? 'Simple, practical and easy to refer back to later.' : 'Simple, praktikal dan senang refer balik bila perlu.')
+  if (type === 'Customer Story') return sentence(en ? 'That is what makes the customer story worth listening to.' : 'Yang tu la bikin cerita customer ni berbaloi didengar.')
+  if (type === 'Promotion') return sentence(en ? 'Clear details make the next decision easier without adding pressure.' : 'Detail yang jelas kasi keputusan seterusnya lebih senang tanpa pressure.')
+  return sentence(en ? `${subject} stays strongest when the real context remains visible.` : `${subject} lagi kuat bila konteks sebenar masih nampak.`)
 }
 
-function supportLine(form, strategy, version, mode) {
+function ctaPool(form, goal) {
+  const type = typeFor(form)
+  const subject = subjectFor(form)
   const en = isEnglish(form)
-  const type = form.type || 'Brand Awareness'
 
-  if (mode === 'engaging') return sentence(en ? 'Keep the strongest real detail close to the question so the interaction feels earned.' : 'Kasi dekat soalan tadi dengan detail sebenar yang paling kuat supaya interaction tu rasa natural.')
-  if (mode === 'casual') return sentence(en ? 'Keep it conversational, but do not loosen the facts.' : 'Santai boleh, tapi fakta jangan kasi longgar.')
-  if (mode === 'professional') return sentence(en ? 'Avoid unsupported superlatives and keep each point traceable to verified information.' : 'Elakkan claim berlebihan dan pastikan setiap point boleh dirujuk kepada maklumat yang disahkan.')
+  if (type === 'Brand Awareness') {
+    const pools = {
+      'Comment / Reply': en ? ['What part of the Brutti story would you like to know more about?', 'When you hear “Proudly Sabahan”, what does it mean to you?', 'What makes a local brand feel genuine to you?'] : ['Part mana dari cerita Brutti yang kamu mau tahu lagi?', 'Bila dengar “Proudly Sabahan”, apa benda yang terus kamu fikir?', 'Bagi kamu, apa yang bikin satu brand lokal rasa betul-betul genuine?'],
+      'WhatsApp / DM': en ? ['If you want to know more about Brutti or a product, message the team anytime.'] : ['Kalau mau tahu lagi pasal Brutti atau produk, mesej ja team bila-bila.'],
+      Save: en ? ['Save this if you want to come back to the Brutti story later.'] : ['Kalau mau refer balik cerita Brutti ni nanti, save ja dulu.'],
+      Share: en ? ['Share this with someone who likes discovering local Sabah brands.'] : ['Kalau ada kawan yang suka kenal brand lokal Sabah, boleh share sama dia.'],
+      'Natural CTA': en ? ['That is one small part of the Brutti story — there is more to tell as the work continues.', 'If this is your first time getting to know Brutti, welcome to the story.'] : ['Yang ni satu bahagian kecil dari cerita Brutti — banyak lagi boleh dikongsi sepanjang jalan.', 'Kalau ni kali pertama kamu kenal Brutti, welcome masuk dalam cerita kami.'],
+    }
+    return pools[goal] || pools['Natural CTA']
+  }
 
-  if (version === 2) return sentence(en ? 'The human side should come from the real context, not from invented emotion.' : 'Bahagian human tu mesti datang dari konteks sebenar, bukan emosi yang direka.')
-  if (version === 1) return sentence(en ? 'Make the relevance to the reader clear before asking them to take the next step.' : 'Kasi jelas dulu kenapa benda ni relevan untuk orang yang baca, baru ajak dia buat next step.')
+  if (type === 'Behind the Scenes') {
+    const pools = {
+      'Comment / Reply': en ? [`Which part of ${subject} would you enjoy seeing more of?`, 'Games, food or team moments — which kind of retreat scene do you enjoy most?', 'Do you enjoy seeing more of the people behind a brand?'] : [`Kalau pasal ${subject}, part mana kamu paling suka tengok?`, 'Games, makan-makan atau moment team — yang mana satu kamu paling suka tengok kalau cerita retreat?', 'Kamu suka ka tengok lebih banyak sisi orang di belakang satu brand?'],
+      'WhatsApp / DM': en ? ['Want to know more about the Brutti team or what we do? Message us anytime.'] : ['Kalau mau tahu lagi pasal team Brutti atau apa kami buat, mesej ja bila-bila.'],
+      Save: en ? ['Save this little team memory and come back to it later.'] : ['Save ja dulu memory team yang ni, nanti boleh tengok balik.'],
+      Share: en ? ['Share this with the teammate who would enjoy a retreat like this.'] : ['Kalau ada teammate yang memang suka vibe retreat macam ni, share ja sama dia.'],
+      'Natural CTA': en ? ['Back to work after this — but this team memory stays with us.', 'One team memory saved. Now back to building the next Brutti story.'] : ['Lepas ni sambung kerja balik — tapi memory team yang ni kita simpan dulu.', 'Satu memory team sudah simpan. Lepas ni sambung bikin cerita Brutti yang seterusnya.'],
+    }
+    return pools[goal] || pools['Natural CTA']
+  }
 
-  if (type === 'Product Highlight') return sentence(en ? 'Start with function and verified product context before style or selling points.' : 'Mula dari fungsi dan detail produk yang sudah confirm dulu, baru cerita benda lain.')
-  if (type === 'Behind the Scenes') return sentence(en ? 'Show the real process and people instead of making everything look polished and perfect.' : 'Tunjuk proses dan orang sebenar — tidak payah kasi nampak semua benda perfect.')
-  if (type === 'Customer Story') return sentence(en ? 'Keep the real customer need at the centre of the story.' : 'Keperluan sebenar customer tetap jadi pusat cerita ni.')
-  if (type === 'Educational') return sentence(en ? 'Make the useful point specific enough to apply in a real situation.' : 'Tip tu mesti cukup specific supaya orang boleh apply dalam situasi sebenar.')
-  if (type === 'Promotion') return sentence(en ? 'Any price, period or offer detail must stay exactly within the verified information.' : 'Kalau ada harga, tempoh atau promo, semua kena ikut info yang sudah confirm.')
-  if (strategy.objective === 'Engagement') return sentence(en ? 'Keep one human detail strong enough to invite a natural reaction.' : 'Pilih satu detail human yang kuat supaya orang senang react secara natural.')
-  if (strategy.objective === 'Trust') return sentence(en ? 'Specific real details should carry the story instead of broad brand claims.' : 'Biar detail sebenar yang bawa cerita, bukan claim brand yang terlalu umum.')
-  return sentence(en ? 'Use a real Brutti point of view instead of generic marketing language.' : 'Guna sudut pandang Brutti yang sebenar, bukan ayat marketing generic.')
+  const pools = {
+    'Comment / Reply': en ? [`What would you want to know about ${subject}?`, `Which part matters most to you?`, `What is the first thing you would check before deciding?`] : [`Kalau kamu, part mana pasal ${subject} yang paling kamu mau tahu?`, 'Kalau ikut keperluan kamu, part mana paling penting?', 'Apa benda pertama yang kamu akan check sebelum decide?'],
+    'WhatsApp / DM': en ? ['Message the Brutti team if you want to check the details together.', 'DM us if you want to compare the available verified details.'] : ['Kalau mau check detail sama-sama, mesej ja team Brutti.', 'Kalau mau compare detail yang ada dulu, DM ja team Brutti.'],
+    Save: en ? ['Save this first if it may be useful when you plan later.', 'Keep this saved if you are still comparing options.'] : ['Kalau berguna, save ja dulu. Nanti senang refer balik masa perlu.', 'Kalau masih dalam fasa compare, save dulu post ni untuk refer balik.'],
+    Share: en ? ['Share this with someone planning something similar.', 'Send this to someone dealing with the same kind of need.'] : ['Kalau ada kawan yang sedang plan benda sama, share ja sama dia.', 'Kalau ada orang yang tengah cari benda lebih kurang sama, boleh share post ni sama dia.'],
+    'Natural CTA': en ? ['If you want to know more, message the Brutti team and we can check the details together.', 'Keep this in mind if it matches what you are planning.'] : ['Kalau mau tahu lebih lanjut, mesej ja team Brutti dan kita check detail sama-sama.', 'Kalau benda ni ngam dengan apa yang kamu sedang plan, boleh simpan dalam list dulu.'],
+  }
+  return pools[goal] || pools['Natural CTA']
 }
 
 function ctaFor(form, strategy, mode, version, cycle) {
-  const en = isEnglish(form)
   let goal = strategy.ctaGoal
   if (mode === 'engaging') goal = 'Comment / Reply'
   if (mode === 'cta') goal = CTA_ROTATION[Number(cycle || 0) % CTA_ROTATION.length]
   if (goal === 'Auto') goal = 'Natural CTA'
-
-  const pools = {
-    'Comment / Reply': en
-      ? ['What would you want to know about this?', 'Which part would matter most to you?', 'Would this solve the problem you are dealing with now?']
-      : ['Kalau kamu, part mana yang paling kamu mau tahu?', 'Kalau kena dengan situasi kamu, apa benda pertama yang kamu mau check?', 'Kalau kamu tengah hadap benda sama, ${subject} ni rasa membantu ka tidak?'],
-    'WhatsApp / DM': en
-      ? ['Message the Brutti team if you want us to check the verified details with you.', 'DM us if you want to compare the verified details before deciding.']
-      : ['Kalau mau check detail dia, mesej ja team Brutti — kita tinguk sama-sama.', 'Kalau mau compare detail yang sudah confirm dulu, DM ja team Brutti.'],
-    Save: en
-      ? ['Save this first if it will be useful when you plan later.', 'Keep this saved if you are still comparing options.']
-      : ['Kalau berguna, save ja dulu. Nanti senang refer balik masa perlu.', 'Kalau masih dalam fasa compare, save dulu post ni untuk refer balik.'],
-    Share: en
-      ? ['Share this with someone who is planning something similar.', 'Send this to someone who is dealing with the same kind of need.']
-      : ['Kalau ada kawan yang sedang plan benda sama, share ja sama dia.', 'Kalau ada orang yang tengah hadap keperluan sama, boleh share post ni sama dia.'],
-    'Natural CTA': en
-      ? ['If you want to know more, message the Brutti team and we can check the verified details together.', 'Keep this in mind if it matches what you are planning.']
-      : ['Kalau mau tahu lebih lanjut, mesej ja team Brutti dan kita check detail yang sudah confirm sama-sama.', 'Kalau benda ni ngam dengan apa yang kamu sedang plan, boleh simpan dalam list dulu.'],
-  }
-
-  const pool = pools[goal] || pools['Natural CTA']
-  const subject = subjectFor(form)
-  const raw = pool[(Number(version || 0) + Number(cycle || 0)) % pool.length].replace('${subject}', subject)
-  return sentence(raw)
+  const pool = ctaPool(form, goal)
+  return sentence(pool[(Number(version || 0) + Number(cycle || 0)) % pool.length])
 }
 
 function toneLine(line, form, mode) {
@@ -318,9 +387,8 @@ function toneLine(line, form, mode) {
       .trim()
   }
 
-  if (form.tone === 'Warm & confident') next = next.replace(/kita/g, 'kami')
+  if (form.tone === 'Warm & confident') next = next.replace(/\bkita\b/g, 'kami')
   if (form.tone === 'Practical & friendly') next = next.replace(/betul-betul/g, 'memang')
-  if (form.tone === 'Proud & purposeful') next = next.replace(/cerita Brutti/g, 'cara Brutti bikin benda dengan tujuan')
   if (form.tone === 'Helpful') next = next.replace(/yang paling penting/gi, 'yang boleh membantu')
 
   if (mode === 'casual' || form.tone === 'Brutti Sabahan Casual') {
@@ -332,6 +400,16 @@ function toneLine(line, form, mode) {
   }
 
   return next
+}
+
+function fallbackLines(form) {
+  const type = typeFor(form)
+  const subject = subjectFor(form)
+  const en = isEnglish(form)
+  if (type === 'Brand Awareness') return en ? ['That is one more way to understand what Brutti stands for.', 'The story stays simple because the identity itself should be clear.', 'There is still more of the Brutti story to share.'] : ['Yang ni satu lagi cara senang mau faham apa yang Brutti pegang.', 'Cerita dia kita kasi simple sebab identiti tu sendiri patut jelas.', 'Masih banyak lagi cerita Brutti yang boleh dikongsi lepas ni.']
+  if (type === 'Behind the Scenes') return en ? ['The small moments are part of the team story too.', 'That is one memory worth keeping from the day.', 'The people behind the work matter as much as the work itself.'] : ['Moment kecil pun sebahagian dari cerita team.', 'Yang ni satu memory memang berbaloi simpan dari hari tu.', 'Orang di belakang kerja pun sama penting dengan kerja yang orang nampak.']
+  if (type === 'Product Highlight') return en ? [`What matters is how ${subject} fits the real use.`, 'A clear function makes the product easier to understand.', 'The best next step is to compare it with what the space actually needs.'] : [`Yang penting, macam mana ${subject} ngam dengan penggunaan sebenar.`, 'Bila fungsi jelas, produk tu lagi senang difahami.', 'Next step paling senang ialah compare dengan apa ruang tu memang perlukan.']
+  return en ? [`Keep ${subject} close to the real context.`, 'One clear point is enough to keep the story useful.', 'Simple and specific usually works better than saying too much.'] : [`${subject} kita kasi dekat dengan konteks sebenar.`, 'Satu point yang jelas sudah cukup kasi cerita tu berguna.', 'Simple dan specific selalunya lagi ngam daripada cerita terlalu banyak.']
 }
 
 function enforceShape(lines, verifiedText, form, mode) {
@@ -360,23 +438,11 @@ function enforceShape(lines, verifiedText, form, mode) {
 
   const minLines = mode === 'shorten' ? 7 : 8
   const maxLines = mode === 'shorten' ? 7 : 13
-  const subject = subjectFor(form)
-  const fallback = isEnglish(form)
-    ? [
-        `Keep ${subject} tied to the real need instead of adding generic claims.`,
-        'The wording can stay natural while the facts stay exactly the same.',
-        'One clear message is stronger than trying to say everything at once.',
-      ]
-    : [
-        `${subject} kita kasi dekat dengan keperluan sebenar, bukan tambah claim generic.`,
-        'Ayat boleh santai, tapi fakta asal mesti kekal sama.',
-        'Satu mesej yang jelas lagi kuat daripada cuba cerita semua benda sekali gus.',
-      ]
-
+  const fallback = fallbackLines(form)
   let cursor = 0
   while (unique.length < minLines && cursor < fallback.length) {
     const next = sentence(fallback[cursor])
-    if (!unique.includes(next)) unique.splice(Math.max(1, unique.length - 1), 0, next)
+    if (!unique.some((line) => line.toLowerCase() === next.toLowerCase())) unique.splice(Math.max(1, unique.length - 1), 0, next)
     cursor += 1
   }
 
@@ -390,35 +456,28 @@ function orderFacts(facts, version) {
   return [...facts]
 }
 
-function compressFacts(facts, limit = 3) {
-  return facts.slice(0, limit)
-}
-
 function buildBody(form, context, mode, version, cycle) {
   const facts = orderFacts(context.verifiedFacts, version)
-  const keyLine = keyMessageLine(form, context.strategy, version)
-  const directionLine = directionBridge(form, context.strategy, version)
-  const objectiveLine = objectiveBridge(form, context.strategy, version, mode)
-  const support = supportLine(form, context.strategy, version, mode)
-  const cta = ctaFor(form, context.strategy, mode, version, cycle)
   const hook = hookFor(form, context.strategy, mode, version, cycle)
+  const keyLine = keyMessageLine(form, context.strategy, version)
+  const bridge = contentBridge(form, context.strategy, version, mode)
+  const support = supportLine(form, version)
+  const cta = ctaFor(form, context.strategy, mode, version, cycle)
 
   if (mode === 'shorten') {
-    const shortFacts = compressFacts(facts, 3)
-    return [hook, ...shortFacts, keyLine || objectiveLine, support, cta]
+    return [hook, ...facts.slice(0, 3), keyLine || bridge, support, cta]
   }
 
   if (version === 1) {
-    return [hook, objectiveLine, ...facts, keyLine, directionLine, support, cta]
+    return [hook, bridge, ...facts, keyLine, support, cta]
   }
 
   if (version === 2) {
     const firstFact = facts[0] || ''
-    const rest = facts.slice(1)
-    return [hook, firstFact, directionLine || objectiveLine, ...rest, keyLine, support, cta]
+    return [hook, firstFact, bridge, ...facts.slice(1), keyLine, support, cta]
   }
 
-  return [hook, ...facts, keyLine, directionLine, objectiveLine, support, cta]
+  return [hook, ...facts, keyLine, bridge, support, cta]
 }
 
 export function buildContentStudioContext(form, controls = {}) {
@@ -427,7 +486,7 @@ export function buildContentStudioContext(form, controls = {}) {
     source: SOUL_SOURCE_LABEL,
     subject: subjectFor(form),
     platform: form.platform || 'Facebook',
-    contentType: form.type || 'Brand Awareness',
+    contentType: typeFor(form),
     language: form.language || 'Bahasa Melayu',
     tone: form.tone || 'Brutti Sabahan Casual',
     verifiedFacts: splitFacts(form.brief),
@@ -440,8 +499,7 @@ export function buildContentStudioContext(form, controls = {}) {
 export function buildContentStudioDraft(form, controls = {}, mode = 'balanced', variation = 0, cycle = 0) {
   const context = buildContentStudioContext(form, controls)
   const version = Math.min(Math.max(Number(variation) || 0, 0), 2)
-  const body = buildBody(form, context, mode, version, cycle)
-  return enforceShape(body, form.brief, form, mode).join('\n')
+  return enforceShape(buildBody(form, context, mode, version, cycle), form.brief, form, mode).join('\n')
 }
 
 export function buildContentStudioDirection(form, controls = {}) {
