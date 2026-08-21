@@ -1,8 +1,16 @@
 import { useEffect } from 'react'
 import ContentStudioV2Enhancer from './ContentStudioV2Enhancer'
 import { applyBruttiSoulPolicy, soulHashtagStatus, soulPolicyLabel } from './lib/contentStudioSoulPolicy'
+import {
+  mergeProductContext,
+  productContextBlock,
+  productContextMeta,
+  resolveVerifiedProduct,
+} from './lib/contentStudioProductContext'
 
 let activeSoulMode = 'balanced'
+let lastProductBlock = ''
+let productSyncToken = 0
 
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
@@ -17,6 +25,11 @@ function field(page, labelPrefix, selector) {
   const label = [...page.querySelectorAll('label')]
     .find((item) => clean(item.textContent).startsWith(labelPrefix))
   return label?.querySelector(selector) || null
+}
+
+function fieldLabel(page, labelPrefix) {
+  return [...page.querySelectorAll('label')]
+    .find((item) => clean(item.textContent).startsWith(labelPrefix)) || null
 }
 
 function readForm(page) {
@@ -50,6 +63,75 @@ function setReactValue(element, value) {
   else element.value = value
   element.dispatchEvent(new Event('input', { bubbles: true }))
   element.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
+function ensureProductContextPanel(page) {
+  const productLabel = fieldLabel(page, 'Product')
+  if (!productLabel) return null
+
+  let panel = page.querySelector('.content-studio-product-context')
+  if (!panel) {
+    panel = document.createElement('div')
+    panel.className = 'content-studio-product-context'
+    panel.style.cssText = 'margin-top:-2px;padding:10px 12px;border:1px solid color-mix(in srgb,currentColor 13%,transparent);border-radius:10px;display:grid;gap:3px;font-size:12px;line-height:1.45;opacity:.82;'
+    panel.innerHTML = '<strong>Verified product context</strong><span data-product-context-copy>Pilih produk untuk semak fakta verified yang boleh digunakan.</span><small data-product-context-source></small>'
+    productLabel.insertAdjacentElement('afterend', panel)
+  }
+  return panel
+}
+
+function updateProductContextPanel(page, productName, record) {
+  const panel = ensureProductContextPanel(page)
+  if (!panel) return
+  const copy = panel.querySelector('[data-product-context-copy]')
+  const source = panel.querySelector('[data-product-context-source]')
+
+  if (!productName || productName === 'General / No Product') {
+    if (copy) copy.textContent = 'General content — tiada product facts ditambah.'
+    if (source) source.textContent = 'Source: none'
+    return
+  }
+
+  if (!record) {
+    if (copy) copy.textContent = 'Tiada verified product record ditemui. Masukkan fakta sendiri sebelum generate.'
+    if (source) source.textContent = 'Source: not verified'
+    return
+  }
+
+  const meta = productContextMeta(record)
+  if (copy) {
+    copy.textContent = meta.nameOnly
+      ? 'Nama produk verified. Detail seperti harga, material, dimensi dan warna tidak akan direka.'
+      : `${meta.detailCount} detail verified tersedia dan ditambah ke Verified facts bila ada.`
+  }
+  if (source) source.textContent = `Source: ${meta.source}`
+}
+
+async function syncProductContext(page = activeStudio()) {
+  if (!page) return
+  const productSelect = field(page, 'Product', 'select')
+  const brief = field(page, 'Verified facts', 'textarea') || field(page, 'Verified facts / direction', 'textarea')
+  if (!productSelect || !brief) return
+
+  const productName = productSelect.value || 'General / No Product'
+  const token = ++productSyncToken
+
+  if (productName === 'General / No Product') {
+    const nextBrief = mergeProductContext(brief.value, lastProductBlock, '')
+    lastProductBlock = ''
+    if (nextBrief !== brief.value) setReactValue(brief, nextBrief)
+    updateProductContextPanel(page, productName, null)
+    return
+  }
+
+  const record = await resolveVerifiedProduct(productName)
+  if (token !== productSyncToken) return
+
+  const nextBlock = record ? productContextBlock(record) : ''
+  const nextBrief = mergeProductContext(brief.value, lastProductBlock, nextBlock)
+  lastProductBlock = nextBlock
+  if (nextBrief !== brief.value) setReactValue(brief, nextBrief)
+  updateProductContextPanel(page, productName, record)
 }
 
 function soulLockOutput(applyCaption = true) {
@@ -112,21 +194,34 @@ export default function ContentStudioController() {
         schedule(190, true)
       } else if (button?.closest('.nav-link, .mobile-bottom-navigation')) {
         schedule(120, false)
+        window.setTimeout(() => {
+          const page = activeStudio()
+          if (page) syncProductContext(page)
+        }, 140)
       }
     }
 
     const onChange = (event) => {
+      const page = activeStudio()
+      if (!page) return
+      const productSelect = field(page, 'Product', 'select')
+      if (event.target === productSelect) syncProductContext(page)
       if (event.target.matches?.('select') && event.target.closest?.('.generator-form')) schedule(80, false)
     }
 
     const root = document.getElementById('root')
-    const observer = new MutationObserver(() => schedule(80, false))
+    const observer = new MutationObserver(() => {
+      schedule(80, false)
+      const page = activeStudio()
+      if (page) ensureProductContextPanel(page)
+    })
     if (root) observer.observe(root, { childList: true, subtree: true })
 
     document.addEventListener('submit', onSubmit, true)
     document.addEventListener('click', onClick, true)
     document.addEventListener('change', onChange, true)
     schedule(80, false)
+    window.setTimeout(() => syncProductContext(activeStudio()), 120)
 
     return () => {
       window.clearTimeout(timer)
