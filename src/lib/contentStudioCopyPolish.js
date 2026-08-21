@@ -75,6 +75,16 @@ function replacementFor(line, form, mode) {
     return 'Kalau benda ni memang dekat dengan keperluan kamu, barula next step rasa lebih jelas.'
   }
 
+  if (/^Moment kecil tu penting sebab dia kasi cerita team kekal human\.?$/i.test(line)) {
+    return 'Bila keluar sekejap dari rutin kerja, sisi team macam ni yang kasi cerita tu rasa lebih dekat.'
+  }
+  if (/^Moment kecil macam ni yang kasi cerita tu tidak rasa dibuat-buat\.?$/i.test(line)) {
+    return 'Benda santai macam ni yang kasi cerita team tu rasa lebih natural.'
+  }
+  if (/^Moment kecil pun sebahagian dari cerita team\.?$/i.test(line)) {
+    return 'Yang santai-santai macam ni pun sebahagian dari cerita team.'
+  }
+
   if (professional) {
     return line
       .replace(/^Kalau ada satu benda mahu ingat, yang ni la:/i, 'Perkara utama yang perlu diingat ialah:')
@@ -85,11 +95,24 @@ function replacementFor(line, form, mode) {
   return line
 }
 
+function reduceRepeatedPhrases(lines) {
+  let momentCount = 0
+  return lines.map((line) => {
+    if (/moment kecil/i.test(line)) {
+      momentCount += 1
+      if (momentCount === 2) return line.replace(/moment kecil/gi, 'sisi santai')
+      if (momentCount >= 3) return line.replace(/moment kecil/gi, 'memory macam ni')
+    }
+    return line
+  })
+}
+
 export function polishContentStudioCaption(caption, form = {}, mode = 'balanced') {
-  return String(caption || '')
+  const polished = String(caption || '')
     .split('\n')
     .map((line) => clean(line))
     .filter(Boolean)
     .map((line) => replacementFor(line, form, mode))
-    .join('\n')
+
+  return reduceRepeatedPhrases(polished).join('\n')
 }
