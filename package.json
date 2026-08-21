@@ -8,8 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "quality": "node scripts/content-studio-quality-smoke.mjs",
+    "quality:soul": "node scripts/content-studio-soul-policy-smoke.mjs",
     "check:css": "node scripts/css-balance-check.mjs",
-    "check": "eslint . && npm run quality && npm run check:css"
+    "check": "eslint . && npm run quality && npm run quality:soul && npm run check:css"
   },
   "dependencies": {
     "react": "^19.1.1",
