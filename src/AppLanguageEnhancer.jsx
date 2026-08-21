@@ -107,7 +107,7 @@ function LanguageControl({ language, onChange }) {
   return (
     <section className="panel app-language-panel" aria-label="App language settings">
       <div>
-        <span className="eyebrow">APP LANGUAGE</span>
+        <span className="eyebrow">App Language</span>
         <h3>{language === 'bm' ? 'Bahasa paparan' : 'Display language'}</h3>
         <p>{language === 'bm'
           ? 'Pilih satu bahasa utama untuk copy bantuan dalam app. Nama modul standard seperti Dashboard, Content Studio dan Analytics dikekalkan supaya fungsi dalaman tidak terganggu.'
