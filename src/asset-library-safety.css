@@ -1,0 +1,30 @@
+.asset-staging-safety {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+.asset-staging-safety span {
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px;
+  border: 1px solid var(--line, rgba(0,0,0,.12));
+  border-radius: 12px;
+  background: var(--surface, rgba(255,255,255,.7));
+}
+
+.asset-staging-safety strong {
+  font-size: .88rem;
+}
+
+.asset-staging-safety small {
+  opacity: .72;
+  line-height: 1.35;
+}
+
+@media (max-width: 760px) {
+  .asset-staging-safety {
+    grid-template-columns: 1fr;
+  }
+}
