@@ -19,4 +19,12 @@ export default [
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^(workspaceActive|strategy)$' }],
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.node,
+      parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+    },
+  },
 ]
