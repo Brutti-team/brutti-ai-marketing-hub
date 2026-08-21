@@ -14,22 +14,10 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/brutti-app-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "icons/brutti-official-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "icons/brutti-app-icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/brutti-app-icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -37,19 +25,19 @@
       "name": "Create content",
       "short_name": "Content Studio",
       "url": "/brutti-ai-marketing-hub/?page=studio",
-      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icons/brutti-official-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Open campaign planner",
       "short_name": "Planner",
       "url": "/brutti-ai-marketing-hub/?page=planner",
-      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icons/brutti-official-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Browse approved assets",
       "short_name": "Assets",
       "url": "/brutti-ai-marketing-hub/?page=assets",
-      "icons": [{ "src": "icons/brutti-app-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icons/brutti-official-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }
