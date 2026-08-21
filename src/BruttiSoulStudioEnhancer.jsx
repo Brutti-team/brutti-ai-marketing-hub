@@ -365,9 +365,24 @@ export default function BruttiSoulStudioEnhancer() {
 return
 }
 
-if (button.closest('.nav-link') || button.closest('.tab-bar')) scheduleSync()
+if (button.closest('.variation-row')) {
+  const match = clean(button.textContent).match(/(\d+)/)
+
+  const variation = Math.max(
+    0,
+    Number(match?.[1] || 1) - 1,
+  )
+
+  window.setTimeout(
+    () => applySoulDraft(activeRewriteMode, variation),
+    35,
+  )
+
+  return
 }
 
+if (button.closest('.nav-link') || button.closest('.tab-bar')) scheduleSync()
+}
 const onSubmit = (event) => {
   if (!event.target.matches?.('.generator-form')) return
   window.setTimeout(() => applySoulDraft('balanced', 0), 35)
