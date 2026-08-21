@@ -6,7 +6,6 @@ import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
-import ContentStudioController from './ContentStudioController.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -50,7 +49,6 @@ function preloadForPage(label) {
     loadProductImage()
     loadProductCatalogQuality()
   }
-  if (label === 'Content Studio') loadProductImage()
   if (label === 'Asset Library') loadAssetLibrary()
   if (label === 'Analytics') {
     loadAnalyticsCopy()
@@ -105,7 +103,7 @@ export function DeferredEnhancers() {
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
-      {(page === 'Product Library' || page === 'Content Studio') ? <ProductImageEnhancer /> : null}
+      {page === 'Product Library' ? <ProductImageEnhancer /> : null}
       {page === 'Product Library' ? <ProductCatalogQualityEnhancer /> : null}
       {page === 'Asset Library' ? <AssetLibraryEnhancer /> : null}
       {page === 'Analytics' ? <AnalyticsCopyPolish /> : null}
@@ -121,7 +119,6 @@ createRoot(document.getElementById('root')).render(
     <AccessibilityThemeEnhancer />
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
-    <ContentStudioController />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
