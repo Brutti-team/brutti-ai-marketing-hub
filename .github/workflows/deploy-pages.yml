@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages-${{ github.ref }}
@@ -34,6 +36,9 @@ jobs:
         # Public endpoint only; credentials remain in Apps Script Properties.
         env:
           VITE_APPS_SCRIPT_URL: https://script.google.com/macros/s/AKfycbwmr3wQO5wJyjITXxUpIJDREOYvZsBhBfT2kpqJ6nIw_11s1hXw3Jpd1fq_pcbE1n3X/exec
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
@@ -43,9 +48,6 @@ jobs:
   deploy:
     if: github.event_name != 'pull_request'
     needs: validate
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
