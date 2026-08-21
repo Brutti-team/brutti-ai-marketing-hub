@@ -11,9 +11,6 @@ import ContentStudioAssetContextGuard from './ContentStudioAssetContextGuard.jsx
 import ContentLanguagePreferenceEnhancer from './ContentLanguagePreferenceEnhancer.jsx'
 import PlannerContentStudioHandoffEnhancer from './PlannerContentStudioHandoffEnhancer.jsx'
 import UiBrandPolishEnhancer from './UiBrandPolishEnhancer.jsx'
-import AppLanguageEnhancer from './AppLanguageEnhancer.jsx'
-import LowRiskUiPolishEnhancer from './LowRiskUiPolishEnhancer.jsx'
-import AssetLibrarySafetyEnhancer from './AssetLibrarySafetyEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -31,9 +28,6 @@ import './pwa-mobile.css'
 import './interface-cleanup.css'
 import './free-assist-output.css'
 import './content-studio-v2.css'
-import './app-language.css'
-import './low-risk-ui-polish.css'
-import './asset-library-safety.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
@@ -136,9 +130,6 @@ createRoot(document.getElementById('root')).render(
     <ContentLanguagePreferenceEnhancer />
     <PlannerContentStudioHandoffEnhancer />
     <UiBrandPolishEnhancer />
-    <AppLanguageEnhancer />
-    <LowRiskUiPolishEnhancer />
-    <AssetLibrarySafetyEnhancer />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
