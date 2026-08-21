@@ -77,6 +77,26 @@ function setFirstTextNode(button, value) {
   if (textNode) textNode.textContent = value
 }
 
+function objectiveForRecommendation(recommendation) {
+  const text = clean(`${recommendation.objective || ''} ${recommendation.formType || ''}`).toLowerCase()
+  if (/trust/.test(text)) return 'Trust'
+  if (/engagement/.test(text)) return 'Engagement'
+  if (/education/.test(text)) return 'Education'
+  if (/conversion|promotion/.test(text)) return 'Conversion'
+  if (/product story|product highlight|consideration/.test(text)) return 'Consideration'
+  return 'Awareness'
+}
+
+function angleForRecommendation(recommendation) {
+  const type = recommendation.formType || 'Brand Awareness'
+  if (type === 'Product Highlight') return 'Storytelling'
+  if (type === 'Educational') return 'Practical Tip'
+  if (type === 'Behind the Scenes') return 'Human / Behind the Scenes'
+  if (type === 'Customer Story') return 'Customer Journey'
+  if (type === 'Promotion') return 'Offer + Reason to Act'
+  return 'Storytelling'
+}
+
 async function loadRecommendationIntoStudio(recommendation) {
   findNavButton('Content Studio')?.click()
   const page = await waitFor(() => findActivePage('Content Studio'))
@@ -90,14 +110,26 @@ async function loadRecommendationIntoStudio(recommendation) {
   setReactValue(findLabelControl(page, 'Content title', 'input'), recommendation.title)
   setReactValue(findLabelControl(page, 'Content type', 'select'), recommendation.formType)
 
+  const verifiedFacts = findLabelControl(page, 'Verified facts', 'textarea') || findLabelControl(page, 'Verified facts / direction', 'textarea')
+  setReactValue(verifiedFacts, '')
+
   const productSelect = findLabelControl(page, 'Product', 'select')
   const productExists = [...(productSelect?.options || [])]
     .some((option) => option.value === recommendation.product)
   setReactValue(productSelect, productExists ? recommendation.product : 'General / No Product')
-  setReactValue(findLabelControl(page, 'Verified facts / direction', 'textarea'), recommendation.direction)
+
+  const strategyPanel = await waitFor(() => page.querySelector('.content-studio-v2-controls'))
+  if (strategyPanel) {
+    setReactValue(strategyPanel.querySelector('[data-v2="objective"]'), objectiveForRecommendation(recommendation))
+    setReactValue(strategyPanel.querySelector('[data-v2="angle"]'), angleForRecommendation(recommendation))
+    setReactValue(strategyPanel.querySelector('[data-v2="ctaGoal"]'), 'Auto')
+    setReactValue(strategyPanel.querySelector('[data-v2="audience"]'), recommendation.target || '')
+    setReactValue(strategyPanel.querySelector('[data-v2="keyMessage"]'), recommendation.idea || '')
+    setReactValue(strategyPanel.querySelector('[data-v2="direction"]'), recommendation.direction || '')
+  }
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
-  findLabelControl(page, 'Content title', 'input')?.focus()
+  verifiedFacts?.focus()
 }
 
 async function addRecommendationToPlanner(recommendation) {
@@ -114,7 +146,7 @@ async function addRecommendationToPlanner(recommendation) {
 
   setReactValue(findLabelControl(modal, 'Plan title', 'input'), recommendation.title)
   setReactValue(findLabelControl(modal, 'Date', 'input'), todayKey())
-  setReactValue(findLabelControl(modal, 'Status', 'select'), 'Draft')
+  setReactValue(findLabelControl(modal, 'Status', 'select'), 'Idea')
   setReactValue(findLabelControl(modal, 'Content type', 'select'), recommendation.formType)
   setReactValue(findLabelControl(modal, 'Channel', 'select'), 'Facebook')
 
@@ -153,7 +185,7 @@ function syncRecommendation() {
   const buttons = [...hero.querySelectorAll('.hero-buttons button')]
   const useButton = buttons[0]
   const plannerButton = buttons[1]
-  setFirstTextNode(useButton, 'Use This Idea ')
+  setFirstTextNode(useButton, 'Use Idea + Add Facts ')
   setText(plannerButton, 'Add to Planner')
   bindAction(useButton, 'soulUseIdea', () => loadRecommendationIntoStudio(recommendation))
   bindAction(plannerButton, 'soulAddPlanner', () => addRecommendationToPlanner(recommendation))
