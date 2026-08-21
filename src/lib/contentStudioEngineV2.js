@@ -77,7 +77,7 @@ function strategyFor(form, controls = {}) {
   const type = form.type || 'Brand Awareness'
   return {
     objective: controls.objective && controls.objective !== 'Auto' ? controls.objective : OBJECTIVE_DEFAULTS[type] || 'Awareness',
-    audience: clean(controls.audience) || 'Brutti followers and potential customers in Sabah',
+    audience: clean(controls.audience) || 'Homeowners dan pelanggan Brutti di Sabah',
     angle: controls.angle && controls.angle !== 'Auto' ? controls.angle : ANGLE_DEFAULTS[type] || 'Storytelling',
     direction: clean(controls.direction),
     ctaGoal: controls.ctaGoal && controls.ctaGoal !== 'Auto' ? controls.ctaGoal : 'Natural CTA',
@@ -169,6 +169,8 @@ function supportLine(form, strategy) {
   if (type === 'Customer Story') return sentence(en ? 'Keep the real customer need at the centre of the story.' : 'Keperluan sebenar customer tetap jadi pusat cerita ni.')
   if (type === 'Educational') return sentence(en ? 'Make the useful point specific enough to apply in a real situation.' : 'Tip tu mesti cukup specific supaya orang boleh apply dalam situasi sebenar.')
   if (type === 'Promotion') return sentence(en ? 'Any price, period or offer detail must stay exactly within the verified information.' : 'Kalau ada harga, tempoh atau promo, semua kena ikut info yang sudah confirm.')
+  if (strategy.objective === 'Engagement') return sentence(en ? 'Keep one human detail strong enough to invite a natural reaction.' : 'Pilih satu detail human yang kuat supaya orang senang react secara natural.')
+  if (strategy.objective === 'Trust') return sentence(en ? 'Specific real details should carry the story instead of broad brand claims.' : 'Biar detail sebenar yang bawa cerita, bukan claim brand yang terlalu umum.')
   return sentence(en ? 'Use a real Brutti point of view instead of generic marketing language.' : 'Guna sudut pandang Brutti yang sebenar, bukan ayat marketing generic.')
 }
 
