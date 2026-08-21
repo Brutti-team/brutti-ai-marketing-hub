@@ -8,6 +8,7 @@ import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulStudioEnhancer from './BruttiSoulStudioEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
 import FreeAssistOutputEnhancer from './FreeAssistOutputEnhancer.jsx'
+import FreeAssistOutputGuard from './FreeAssistOutputGuard.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -129,6 +130,7 @@ createRoot(document.getElementById('root')).render(
     <HistoricalPostingTimeEnhancer />
     <BruttiSoulStudioEnhancer />
     <FreeAssistOutputEnhancer />
+    <FreeAssistOutputGuard />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
