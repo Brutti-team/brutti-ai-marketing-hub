@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 const LANGUAGE_KEY = 'brutti-app-language-v1'
 
 const PAGE_DESCRIPTIONS = {
-  dashboard: {
+  Dashboard: {
     bm: 'Rancang kerja hari ini, semak draft dan gerakkan pemasaran BRUTTI dari satu workspace.',
     en: 'Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace.',
   },
@@ -50,18 +50,21 @@ function readLanguage() {
   }
 }
 
+function setText(node, value) {
+  if (node && node.textContent !== value) node.textContent = value
+}
+
 function applySafeInterfaceCopy(language) {
   const bm = language === 'bm'
   const pageTitle = document.querySelector('#root .page .page-header h1')?.textContent?.trim()
   const description = document.querySelector('#root .page .page-header p')
   if (description && pageTitle) {
     const copy = PAGE_DESCRIPTIONS[pageTitle]
-    if (copy) description.textContent = copy[language]
+    if (copy) setText(description, copy[language])
   }
 
   document.querySelectorAll('.settings-panel .connections-list article').forEach((article) => {
-    const button = article.querySelector('button')
-    if (button) button.textContent = bm ? 'Semak' : 'Check'
+    setText(article.querySelector('button'), bm ? 'Semak' : 'Check')
   })
 
   document.querySelectorAll('.setting-row').forEach((row) => {
@@ -82,19 +85,21 @@ function applySafeInterfaceCopy(language) {
         en: 'Other platforms remain disabled until data and connections exist.',
       },
     }[title]
-    if (copy) descriptionNode.textContent = copy[language]
+    if (copy) setText(descriptionNode, copy[language])
   })
 
   const assetHelper = document.querySelector('.asset-upgrade-helper p')
   if (assetHelper) {
-    const hasDrive = Boolean(document.querySelector('.asset-upgrade-statusline')?.textContent?.match(/\bDrive\b/))
-    assetHelper.textContent = bm
-      ? (hasDrive
+    const status = document.querySelector('.asset-upgrade-statusline')?.textContent || ''
+    const driveCount = Number(status.match(/(\d+)\s+Drive\b/)?.[1] || 0)
+    const value = bm
+      ? (driveCount > 0
           ? 'Asset Drive boleh terus digunakan dalam Content Studio. Upload baru kekal sebagai local staging sehingga dimasukkan ke Drive.'
           : 'Library sedang menggunakan reference/local staging. Sambungkan Google Drive untuk guna visual terus dalam Content Studio.')
-      : (hasDrive
+      : (driveCount > 0
           ? 'Drive assets can be used directly in Content Studio. New uploads remain in local staging until moved to Drive.'
           : 'The library is using references/local staging. Connect Google Drive to use visuals directly in Content Studio.')
+    setText(assetHelper, value)
   }
 }
 
