@@ -7,6 +7,7 @@ import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnha
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
 import ContentStudioController from './ContentStudioController.jsx'
+import ContentStudioAssetContextGuard from './ContentStudioAssetContextGuard.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -122,6 +123,7 @@ createRoot(document.getElementById('root')).render(
     <DailyContentRecommendationEnhancer />
     <HistoricalPostingTimeEnhancer />
     <ContentStudioController />
+    <ContentStudioAssetContextGuard />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
