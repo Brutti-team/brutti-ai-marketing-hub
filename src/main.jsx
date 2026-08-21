@@ -10,6 +10,7 @@ import ContentStudioController from './ContentStudioController.jsx'
 import ContentStudioAssetContextGuard from './ContentStudioAssetContextGuard.jsx'
 import ContentLanguagePreferenceEnhancer from './ContentLanguagePreferenceEnhancer.jsx'
 import PlannerContentStudioHandoffEnhancer from './PlannerContentStudioHandoffEnhancer.jsx'
+import UiBrandPolishEnhancer from './UiBrandPolishEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -128,6 +129,7 @@ createRoot(document.getElementById('root')).render(
     <ContentStudioAssetContextGuard />
     <ContentLanguagePreferenceEnhancer />
     <PlannerContentStudioHandoffEnhancer />
+    <UiBrandPolishEnhancer />
     <BruttiSoulSystemEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
