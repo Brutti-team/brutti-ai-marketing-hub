@@ -20,10 +20,25 @@ const LOGOS = {
     </svg>`,
 }
 
+const DETAIL_COPY = {
+  'Google Sheets': 'Content Library, Brutti Daily Content Planner and Integration Log',
+  'Google Drive': 'Brutti AI Marketing System and approved assets',
+  Notion: 'Product Database and Brutti Daily Content Planner sync through Apps Script',
+}
+
+function setText(node, value) {
+  if (node && node.textContent !== value) node.textContent = value
+}
+
 function decorate() {
   document.querySelectorAll('.settings-panel .connections-list article').forEach((article) => {
     const title = article.querySelector('strong')?.textContent?.trim()
-    const markup = title ? LOGOS[title] : null
+    if (!title) return
+
+    const detail = DETAIL_COPY[title]
+    if (detail) setText(article.querySelector('p'), detail)
+
+    const markup = LOGOS[title]
     const icon = article.querySelector('.connection-icon')
     if (!markup || !icon || icon.dataset.integrationBrand === title) return
     icon.dataset.integrationBrand = title
