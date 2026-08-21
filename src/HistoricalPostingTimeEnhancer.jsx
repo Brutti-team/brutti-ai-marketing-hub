@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 // Source: supplied Facebook export reaction activity.
 // We isolated 440 reaction timestamps tied directly to Brutti-owned page content
 // and converted the export timestamps to Malaysia time (+08:00) for scheduling.
+// Recommendations are constrained to Brutti office hours: 8:30 am–5:00 pm.
 // This is an audience-activity proxy, not official Meta reach/impression analytics.
 
 const WEEKDAY_TIMING = {
@@ -17,6 +18,9 @@ const WEEKDAY_TIMING = {
 }
 
 const MIN_LEAD_MINUTES = 35
+const OFFICE_START_MINUTES = (8 * 60) + 30
+const OFFICE_END_MINUTES = 17 * 60
+const PRACTICAL_STEP_MINUTES = 30
 
 function sameLocalDay(a, b) {
   return a.getFullYear() === b.getFullYear()
@@ -31,10 +35,18 @@ function plusDays(date, days) {
   return next
 }
 
-function hourDate(date, hour) {
+function minuteDate(date, minutes) {
   const next = new Date(date)
-  next.setHours(hour, 0, 0, 0)
+  next.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0)
   return next
+}
+
+function minutesOfDay(date) {
+  return (date.getHours() * 60) + date.getMinutes()
+}
+
+function ceilToStep(minutes, step = PRACTICAL_STEP_MINUTES) {
+  return Math.ceil(minutes / step) * step
 }
 
 function formatTime(date) {
@@ -53,45 +65,110 @@ function confidenceFor(stats) {
   return 'Low'
 }
 
+function rankedOfficeCandidates(date, stats) {
+  return stats.slots
+    .map((hour, rank) => {
+      const historicalStart = hour * 60
+      const historicalEnd = (hour + 1) * 60
+      const windowStart = Math.max(historicalStart, OFFICE_START_MINUTES)
+      const windowEnd = Math.min(historicalEnd, OFFICE_END_MINUTES)
+      if (windowEnd <= windowStart) return null
+      return {
+        rank,
+        startMinutes: windowStart,
+        endMinutes: windowEnd,
+        date: minuteDate(date, windowStart),
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.rank - b.rank)
+}
+
+function practicalOfficeFallback(date, cutoff) {
+  const cutoffMinutes = minutesOfDay(cutoff)
+  const nextMinutes = Math.max(OFFICE_START_MINUTES, ceilToStep(cutoffMinutes))
+  if (nextMinutes > OFFICE_END_MINUTES) return null
+
+  const start = minuteDate(date, nextMinutes)
+  const windowStartMinutes = Math.max(OFFICE_START_MINUTES, nextMinutes - PRACTICAL_STEP_MINUTES)
+  const windowStart = minuteDate(date, windowStartMinutes)
+  const windowEnd = minuteDate(date, OFFICE_END_MINUTES)
+
+  return {
+    start,
+    windowStart,
+    windowEnd,
+    fallback: true,
+  }
+}
+
 function getHistoricalPostingTime(targetDate = new Date(), respectCurrentTime = false) {
   const now = new Date()
   let date = new Date(targetDate)
   date.setHours(0, 0, 0, 0)
   let stats = WEEKDAY_TIMING[date.getDay()]
-  let chosenHour = stats.slots[0]
   let shiftedToNextDay = false
+  let fallback = false
+  let start
+  let windowStart
+  let windowEnd
+
+  const chooseTopHistorical = () => {
+    const candidate = rankedOfficeCandidates(date, stats)[0]
+    if (!candidate) return false
+    start = candidate.date
+    windowStart = minuteDate(date, candidate.startMinutes)
+    windowEnd = minuteDate(date, candidate.endMinutes)
+    return true
+  }
 
   if (respectCurrentTime && sameLocalDay(date, now)) {
     const cutoff = new Date(now.getTime() + MIN_LEAD_MINUTES * 60 * 1000)
-    const available = stats.slots
-      .map((hour, rank) => ({ hour, rank, date: hourDate(date, hour) }))
+    const available = rankedOfficeCandidates(date, stats)
       .filter((item) => item.date >= cutoff)
-      .sort((a, b) => a.rank - b.rank)
 
     if (available.length) {
-      chosenHour = available[0].hour
+      const candidate = available[0]
+      start = candidate.date
+      windowStart = minuteDate(date, candidate.startMinutes)
+      windowEnd = minuteDate(date, candidate.endMinutes)
     } else {
-      date = plusDays(date, 1)
-      stats = WEEKDAY_TIMING[date.getDay()]
-      chosenHour = stats.slots[0]
-      shiftedToNextDay = true
+      const practical = practicalOfficeFallback(date, cutoff)
+      if (practical) {
+        start = practical.start
+        windowStart = practical.windowStart
+        windowEnd = practical.windowEnd
+        fallback = true
+      } else {
+        date = plusDays(date, 1)
+        stats = WEEKDAY_TIMING[date.getDay()]
+        shiftedToNextDay = true
+        chooseTopHistorical()
+      }
     }
+  } else {
+    chooseTopHistorical()
   }
 
-  const start = hourDate(date, chosenHour)
-  const end = new Date(start.getTime() + 60 * 60 * 1000)
+  if (!start) {
+    start = minuteDate(date, OFFICE_START_MINUTES)
+    windowStart = minuteDate(date, OFFICE_START_MINUTES)
+    windowEnd = minuteDate(date, Math.min(OFFICE_START_MINUTES + 30, OFFICE_END_MINUTES))
+    fallback = true
+  }
 
   return {
     date,
     dateKey: dateKey(date),
     dayLabel: stats.label,
     time: formatTime(start),
-    window: `${formatTime(start)}–${formatTime(end)}`,
+    window: `${formatTime(windowStart)}–${formatTime(windowEnd)}`,
     confidence: confidenceFor(stats),
     reactions: stats.reactions,
     urls: stats.urls,
     shiftedToNextDay,
-    mode: 'Historical Smart Timing',
+    fallback,
+    mode: 'Historical Smart Timing · Office Hours',
     source: 'Brutti-owned Facebook reaction activity proxy',
   }
 }
@@ -112,16 +189,17 @@ function setMarkup(node, markup) {
 
 function timingCardMarkup(timing) {
   const when = timing.shiftedToNextDay ? `Tomorrow · ${timing.dayLabel}` : timing.dayLabel
+  const timingLabel = timing.fallback ? 'practical office-hours slot' : 'best historical window'
   return `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
         <span style="display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;opacity:.72;margin-bottom:4px">Best time to post · ${timing.mode}</span>
         <strong style="display:block;font-size:24px;line-height:1.1">${timing.time}</strong>
-        <span style="display:block;margin-top:4px;font-size:12px;opacity:.82">${when} · best activity window ${timing.window}</span>
+        <span style="display:block;margin-top:4px;font-size:12px;opacity:.82">${when} · ${timingLabel} ${timing.window}</span>
       </div>
       <span style="padding:6px 9px;border:1px solid currentColor;border-radius:999px;font-size:11px;opacity:.8">Confidence: ${timing.confidence}</span>
     </div>
-    <small style="display:block;margin-top:9px;line-height:1.45;opacity:.68">Based on ${timing.reactions} historical reaction signals across ${timing.urls} Brutti-owned content URLs for ${timing.dayLabel}s. Proxy only — not live Meta Insights.</small>
+    <small style="display:block;margin-top:9px;line-height:1.45;opacity:.68">Based on ${timing.reactions} historical reaction signals across ${timing.urls} Brutti-owned content URLs for ${timing.dayLabel}s. Recommendations are limited to Brutti office hours, 8:30 am–5:00 pm. Proxy only — not live Meta Insights.</small>
   `
 }
 
@@ -159,7 +237,7 @@ function syncPlannerTiming() {
     summary.insertAdjacentElement('afterend', strip)
   }
   const when = timing.shiftedToNextDay ? `Tomorrow · ${timing.dayLabel}` : `Today · ${timing.dayLabel}`
-  const markup = `<span><strong>Historical Smart Timing</strong> · ${when}: <strong>${timing.time}</strong> <span style="opacity:.68">(${timing.window})</span></span><span style="opacity:.68">${timing.confidence} confidence · not live Meta</span>`
+  const markup = `<span><strong>Historical Smart Timing · Office Hours</strong> · ${when}: <strong>${timing.time}</strong> <span style="opacity:.68">(${timing.window})</span></span><span style="opacity:.68">8:30 am–5:00 pm · ${timing.confidence} confidence · not live Meta</span>`
   setMarkup(strip, markup)
 }
 
@@ -181,7 +259,8 @@ function syncPlanModalTiming() {
     const dateRow = dateInput.closest('.two-fields')
     dateRow?.insertAdjacentElement('afterend', note)
   }
-  const markup = `<strong>Recommended posting time: ${timing.time}</strong><br><span style="opacity:.7">${timing.dayLabel} historical activity window ${timing.window} · ${timing.confidence} confidence · not live Meta Insights.</span>`
+  const timingLabel = timing.fallback ? 'practical office-hours slot' : 'historical activity window'
+  const markup = `<strong>Recommended posting time: ${timing.time}</strong><br><span style="opacity:.7">${timing.dayLabel} ${timingLabel} ${timing.window} · limited to Brutti office hours 8:30 am–5:00 pm · ${timing.confidence} confidence · not live Meta Insights.</span>`
   setMarkup(note, markup)
 
   if (dateInput.dataset.smartTimingBound !== '1') {
