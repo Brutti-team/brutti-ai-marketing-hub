@@ -22,6 +22,7 @@ function validateCaption(label, caption) {
   const count = lines(caption).length
   assert(count >= 7 && count <= 13, `${label}: expected 7–13 lines, got ${count}`)
   assert(!/RM\s?\d|\d+%|discount|diskaun|free delivery|penghantaran percuma|stok terhad|limited stock|reach|views?|followers?|viral/i.test(caption), `${label}: unsupported claim leaked into output`)
+  assert(!/orang yang baca patut|bahagian human tu mesti|mesej dikekalkan ringkas|elakkan claim|kasi dekat soalan tadi|bagi orang satu sebab|santai boleh, tapi fakta|mula dari fungsi dan detail produk yang sudah confirm dulu/i.test(caption), `${label}: writer-facing meta instruction leaked into final caption`)
 }
 
 const server = await createServer({
@@ -32,8 +33,10 @@ const server = await createServer({
 })
 
 try {
-  const absoluteEnginePath = path.resolve(process.cwd(), 'src/lib/contentStudioEngineV2.js').replaceAll('\\', '/')
-  const engine = await server.ssrLoadModule(`/@fs/${absoluteEnginePath}`)
+  const enginePath = path.resolve(process.cwd(), 'src/lib/contentStudioEngineV2.js').replaceAll('\\', '/')
+  const polishPath = path.resolve(process.cwd(), 'src/lib/contentStudioCopyPolish.js').replaceAll('\\', '/')
+  const engine = await server.ssrLoadModule(`/@fs/${enginePath}`)
+  const polish = await server.ssrLoadModule(`/@fs/${polishPath}`)
   const form = {
     title: 'Portable event display test',
     platform: 'Facebook',
@@ -52,7 +55,13 @@ try {
     ctaGoal: 'Natural CTA',
   }
 
-  const versions = [0, 1, 2].map((version) => engine.buildContentStudioDraft(form, controls, 'balanced', version))
+  const finalDraft = (mode, version, cycle = 0) => polish.polishContentStudioCaption(
+    engine.buildContentStudioDraft(form, controls, mode, version, cycle),
+    form,
+    mode,
+  )
+
+  const versions = [0, 1, 2].map((version) => finalDraft('balanced', version))
   versions.forEach((caption, index) => validateCaption(`Version ${index + 1}`, caption))
   assert(new Set(versions).size === 3, 'Version 1–3 must produce three distinct captions')
   assert(changedLineCount(versions[0], versions[1]) >= 4, 'Version 2 is too similar to Version 1')
@@ -60,13 +69,24 @@ try {
 
   const baseline = versions[0]
   const modes = ['engaging', 'casual', 'professional', 'shorten', 'hook', 'cta']
-  const rewrites = Object.fromEntries(modes.map((mode) => [mode, engine.buildContentStudioDraft(form, controls, mode, 0)]))
+  const rewrites = Object.fromEntries(modes.map((mode) => [mode, finalDraft(mode, 0)]))
   Object.entries(rewrites).forEach(([mode, caption]) => {
     validateCaption(mode, caption)
     assert(caption !== baseline, `${mode}: rewrite did not change the caption`)
     assert(changedLineCount(baseline, caption) >= 2, `${mode}: rewrite is too cosmetic`)
   })
   assert(lines(rewrites.shorten).length === 7, `shorten: expected exactly 7 lines, got ${lines(rewrites.shorten).length}`)
+
+  const nextHook = finalDraft('hook', 0, 1)
+  const nextHookAgain = finalDraft('hook', 0, 2)
+  const nextCta = finalDraft('cta', 0, 1)
+  const nextCtaAgain = finalDraft('cta', 0, 2)
+  validateCaption('new hook cycle 1', nextHook)
+  validateCaption('new hook cycle 2', nextHookAgain)
+  validateCaption('new CTA cycle 1', nextCta)
+  validateCaption('new CTA cycle 2', nextCtaAgain)
+  assert(nextHook !== nextHookAgain, 'New Hook must rotate to a different hook on repeated clicks')
+  assert(nextCta !== nextCtaAgain, 'New CTA must rotate to a different CTA on repeated clicks')
 
   console.log('\n=== CONTENT STUDIO QUALITY SMOKE TEST ===')
   versions.forEach((caption, index) => {
@@ -75,7 +95,9 @@ try {
   Object.entries(rewrites).forEach(([mode, caption]) => {
     console.log(`\n--- Rewrite: ${mode} ---\n${caption}`)
   })
-  console.log('\nPASS: versions are structurally distinct, rewrites are non-cosmetic, length guard passed, unsupported-claim guard passed.')
+  console.log(`\n--- New Hook cycle 2 ---\n${nextHookAgain}`)
+  console.log(`\n--- New CTA cycle 2 ---\n${nextCtaAgain}`)
+  console.log('\nPASS: versions are structurally distinct, rewrites are non-cosmetic, repeated hook/CTA clicks rotate, meta-instructions are removed, length guard passed, unsupported-claim guard passed.')
 } finally {
   await server.close()
 }
