@@ -1,13 +1,10 @@
-const CACHE_NAME = 'brutti-hub-shell-v6'
+const CACHE_NAME = 'brutti-hub-shell-v7'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
   `${APP_SCOPE}manifest.webmanifest`,
   `${APP_SCOPE}offline.html`,
-  `${APP_SCOPE}icons/brutti-app-icon-192.png`,
-  `${APP_SCOPE}icons/brutti-app-icon-512.png`,
-  `${APP_SCOPE}icons/brutti-app-icon-maskable-512.png`,
-  `${APP_SCOPE}icons/brutti-apple-touch-icon.png`,
+  `${APP_SCOPE}icons/brutti-official-logo.svg`,
 ]
 
 self.addEventListener('install', (event) => {
@@ -57,7 +54,12 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  if (request.destination === 'script' || request.destination === 'style') {
+  if (
+    request.destination === 'script'
+    || request.destination === 'style'
+    || request.destination === 'image'
+    || url.pathname.endsWith('/manifest.webmanifest')
+  ) {
     event.respondWith(networkFirst(request))
     return
   }
