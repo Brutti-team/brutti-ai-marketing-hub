@@ -65,6 +65,63 @@ function setReactValue(element, value) {
   element.dispatchEvent(new Event('change', { bubbles: true }))
 }
 
+function replaceTextKeepingIcon(element, label) {
+  if (!element || clean(element.textContent) === label) return
+  const textNodes = [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE)
+  textNodes.forEach((node) => node.remove())
+  element.append(document.createTextNode(label))
+}
+
+function polishStudioStaticCopy(page) {
+  const form = page.querySelector('.generator-form')
+  if (!form) return
+
+  const hashtagRow = form.querySelector('.checkbox-row')
+  if (hashtagRow) {
+    hashtagRow.style.display = 'none'
+    hashtagRow.setAttribute('aria-hidden', 'true')
+  }
+
+  const generateButton = [...form.querySelectorAll('button[type="submit"]')]
+    .find((button) => /generate/i.test(button.textContent))
+  if (generateButton) replaceTextKeepingIcon(generateButton, 'Generate Brutti Soul draft')
+
+  const disclaimers = [...form.querySelectorAll('.form-disclaimer')]
+  const engineDisclaimer = disclaimers.find((item) => /No paid AI API|assembled from BRUTTI templates|Engine V2/i.test(item.textContent))
+  if (engineDisclaimer) {
+    replaceTextKeepingIcon(
+      engineDisclaimer,
+      'Content Studio Engine V2 guna verified facts + strategy input + Brutti Soul Master. Tiada paid AI API; human review masih wajib sebelum publish.',
+    )
+  }
+
+  const steps = [...form.querySelectorAll('.assist-steps span')]
+  const stepCopy = [
+    ['1', 'Verified facts'],
+    ['2', 'Generate + Rewrite'],
+    ['3', 'Human review + Save'],
+  ]
+  steps.slice(0, 3).forEach((step, index) => {
+    const [number, label] = stepCopy[index]
+    step.innerHTML = `<b>${number}</b>${label}`
+  })
+
+  const emptyOutput = page.querySelector('.empty-output')
+  if (emptyOutput) {
+    const heading = emptyOutput.querySelector('h3')
+    const copy = emptyOutput.querySelector('p')
+    if (heading) heading.textContent = 'Content Studio V2 is ready.'
+    if (copy) copy.textContent = 'Masukkan verified facts + strategy input. Caption akan ikut Brutti Soul Master, 7–13 baris, dan masih perlu human review sebelum publish.'
+  }
+
+  const hashtagButton = [...page.querySelectorAll('.rewrite-actions button')]
+    .find((button) => /hashtag/i.test(button.textContent))
+  if (hashtagButton) {
+    hashtagButton.style.display = 'none'
+    hashtagButton.setAttribute('aria-hidden', 'true')
+  }
+}
+
 function ensureProductContextPanel(page) {
   const productLabel = fieldLabel(page, 'Product')
   if (!productLabel) return null
@@ -137,6 +194,7 @@ async function syncProductContext(page = activeStudio()) {
 function soulLockOutput(applyCaption = true) {
   const page = activeStudio()
   if (!page) return
+  polishStudioStaticCopy(page)
 
   const outputPanel = page.querySelector('.generator-output.has-output')
   if (!outputPanel) return
@@ -196,7 +254,10 @@ export default function ContentStudioController() {
         schedule(120, false)
         window.setTimeout(() => {
           const page = activeStudio()
-          if (page) syncProductContext(page)
+          if (page) {
+            polishStudioStaticCopy(page)
+            syncProductContext(page)
+          }
         }, 140)
       }
     }
@@ -213,7 +274,10 @@ export default function ContentStudioController() {
     const observer = new MutationObserver(() => {
       schedule(80, false)
       const page = activeStudio()
-      if (page) ensureProductContextPanel(page)
+      if (page) {
+        ensureProductContextPanel(page)
+        polishStudioStaticCopy(page)
+      }
     })
     if (root) observer.observe(root, { childList: true, subtree: true })
 
@@ -221,7 +285,13 @@ export default function ContentStudioController() {
     document.addEventListener('click', onClick, true)
     document.addEventListener('change', onChange, true)
     schedule(80, false)
-    window.setTimeout(() => syncProductContext(activeStudio()), 120)
+    window.setTimeout(() => {
+      const page = activeStudio()
+      if (page) {
+        polishStudioStaticCopy(page)
+        syncProductContext(page)
+      }
+    }, 120)
 
     return () => {
       window.clearTimeout(timer)
