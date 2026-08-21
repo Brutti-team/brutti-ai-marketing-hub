@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import ContentStudioV2Enhancer from './ContentStudioV2Enhancer'
 import { applyBruttiSoulPolicy, soulHashtagStatus, soulPolicyLabel } from './lib/contentStudioSoulPolicy'
 
+let activeSoulMode = 'balanced'
+
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
@@ -29,6 +31,17 @@ function readForm(page) {
   }
 }
 
+function rewriteMode(button) {
+  const label = clean(button?.textContent)
+  if (/engaging/i.test(label)) return 'engaging'
+  if (/casual/i.test(label)) return 'casual'
+  if (/professional/i.test(label)) return 'professional'
+  if (/shorter|7 lines/i.test(label)) return 'shorten'
+  if (/hook/i.test(label)) return 'hook'
+  if (/cta/i.test(label)) return 'cta'
+  return 'balanced'
+}
+
 function setReactValue(element, value) {
   if (!element || element.value === value) return
   const prototype = Object.getPrototypeOf(element)
@@ -49,7 +62,7 @@ function soulLockOutput(applyCaption = true) {
   const textarea = outputPanel.querySelector('.output-editor-label textarea')
   if (applyCaption && textarea?.value) {
     const form = readForm(page)
-    const next = applyBruttiSoulPolicy(textarea.value, form)
+    const next = applyBruttiSoulPolicy(textarea.value, form, activeSoulMode)
     if (next && next !== textarea.value) setReactValue(textarea, next)
   }
 
@@ -85,13 +98,21 @@ export default function ContentStudioController() {
 
     const onSubmit = (event) => {
       if (!event.target.matches?.('.generator-form')) return
+      activeSoulMode = 'balanced'
       schedule(190, true)
     }
 
     const onClick = (event) => {
       const button = event.target.closest?.('button')
-      if (button?.closest('.rewrite-actions, .variation-row')) schedule(190, true)
-      else if (button?.closest('.nav-link, .mobile-bottom-navigation')) schedule(120, false)
+      if (button?.closest('.rewrite-actions')) {
+        activeSoulMode = rewriteMode(button)
+        schedule(190, true)
+      } else if (button?.closest('.variation-row')) {
+        activeSoulMode = 'balanced'
+        schedule(190, true)
+      } else if (button?.closest('.nav-link, .mobile-bottom-navigation')) {
+        schedule(120, false)
+      }
     }
 
     const onChange = (event) => {
