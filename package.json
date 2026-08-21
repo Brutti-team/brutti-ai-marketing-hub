@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "eslint ."
+    "quality": "node scripts/content-studio-quality-smoke.mjs",
+    "check:css": "node scripts/css-balance-check.mjs",
+    "check": "eslint . && npm run quality && npm run check:css"
   },
   "dependencies": {
     "react": "^19.1.1",
