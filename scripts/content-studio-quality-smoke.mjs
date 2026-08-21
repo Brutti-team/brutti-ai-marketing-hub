@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { createServer } from 'vite'
 
 function lines(value) {
@@ -24,13 +25,15 @@ function validateCaption(label, caption) {
 }
 
 const server = await createServer({
+  root: process.cwd(),
   server: { middlewareMode: true },
   appType: 'custom',
   logLevel: 'silent',
 })
 
 try {
-  const engine = await server.ssrLoadModule('/src/lib/contentStudioEngineV2.js')
+  const absoluteEnginePath = path.resolve(process.cwd(), 'src/lib/contentStudioEngineV2.js').replaceAll('\\', '/')
+  const engine = await server.ssrLoadModule(`/@fs/${absoluteEnginePath}`)
   const form = {
     title: 'Portable event display test',
     platform: 'Facebook',
