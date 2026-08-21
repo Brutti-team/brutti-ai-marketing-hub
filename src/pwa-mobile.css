@@ -252,7 +252,115 @@ textarea {
   .mobile-bottom-navigation { right: 6px; left: 6px; }
   .mobile-bottom-navigation button small { font-size: 7px; }
 }
+/* Mobile dashboard cards */
+@media (max-width: 720px) {
+  .dashboard-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
 
+  .pipeline-panel,
+  .focus-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px !important;
+    overflow: hidden;
+    border-radius: 13px !important;
+  }
+
+  .pipeline-panel .panel-heading,
+  .focus-panel .panel-heading {
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px !important;
+  }
+
+  .pipeline-panel .panel-heading h3,
+  .focus-panel .panel-heading h3 {
+    margin-top: 4px;
+    font-size: 16px !important;
+    line-height: 1.25;
+  }
+
+  .pipeline-flow {
+    width: 100%;
+    max-width: 100%;
+    margin: 10px 0 !important;
+    padding: 9px 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .pipeline-step {
+    min-width: 72px !important;
+    flex: 0 0 72px !important;
+  }
+
+  .pipeline-step strong {
+    font-size: 18px !important;
+  }
+
+  .pipeline-step span {
+    font-size: 8px !important;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .review-queue button {
+    width: 100%;
+    min-width: 0;
+    gap: 8px !important;
+    padding: 10px 2px !important;
+  }
+
+  .review-queue strong {
+    font-size: 12px !important;
+  }
+
+  .review-queue small {
+    font-size: 9px !important;
+    line-height: 1.35;
+  }
+
+  .recommendation-list button {
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 11px 2px !important;
+  }
+
+  .recommend-number {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 9px !important;
+  }
+
+  .recommendation-list strong {
+    font-size: 12.5px !important;
+    line-height: 1.35;
+  }
+
+  .recommendation-list p {
+    margin-top: 3px !important;
+    font-size: 12.5px !important;
+    line-height: 1.45 !important;
+  }
+
+  .guardrail-note {
+    margin-top: 11px !important;
+    padding: 10px 11px !important;
+    gap: 8px !important;
+  }
+
+  .guardrail-note p {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+  }
+}
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
