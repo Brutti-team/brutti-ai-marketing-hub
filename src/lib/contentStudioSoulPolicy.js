@@ -124,7 +124,7 @@ function sabahanPass(lines, form, factSet, mode) {
   })
 }
 
-function keepShape(lines, form) {
+function keepShape(lines, form, mode) {
   const unique = []
   lines.forEach((line) => {
     const next = clean(line)
@@ -143,6 +143,11 @@ function keepShape(lines, form) {
     cursor += 1
   }
 
+  if (mode === 'shorten') {
+    while (unique.length > 7) unique.splice(Math.max(1, unique.length - 2), 1)
+    return unique.slice(0, 7)
+  }
+
   return unique.slice(0, 13)
 }
 
@@ -158,7 +163,7 @@ export function applyBruttiSoulPolicy(caption, form = {}, mode = 'balanced') {
   lines = ensureBilingual(lines, form, factSet)
   lines = sabahanPass(lines, form, factSet, mode)
   lines = capEmoji(lines)
-  lines = keepShape(lines, form)
+  lines = keepShape(lines, form, mode)
   return lines.join('\n')
 }
 
