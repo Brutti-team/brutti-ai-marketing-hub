@@ -7,18 +7,16 @@ function ensureStyle() {
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
-    .smart-rewrite-panel .rewrite-actions .rewrite-more-primary {
-      font-size: 0 !important;
-    }
-
-    .smart-rewrite-panel .rewrite-actions .rewrite-more-primary::after {
-      content: 'More';
-      font-size: 14px;
-      line-height: inherit;
+    .smart-rewrite-panel .smart-rewrite-head,
+    .smart-rewrite-panel .rewrite-actions {
+      display: none !important;
     }
 
     .smart-rewrite-panel .variation-row {
       display: flex !important;
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+      border-top: 0 !important;
     }
   `
   document.head.append(style)
@@ -32,27 +30,10 @@ function sync() {
     row.setAttribute('aria-hidden', 'true')
   })
 
-  document.querySelectorAll('.smart-rewrite-panel .rewrite-actions').forEach((actions) => {
-    const buttons = [...actions.querySelectorAll('button')]
-    const engaging = buttons.find((button) => /More engaging/i.test(button.textContent || '') || button.classList.contains('rewrite-more-primary'))
-    const casual = buttons.find((button) => /More casual/i.test(button.textContent || ''))
-    const professional = buttons.find((button) => /More professional/i.test(button.textContent || ''))
-
-    if (engaging) {
-      engaging.classList.add('rewrite-more-primary')
-      engaging.setAttribute('aria-label', 'More')
-      engaging.style.display = ''
-      engaging.hidden = false
-      engaging.removeAttribute('aria-hidden')
-      engaging.tabIndex = 0
-    }
-
-    ;[casual, professional].forEach((button) => {
-      if (!button) return
-      button.style.display = 'none'
-      button.setAttribute('aria-hidden', 'true')
-      button.tabIndex = -1
-    })
+  document.querySelectorAll('.smart-rewrite-panel .smart-rewrite-head, .smart-rewrite-panel .rewrite-actions').forEach((section) => {
+    section.hidden = true
+    section.style.display = 'none'
+    section.setAttribute('aria-hidden', 'true')
   })
 
   document.querySelectorAll('.smart-rewrite-panel .variation-row').forEach((row) => {
