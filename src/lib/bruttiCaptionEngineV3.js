@@ -170,11 +170,11 @@ const BRIDGES = Object.freeze({
     'Kami simpan cerita ni sebab dia memang rasa macam Brutti sehari-hari.',
   ],
   'customer-story': [
-    'Kami mula dari apa yang customer betul-betul perlukan, bukan dari template.',
-    'Bila keperluan ruang sudah jelas, barula senang nampak direction yang ngam.',
-    'Lain customer, lain cara dia guna ruang. Memang tidak boleh copy-paste semua benda.',
-    'Kami lagi suka dengar masalah sebenar dulu sebelum fikir solution.',
-    'Bila detail dia real, cerita pun lebih senang dibawa tanpa hard sell.',
+    'Kami mula dari apa yang customer betul-betul perlukan dulu bah, bukan terus antam template.',
+    'Bila keperluan ruang sudah jelas, barula senang mau kasi direction dia ngam.',
+    'Lain customer, lain cara dia guna ruang bah. Memang tidak boleh copy-paste ja semua benda.',
+    'Kami lagi suka dengar masalah sebenar dulu, baru cari solution yang ngam bah.',
+    'Bila detail dia real, cerita pun senang ja dibawa tanpa hard sell bah.',
   ],
   'piece-story': [
     'Kami lagi suka cerita kenapa satu piece tu wujud daripada terus jual rupa dia.',
