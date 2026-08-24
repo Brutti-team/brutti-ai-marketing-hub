@@ -52,6 +52,10 @@ const AIISH_PATTERNS = [
   /kami amat teruja/i,
   /komitmen kami terhadap/i,
   /pengalaman yang tidak dapat dilupakan/i,
+  /bila dikumpul balik.*baru terasa.*cerita/i,
+  /moment ni memang ada cerita/i,
+  /yang best pasal moment macam ni/i,
+  /simple ja, tapi benda macam ni/i,
 ]
 
 const HARD_SELL_PATTERNS = [
@@ -63,6 +67,24 @@ const HARD_SELL_PATTERNS = [
   /order now/i,
 ]
 
+const DIRECTION_PATTERNS = [
+  /^(?:content|caption|posting)\b.*\b(?:perlu|mesti|should|fokus|focus|highlight|arah|direction|tone|gaya|style)\b/i,
+  /^(?:fokus|focus|highlight|tekankan|tonjolkan|ceritakan|gunakan|use|tulis|write|jangan|elak|avoid|pastikan|make sure|susun|selit|masukkan|kasi|buat caption|buat posting)\b/i,
+  /\b(?:jangan|do not|don't)\s+(?:reka|invent|tambah|add|hard sell|menjual|copy|ubah fakta)\b/i,
+  /\b(?:brand awareness|craftsmanship|storytelling|hard sell|content direction|objective|target audience|cta|tone|gaya penulisan)\b/i,
+  /\bsecara natural\b/i,
+]
+
+const FACT_REQUIRED_SIGNALS = [
+  /\b(?:ketawa|gelak|laugh(?:ed|ing)?)\b/i,
+  /\b(?:makan|makan-makan|lunch|dinner|food)\b/i,
+  /\b(?:penat|tired|exhausted)\b/i,
+  /\b(?:hujan|rain(?:ing)?|panas|hot weather)\b/i,
+  /\b(?:ramai|crowd(?:ed)?|packed|full house)\b/i,
+  /\b(?:customer|pelanggan|visitor|pengunjung)\b.*\b(?:suka|puji|tertarik|respon|react|love|compliment)\b/i,
+  /\b(?:sold out|habis terjual|viral|award|anugerah)\b/i,
+]
+
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
@@ -71,18 +93,33 @@ function normalized(value = '') {
   return clean(value).toLowerCase().replace(/[.!?]+$/g, '')
 }
 
+function briefParts(form = {}) {
+  return String(form.brief || '')
+    .split(/\n+|\s*;\s*|(?<=[.!?])\s+/)
+    .map(clean)
+    .filter(Boolean)
+}
+
+function isDirectionLine(line = '') {
+  const value = clean(line)
+  return Boolean(value) && DIRECTION_PATTERNS.some((pattern) => pattern.test(value))
+}
+
+function verifiedFactLines(form = {}) {
+  return briefParts(form).filter((line) => !isDirectionLine(line))
+}
+
+function verifiedFactText(form = {}) {
+  return verifiedFactLines(form).join(' ')
+}
+
 function verifiedFactSet(form = {}) {
-  return new Set(
-    String(form.brief || '')
-      .split(/\n+|\s*;\s*|(?<=[.!?])\s+/)
-      .map(normalized)
-      .filter(Boolean),
-  )
+  return new Set(verifiedFactLines(form).map(normalized).filter(Boolean))
 }
 
 function storyPillarFor(form = {}) {
   const type = form.type || 'Brand Awareness'
-  const text = clean(`${form.title || ''} ${form.product || ''} ${form.brief || ''}`).toLowerCase()
+  const text = clean(`${form.title || ''} ${form.product || ''} ${verifiedFactText(form)}`).toLowerCase()
 
   if (/artisan|tukang|workshop|kilang|gaji|payroll|craft/.test(text)) return 'Kisah artisan & maruah'
   if (/founder|lukman|faznur|menyesal|silap|salah|syukur|terharu/.test(text)) return 'Founder moment / transparency'
@@ -151,6 +188,19 @@ function capEmoji(lines = []) {
   }).replace(/\s{2,}/g, ' ').trim())
 }
 
+function requiresMissingFact(line, form) {
+  const factText = verifiedFactText(form)
+  return FACT_REQUIRED_SIGNALS.some((signal) => signal.test(line) && !signal.test(factText))
+}
+
+function stripDirectionsAndUnsupported(lines, form) {
+  return lines.filter((line) => {
+    if (isDirectionLine(line)) return false
+    if (requiresMissingFact(line, form)) return false
+    return true
+  })
+}
+
 function ensureFirstPerson(lines, form, factSet, mode) {
   if (!CONTENT_SOUL_POLICY.firstPerson) return lines
   const generatedHasFirstPerson = lines.some((line) => {
@@ -196,19 +246,17 @@ function sabahanPass(lines, form, factSet, mode) {
 
 function softenGenericLine(line, form, factSet) {
   if (factSet.has(normalized(line))) return line
-  const english = form.language === 'English'
   const aiish = AIISH_PATTERNS.some((pattern) => pattern.test(line))
   const hardSell = form.type !== 'Promotion' && HARD_SELL_PATTERNS.some((pattern) => pattern.test(line))
   if (!aiish && !hardSell) return line
 
-  if (english) return 'We keep this one simple — the real work is already the story.'
-  return 'Yang ni kami cerita simple ja — kerja sebenar tu sendiri sudah cukup jadi cerita.'
+  return contextualBridges(form)[0]
 }
 
 function contextualBridges(form = {}) {
   const english = form.language === 'English'
   const type = form.type || 'Brand Awareness'
-  const text = clean(`${form.title || ''} ${form.brief || ''}`).toLowerCase()
+  const text = clean(`${form.title || ''} ${verifiedFactText(form)}`).toLowerCase()
   const eventContext = /event|acara|booth|kiosk|display|stesen|pameran|expo|festival/.test(text)
   const makingContext = /freshly made|baru siap|workshop|kkip|bikin|buat|hasilkan|piece/.test(text)
 
@@ -305,6 +353,7 @@ export function applyBruttiSoulPolicy(caption, form = {}, mode = 'balanced') {
     .map(clean)
     .filter(Boolean)
 
+  lines = stripDirectionsAndUnsupported(lines, form)
   lines = ensureFirstPerson(lines, form, factSet, mode)
   lines = ensureBilingual(lines, form, factSet)
   lines = sabahanPass(lines, form, factSet, mode)
@@ -327,6 +376,8 @@ export function soulPolicyLabel(form = {}) {
   if (CONTENT_SOUL_POLICY.shortLineRhythm) rules.push('short-line rhythm')
   if (CONTENT_SOUL_POLICY.noHashtags) rules.push('no hashtags')
   if (CONTENT_SOUL_POLICY.storyPillars) rules.push(`pillar: ${storyPillarFor(form)}`)
+  rules.push('facts/direction separated')
+  rules.push('unsupported scene filter')
   rules.push('quality pass')
   rules.push(`max ${CONTENT_SOUL_POLICY.maxEmoji} emoji`)
   return `${SOUL_SOURCE_LABEL} · ${rules.join(' · ')}`
