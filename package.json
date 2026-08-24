@@ -13,8 +13,9 @@
     "quality:product": "node scripts/content-studio-product-context-smoke.mjs",
     "quality:live-caption": "node scripts/live-caption-narrative-smoke.mjs",
     "quality:voice": "node scripts/brutti-voice-quality-smoke.mjs",
+    "quality:caption-v3": "node scripts/brutti-caption-v3-smoke.mjs",
     "check:css": "node scripts/css-balance-check.mjs",
-    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:live-caption && npm run quality:voice && npm run check:css"
+    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:live-caption && npm run quality:voice && npm run quality:caption-v3 && npm run check:css"
   },
   "dependencies": {
     "react": "^19.1.1",
