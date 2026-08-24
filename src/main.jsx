@@ -6,6 +6,7 @@ import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import DailyContentRecommendationEnhancer from './DailyContentRecommendationEnhancer.jsx'
 import HistoricalPostingTimeEnhancer from './HistoricalPostingTimeEnhancer.jsx'
 import BruttiSoulSystemEnhancer from './BruttiSoulSystemEnhancer.jsx'
+import LowRiskSafeUiEnhancer from './LowRiskSafeUiEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -23,6 +24,7 @@ import './pwa-mobile.css'
 import './interface-cleanup.css'
 import './free-assist-output.css'
 import './content-studio-v2.css'
+import './low-risk-safe-ui.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
@@ -100,6 +102,7 @@ export function DeferredEnhancers() {
 
   return (
     <Suspense fallback={null}>
+      <LowRiskSafeUiEnhancer page={page} />
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
