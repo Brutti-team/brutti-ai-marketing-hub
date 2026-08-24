@@ -16,6 +16,10 @@ function ensureStyle() {
       font-size: 14px;
       line-height: inherit;
     }
+
+    .smart-rewrite-panel .variation-row {
+      display: flex !important;
+    }
   `
   document.head.append(style)
 }
@@ -30,7 +34,7 @@ function sync() {
 
   document.querySelectorAll('.smart-rewrite-panel .rewrite-actions').forEach((actions) => {
     const buttons = [...actions.querySelectorAll('button')]
-    const engaging = buttons.find((button) => /More engaging/i.test(button.textContent || ''))
+    const engaging = buttons.find((button) => /More engaging/i.test(button.textContent || '') || button.classList.contains('rewrite-more-primary'))
     const casual = buttons.find((button) => /More casual/i.test(button.textContent || ''))
     const professional = buttons.find((button) => /More professional/i.test(button.textContent || ''))
 
@@ -38,6 +42,9 @@ function sync() {
       engaging.classList.add('rewrite-more-primary')
       engaging.setAttribute('aria-label', 'More')
       engaging.style.display = ''
+      engaging.hidden = false
+      engaging.removeAttribute('aria-hidden')
+      engaging.tabIndex = 0
     }
 
     ;[casual, professional].forEach((button) => {
@@ -45,6 +52,18 @@ function sync() {
       button.style.display = 'none'
       button.setAttribute('aria-hidden', 'true')
       button.tabIndex = -1
+    })
+  })
+
+  document.querySelectorAll('.smart-rewrite-panel .variation-row').forEach((row) => {
+    row.hidden = false
+    row.style.display = 'flex'
+    row.removeAttribute('aria-hidden')
+    row.querySelectorAll('button').forEach((button) => {
+      button.hidden = false
+      button.style.display = ''
+      button.removeAttribute('aria-hidden')
+      button.tabIndex = 0
     })
   })
 }
