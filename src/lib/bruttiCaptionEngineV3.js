@@ -1,7 +1,7 @@
 import { BRUTTI_SOUL } from './bruttiSoulSource'
 import { lockBruttiVoice } from './bruttiVoiceQuality'
 
-const DIRECTION_RE = /buat caption|susun caption|gaya caption|tone|mulakan dengan|kemudian sambung|fokus (pada|kepada)|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan tambah|jangan masukkan|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|non-selling|minimum|maksimum|baris/i
+const DIRECTION_RE = /buat caption|susun caption|gaya caption|style caption|tone|mulakan dengan|kemudian sambung|fokus (?:pada|kepada)|content perlu fokus|posting perlu fokus|caption perlu fokus|highlight|tekankan|tonjolkan|ceritakan|gunakan gaya|tulis dalam|ayat santai|berbentuk recap|macam kita bercakap|cara penulisan|jangan reka|jangan tambah|jangan masukkan|jangan hard sell|tidak hard sell|bukan hard sell|jangan menjual|tidak menjual|non-selling|secara natural|brand awareness|craftsmanship|storytelling|content direction|objective|target audience|cta|minimum|maksimum|baris/i
 const NUMBER_RE = /\b(?:RM\s?)?\d[\d,.]*(?:%|\+\+)?\b/i
 const DATE_RE = /\b(?:\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?|\d{1,2}\s+(?:Jan|Feb|Mac|Apr|Mei|Jun|Jul|Ogos|Sep|Okt|Nov|Dis)[a-z]*\s+\d{4}|20\d{2})\b/i
 
@@ -18,6 +18,13 @@ const STRUCTURES = Object.freeze([
   'straight-story',
   'contrast-led',
   'craft-note',
+])
+
+const HUMAN_DETAIL_RULES = Object.freeze([
+  { line: /ketawa|gelak/i, fact: /ketawa|gelak/i },
+  { line: /makan|lunch|dinner|food/i, fact: /makan|lunch|dinner|food/i },
+  { line: /game|games|permainan/i, fact: /game|games|permainan/i },
+  { line: /penat|tired/i, fact: /penat|tired/i },
 ])
 
 function clean(value = '') {
@@ -61,17 +68,18 @@ export function parseVerifiedFacts(value = '') {
 }
 
 function storySignals(form = {}, facts = []) {
-  const text = clean(`${form.title || ''} ${form.product || ''} ${form.type || ''} ${facts.join(' ')}`).toLowerCase()
+  const factsText = clean(facts.join(' ')).toLowerCase()
+  const contextText = clean(`${form.title || ''} ${form.product || ''} ${form.type || ''} ${factsText}`).toLowerCase()
   return {
-    artisan: /artisan|tukang|gaji|payroll|kilang|workshop|production|craft|maruah|intern|qc/.test(text),
-    piece: /produk|product|piece|rack|table|wardrobe|shelf|shelving|console|organizer|furniture|perabot|custom|bespoke/.test(text),
-    founder: /lukman|faznur|founder|bini|isteri|menyesal|syukur|terharu|silap|salah|belajar|pandemik|pkp|survive/.test(text),
-    funny: /lucu|kelakar|funny|ketawa|gelak|hint|whatsapp|babak|game|games|retreat/.test(text),
-    customer: /customer|client|pelanggan|order|ruang|rumah|homeowner|premis|keperluan/.test(text),
-    process: /proses|process|bikin|buat|install|installation|pasang|material|plywood|pallet|kayu|besi|metal/.test(text),
-    community: /komuniti|community|charity|remaja|usahawan|berkongsi rezeki/.test(text),
-    promotion: /promo|promotion|offer|harga|sale|diskaun|discount/.test(text),
-    event: /retreat|event|aktiviti|games|makan-makan|program|launch|pameran/.test(text),
+    artisan: /artisan|tukang|gaji|payroll|kilang|workshop|production|craft|maruah|intern|qc/.test(factsText),
+    piece: /produk|product|piece|rack|table|wardrobe|shelf|shelving|console|organizer|furniture|perabot|custom|bespoke|display|signage|kiosk|counter/.test(factsText),
+    founder: /lukman|faznur|founder|bini|isteri|menyesal|syukur|terharu|silap|salah|belajar|pandemik|pkp|survive/.test(factsText),
+    funny: /lucu|kelakar|funny|ketawa|gelak|hint|whatsapp/.test(factsText),
+    customer: /customer|client|pelanggan|order|ruang|rumah|homeowner|premis|keperluan/.test(factsText),
+    process: /proses|process|bikin|buat|dibuat|made|freshly made|hasilkan|dihasilkan|install|installation|pasang|material|plywood|pallet|kayu|besi|metal|kkip/.test(factsText),
+    community: /komuniti|community|charity|remaja|usahawan|berkongsi rezeki/.test(factsText),
+    promotion: /promo|promotion|offer|harga|sale|diskaun|discount/.test(factsText),
+    event: /retreat|event|aktiviti|program|launch|pameran|expo|festival|stesen|keretapi/.test(contextText),
     number: facts.some((fact) => NUMBER_RE.test(fact) || DATE_RE.test(fact)),
   }
 }
@@ -80,9 +88,9 @@ export function detectStoryPillar(form = {}, facts = parseVerifiedFacts(form.bri
   const signal = storySignals(form, facts)
   if (signal.artisan) return 'artisan-story'
   if (signal.founder) return 'founder-moment'
-  if (signal.funny || signal.event) return 'daily-human-moment'
-  if (signal.customer) return 'customer-story'
   if (signal.piece || signal.process) return 'piece-story'
+  if (signal.funny) return 'daily-human-moment'
+  if (signal.customer) return 'customer-story'
   if (signal.community) return 'community-purpose'
   if (signal.promotion) return 'verified-promotion'
   if (form.type === 'Educational') return 'educational-story'
@@ -94,11 +102,11 @@ const PILLAR_STRUCTURES = Object.freeze({
   'founder-moment': ['scene-led', 'human-reflection', 'contrast-led', 'specific-fact-led', 'moment-recap', 'straight-story'],
   'daily-human-moment': ['moment-recap', 'scene-led', 'specific-fact-led', 'human-reflection', 'straight-story', 'contrast-led'],
   'customer-story': ['need-first', 'specific-fact-led', 'scene-led', 'straight-story', 'human-reflection', 'name-led'],
-  'piece-story': ['specific-fact-led', 'name-led', 'process-led', 'craft-note', 'need-first', 'behind-the-result'],
+  'piece-story': ['specific-fact-led', 'process-led', 'craft-note', 'behind-the-result', 'name-led', 'straight-story'],
   'community-purpose': ['scene-led', 'human-reflection', 'specific-fact-led', 'moment-recap', 'contrast-led', 'straight-story'],
   'verified-promotion': ['straight-story', 'specific-fact-led', 'need-first', 'number-led', 'scene-led'],
   'educational-story': ['specific-fact-led', 'need-first', 'process-led', 'straight-story', 'craft-note', 'scene-led'],
-  'brand-story': ['scene-led', 'specific-fact-led', 'human-reflection', 'contrast-led', 'straight-story', 'moment-recap'],
+  'brand-story': ['specific-fact-led', 'scene-led', 'straight-story', 'human-reflection', 'contrast-led', 'moment-recap'],
 })
 
 function usableStructures(pillar, signals) {
@@ -126,10 +134,29 @@ function chooseStructure(form, facts, pillar, variation, recent = []) {
   return ordered.find((item) => !recentStructures.has(item)) || ordered[0]
 }
 
-function rotateFacts(facts, variation) {
-  if (!facts.length) return []
-  const offset = Math.max(0, Math.min(facts.length - 1, variation % facts.length))
-  return [...facts.slice(offset), ...facts.slice(0, offset)]
+function factScore(fact = '') {
+  const value = clean(fact).toLowerCase()
+  let score = 0
+  if (/freshly made|baru siap|dibuat|bikin|hasilkan|dihasilkan/.test(value)) score += 8
+  if (/piece|produk|display|signage|kiosk|counter|rack|table|wardrobe|furniture|perabot/.test(value)) score += 7
+  if (/kkip|stesen tanjung aru|tanjung aru|workshop|kilang/.test(value)) score += 6
+  if (/bawa|membawa|setup|digunakan|pasang|install/.test(value)) score += 5
+  if (/event|keretapi|pameran|program|launch|expo/.test(value)) score += 4
+  if (NUMBER_RE.test(value) || DATE_RE.test(value)) score += 2
+  return score
+}
+
+function prioritizeFacts(facts = [], variation = 0) {
+  const ranked = facts
+    .map((fact, index) => ({ fact, index, score: factScore(fact) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+  if (!ranked.length) return []
+
+  const top = ranked.slice(0, 3).map((item) => item.fact)
+  const rest = ranked.slice(3).map((item) => item.fact)
+  if (variation === 1 && top.length > 1) top.push(top.shift())
+  if (variation === 2 && top.length > 2) [top[1], top[2]] = [top[2], top[1]]
+  return [...top, ...rest]
 }
 
 function subjectFor(form = {}) {
@@ -163,10 +190,10 @@ const BRIDGES = Object.freeze({
     'Kalau ada pengajaran, biar datang dari kejadian sebenar tu sendiri.',
   ],
   'daily-human-moment': [
-    'Yang best pasal moment macam ni, dia memang tidak perlu dirancang sangat.',
+    'Moment macam ni kami suka cerita macam mana dia betul-betul jadi.',
     'Ada masa kerja, ada masa ketawa-ketawa. Dua-dua memang sebahagian daripada team.',
     'Benda kecil macam ni la yang selalunya paling senang tinggal dalam ingatan.',
-    'Tidak semua benda kena jadi content berat. Kadang satu babak real pun sudah cukup.',
+    'Tidak semua cerita perlu dibesarkan. Yang real tu pun sudah cukup.',
     'Kami simpan cerita ni sebab dia memang rasa macam Brutti sehari-hari.',
   ],
   'customer-story': [
@@ -177,11 +204,11 @@ const BRIDGES = Object.freeze({
     'Bila detail dia real, cerita pun senang ja dibawa tanpa hard sell bah.',
   ],
   'piece-story': [
-    'Kami lagi suka cerita kenapa satu piece tu wujud daripada terus jual rupa dia.',
-    'Fungsi dan sebab dia dibuat tu selalunya lagi menarik daripada ayat marketing panjang-panjang.',
-    'Kalau ada proses atau detail yang memang confirm, itu yang patut jadi isi utama.',
-    'Satu piece bagi kami bukan setakat barang siap. Ada keputusan dan kerja tangan di belakang dia.',
-    'Yang belum confirm kami tinggal dulu. Tidak payah pandai-pandai tambah.',
+    'Kami lagi suka cerita hasil kerja melalui fungsi dan benda yang memang digunakan betul-betul.',
+    'Bagi kami, craftsmanship paling senang nampak melalui hasil yang memang dibuat dan digunakan.',
+    'Bila satu piece masuk dalam situasi sebenar, cerita dia jadi lebih jelas daripada ayat marketing panjang-panjang.',
+    'Satu piece bagi kami bukan setakat barang siap. Ada proses dan kerja tangan di belakang dia.',
+    'Kami lagi suka bagi hasil kerja tu bercakap daripada puji panjang-panjang.',
   ],
   'community-purpose': [
     'Bila ada ruang untuk berkongsi rezeki, bagi kami itu bukan side story.',
@@ -205,11 +232,11 @@ const BRIDGES = Object.freeze({
     'Yang penting point dia practical dan tidak lari daripada fakta.',
   ],
   'brand-story': [
-    'Kalau mau cerita pasal Brutti, kami lagi suka mula dari benda yang memang jadi depan mata.',
-    'Kami tidak mau bunyi macam corporate statement. Cerita ja macam orang betul-betul lalui benda tu.',
+    'Kami lagi suka biar kerja sebenar tunjuk siapa Brutti daripada paksa masuk ayat jualan.',
+    'Bila cerita datang dari benda yang betul-betul dibuat, brand tu rasa lebih dekat.',
     'Bagi kami, benda real selalu lebih kuat daripada ayat yang terlalu polished.',
-    'Tidak semua post kena ada jualan. Kadang cerita tu sendiri sudah cukup.',
-    'Yang penting, bila baca tu rasa ada manusia di belakang brand ni.',
+    'Tidak semua post kena ada jualan. Kadang kerja sebenar tu sendiri sudah cukup.',
+    'Yang penting, bila baca tu rasa ada manusia dan kerja sebenar di belakang brand ni.',
   ],
 })
 
@@ -234,29 +261,67 @@ const ENDINGS = Object.freeze({
   ],
 })
 
-function bridgeLines(pillar, seed, count = 4) {
-  const pool = BRIDGES[pillar] || BRIDGES['brand-story']
+function humanDetailAllowed(line = '', facts = []) {
+  const factText = clean(facts.join(' '))
+  return HUMAN_DETAIL_RULES.every((rule) => !rule.line.test(line) || rule.fact.test(factText))
+}
+
+function bridgeLines(pillar, seed, count = 4, facts = []) {
+  const pool = (BRIDGES[pillar] || BRIDGES['brand-story']).filter((line) => humanDetailAllowed(line, facts))
+  if (!pool.length) return BRIDGES['brand-story'].slice(0, count)
   const offset = seed % pool.length
   return [...pool.slice(offset), ...pool.slice(0, offset)].slice(0, count)
 }
 
+function contextualFactBridge(facts = []) {
+  const text = clean(facts.join(' ')).toLowerCase()
+  if (/kkip/.test(text) && /tanjung aru/.test(text) && /freshly made|dibuat|bikin|hasilkan|dihasilkan/.test(text)) {
+    return 'Dari KKIP sampai Tanjung Aru, kami suka bila hasil kerja sendiri dapat terus masuk dalam setup sebenar.'
+  }
+  if (/display/.test(text) && /kiosk|counter/.test(text) && /freshly made|dibuat|bikin|hasilkan|dihasilkan/.test(text)) {
+    return 'Bila display sampai kiosk pun memang hasil Brutti sendiri, craftsmanship tu terus nampak tanpa perlu hard sell.'
+  }
+  return ''
+}
+
 function endingFor(pillar, form, seed, variation) {
   const conversational = pillar === 'daily-human-moment' || pillar === 'founder-moment'
-  const practical = pillar === 'piece-story' || pillar === 'customer-story' || pillar === 'verified-promotion' || form.type === 'Educational'
+  const brandAwareness = form.type === 'Brand Awareness'
+  const practical = !brandAwareness && (pillar === 'piece-story' || pillar === 'customer-story' || pillar === 'verified-promotion' || form.type === 'Educational')
   const family = conversational && variation === 1 ? 'conversation' : practical && variation !== 2 ? 'practical' : 'reflection'
   const pool = ENDINGS[family]
   return pool[(seed + variation) % pool.length]
 }
 
 function structureDraft(structure, form, facts, pillar, variation) {
-  const ordered = rotateFacts(facts, variation)
+  const ordered = prioritizeFacts(facts, variation)
   const seed = stableIndex(`${captionV3InputKey(form, variation)}|${structure}`, 997)
-  const bridges = bridgeLines(pillar, seed, 5)
+  const bridges = bridgeLines(pillar, seed, 5, facts)
   const lead = ordered[0] || `${subjectFor(form)} ni ada cerita dia sendiri.`
   const second = ordered[1]
   const third = ordered[2]
   const fourth = ordered[3]
   const ending = endingFor(pillar, form, seed, variation)
+  const factBridge = contextualFactBridge(facts)
+
+  if ((pillar === 'piece-story' || pillar === 'brand-story') && ordered.length >= 2) {
+    let lines = uniqueLines([
+      lead,
+      second,
+      third,
+      factBridge,
+      bridges[0],
+      fourth,
+      bridges[1],
+      ending,
+    ])
+    const extra = bridgeLines(pillar, seed + 3, 5, facts)
+    for (const line of extra) {
+      if (lines.length >= 8) break
+      lines = uniqueLines([...lines.slice(0, -1), line, lines.at(-1)])
+    }
+    return uniqueLines(lines).slice(0, 11).join('\n')
+  }
 
   const layouts = {
     'scene-led': [lead, bridges[0], second, third, bridges[1], fourth, bridges[2], ending],
@@ -273,8 +338,8 @@ function structureDraft(structure, form, facts, pillar, variation) {
     'craft-note': [lead, 'Kami tengok benda ni dari fungsi, proses dan kerja tangan di belakang dia.', second, third, bridges[0], fourth, bridges[1], ending],
   }
 
-  let lines = uniqueLines(layouts[structure] || layouts['straight-story'])
-  const extra = bridgeLines(pillar, seed + 3, 5)
+  let lines = uniqueLines(layouts[structure] || layouts['straight-story']).filter((line) => humanDetailAllowed(line, facts))
+  const extra = bridgeLines(pillar, seed + 3, 5, facts)
   for (const line of extra) {
     if (lines.length >= 8) break
     lines = uniqueLines([...lines.slice(0, -1), line, lines.at(-1)])
