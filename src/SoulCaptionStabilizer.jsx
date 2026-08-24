@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { buildBruttiCaptionV3 } from './lib/bruttiCaptionEngineV3'
 import { applyBruttiSoulPolicy } from './lib/contentStudioSoulPolicy'
+import { polishBruttiFinalCaption } from './lib/bruttiCaptionFinalPolish'
 
 const STYLE_ID = 'brutti-soul-caption-stabilizer-style'
 const STABILIZING_ATTR = 'data-brutti-caption-stabilizing'
@@ -110,11 +111,12 @@ function applyCaptionV3(variation = 0, attempt = 0) {
     const version = Math.max(0, Math.min(2, variation))
     const result = buildBruttiCaptionV3(form, version, { recentStructures: readStructureHistory() })
     if (result.copy) {
-      // V3 is the active Bahasa Melayu caption engine. Route its final copy through
-      // the same Soul integrity policy used for facts/direction separation so that
-      // instruction text and unsupported scene details cannot leak into the output.
+      // V3 is the active Bahasa Melayu caption engine. First route the copy through
+      // the Soul integrity guard, then apply a final fact-first polish so repeated
+      // filler cannot displace the strongest verified facts.
       const guardedCopy = applyBruttiSoulPolicy(result.copy, form, 'balanced') || result.copy
-      setReactValue(textarea, guardedCopy)
+      const finalCopy = polishBruttiFinalCaption(guardedCopy, form) || guardedCopy
+      setReactValue(textarea, finalCopy)
       rememberStructure(result.meta)
       const panel = page.querySelector('.generator-output')
       if (panel) {
@@ -126,6 +128,7 @@ function applyCaptionV3(variation = 0, attempt = 0) {
         panel.dataset.captionVoiceRefined = result.refined ? 'true' : 'false'
         panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
         panel.dataset.captionIntegrityGuard = 'soul-policy'
+        panel.dataset.captionFinalPolish = 'fact-first'
       }
     }
   } finally {
