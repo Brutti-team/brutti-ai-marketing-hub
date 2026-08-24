@@ -1,4 +1,5 @@
-import { buildBruttiCaptionV3, captionV3InputKey } from '../src/lib/bruttiCaptionEngineV3.js'
+import path from 'node:path'
+import { createServer } from 'vite'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -75,43 +76,57 @@ const cases = [
   },
 ]
 
-const outputs = []
-const history = []
-
-for (const item of cases) {
-  const result = buildBruttiCaptionV3(item.form, 0, { recentStructures: history })
-  assert(result.copy, `${item.label}: expected caption output`)
-  assert(result.report.pass, `${item.label}: quality lock failed ${JSON.stringify(result.report.checks)}`)
-  assert(lines(result.copy).length >= 7 && lines(result.copy).length <= 13, `${item.label}: invalid line count`)
-  assert(!/#\w+/u.test(result.copy), `${item.label}: hashtag leaked`)
-  assert(result.meta.storyPillar && result.meta.structure, `${item.label}: missing story metadata`)
-  outputs.push({ ...item, result })
-  history.push({ inputKey: result.meta.inputKey, structure: result.meta.structure, pillar: result.meta.storyPillar })
-}
-
-const structures = new Set(outputs.map((item) => item.result.meta.structure))
-assert(structures.size >= 5, `Expected at least 5 distinct story structures, got ${[...structures].join(', ')}`)
-
-for (let left = 0; left < outputs.length; left += 1) {
-  for (let right = left + 1; right < outputs.length; right += 1) {
-    const score = overlap(outputs[left].result.copy, outputs[right].result.copy)
-    assert(score < 0.65, `${outputs[left].label} vs ${outputs[right].label}: captions too structurally similar (${score.toFixed(2)})`)
-  }
-}
-
-const sameForm = cases[1].form
-const first = buildBruttiCaptionV3(sameForm, 0, { recentStructures: [] })
-const remembered = [{ inputKey: captionV3InputKey(sameForm, 0), structure: first.meta.structure, pillar: first.meta.storyPillar }]
-const second = buildBruttiCaptionV3(sameForm, 0, { recentStructures: remembered })
-assert(first.copy === second.copy, 'Same verified input and version must remain deterministic after refresh/login history.')
-assert(first.meta.structure === second.meta.structure, 'Same input must preserve its story structure.')
-
-const versions = [0, 1, 2].map((version) => buildBruttiCaptionV3(cases[3].form, version, { recentStructures: [] }))
-versions.forEach((item, index) => assert(item.report.pass, `Retreat Version ${index + 1}: quality failed`))
-assert(new Set(versions.map((item) => item.copy)).size === 3, 'Version 1–3 must be meaningfully distinct.')
-
-console.log('\n=== BRUTTI CAPTION ENGINE V3 ===')
-outputs.forEach((item) => {
-  console.log(`\n--- ${item.label} · ${item.result.meta.storyPillar} · ${item.result.meta.structure} ---\n${item.result.copy}`)
+const server = await createServer({
+  root: process.cwd(),
+  server: { middlewareMode: true },
+  appType: 'custom',
+  logLevel: 'silent',
 })
-console.log(`\nPASS: ${outputs.length} content scenarios passed, ${structures.size} structures used, unrelated captions stayed below similarity threshold, and same-input output remained deterministic.`)
+
+try {
+  const enginePath = path.resolve(process.cwd(), 'src/lib/bruttiCaptionEngineV3.js').replaceAll('\\', '/')
+  const { buildBruttiCaptionV3, captionV3InputKey } = await server.ssrLoadModule(`/@fs/${enginePath}`)
+
+  const outputs = []
+  const history = []
+
+  for (const item of cases) {
+    const result = buildBruttiCaptionV3(item.form, 0, { recentStructures: history })
+    assert(result.copy, `${item.label}: expected caption output`)
+    assert(result.report.pass, `${item.label}: quality lock failed ${JSON.stringify(result.report.checks)}`)
+    assert(lines(result.copy).length >= 7 && lines(result.copy).length <= 13, `${item.label}: invalid line count`)
+    assert(!/#\w+/u.test(result.copy), `${item.label}: hashtag leaked`)
+    assert(result.meta.storyPillar && result.meta.structure, `${item.label}: missing story metadata`)
+    outputs.push({ ...item, result })
+    history.push({ inputKey: result.meta.inputKey, structure: result.meta.structure, pillar: result.meta.storyPillar })
+  }
+
+  const structures = new Set(outputs.map((item) => item.result.meta.structure))
+  assert(structures.size >= 5, `Expected at least 5 distinct story structures, got ${[...structures].join(', ')}`)
+
+  for (let left = 0; left < outputs.length; left += 1) {
+    for (let right = left + 1; right < outputs.length; right += 1) {
+      const score = overlap(outputs[left].result.copy, outputs[right].result.copy)
+      assert(score < 0.65, `${outputs[left].label} vs ${outputs[right].label}: captions too structurally similar (${score.toFixed(2)})`)
+    }
+  }
+
+  const sameForm = cases[1].form
+  const first = buildBruttiCaptionV3(sameForm, 0, { recentStructures: [] })
+  const remembered = [{ inputKey: captionV3InputKey(sameForm, 0), structure: first.meta.structure, pillar: first.meta.storyPillar }]
+  const second = buildBruttiCaptionV3(sameForm, 0, { recentStructures: remembered })
+  assert(first.copy === second.copy, 'Same verified input and version must remain deterministic after refresh/login history.')
+  assert(first.meta.structure === second.meta.structure, 'Same input must preserve its story structure.')
+
+  const versions = [0, 1, 2].map((version) => buildBruttiCaptionV3(cases[3].form, version, { recentStructures: [] }))
+  versions.forEach((item, index) => assert(item.report.pass, `Retreat Version ${index + 1}: quality failed`))
+  assert(new Set(versions.map((item) => item.copy)).size === 3, 'Version 1–3 must be meaningfully distinct.')
+
+  console.log('\n=== BRUTTI CAPTION ENGINE V3 ===')
+  outputs.forEach((item) => {
+    console.log(`\n--- ${item.label} · ${item.result.meta.storyPillar} · ${item.result.meta.structure} ---\n${item.result.copy}`)
+  })
+  console.log(`\nPASS: ${outputs.length} content scenarios passed, ${structures.size} structures used, unrelated captions stayed below similarity threshold, and same-input output remained deterministic.`)
+} finally {
+  await server.close()
+}
