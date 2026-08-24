@@ -20,17 +20,19 @@ function applyLanguage(language) {
 
 function activeSettingsPage() {
   return [...document.querySelectorAll('#root .page')]
-    .find((page) => page.offsetParent !== null && page.querySelector('.page-header h1')?.textContent?.trim() === 'Settings') || null
+    .find((page) => {
+      if (page.offsetParent === null) return false
+      const title = page.querySelector('.page-header h1')?.textContent?.trim()
+      return title === 'Settings' || Boolean(page.querySelector('.cloud-access-panel'))
+    }) || null
 }
 
 function createLanguagePanel(page) {
   if (page.querySelector('[data-brutti-language-lock="true"]')) return
 
-  const settingsGrid = page.querySelector('.settings-grid')
-  if (!settingsGrid) return
-
+  const pageHeader = page.querySelector('.page-header')
   const panel = document.createElement('section')
-  panel.className = 'panel'
+  panel.className = 'panel app-language-lock-panel'
   panel.dataset.bruttiLanguageLock = 'true'
 
   const heading = document.createElement('div')
@@ -52,23 +54,25 @@ function createLanguagePanel(page) {
   const select = document.createElement('select')
   select.setAttribute('aria-label', 'App language')
   select.innerHTML = '<option value="bm">Bahasa Melayu</option><option value="en">English</option>'
-  select.value = readLanguage()
 
   const render = (language) => {
     const bm = language === 'bm'
     eyebrow.textContent = bm ? 'BAHASA APLIKASI' : 'APP LANGUAGE'
-    title.textContent = bm ? 'Kunci bahasa antaramuka' : 'Interface language lock'
+    title.textContent = bm ? 'Bahasa Brutti AI' : 'Brutti AI language'
     label.textContent = bm ? 'Bahasa pilihan' : 'Preferred language'
     description.textContent = bm
-      ? 'Pilihan ini disimpan pada browser. Label teknikal yang digunakan oleh sistem belum diterjemah dalam fasa low-risk ini supaya Content Studio dan Planner kekal stabil.'
-      : 'This choice is saved in the browser. System-critical labels remain unchanged in this low-risk phase so Content Studio and Planner stay stable.'
+      ? 'Pilih bahasa antaramuka Brutti AI. Fasa low-risk ini hanya mengunci pilihan bahasa; label teknikal Content Studio dan Planner dikekalkan supaya fungsi sedia ada tidak terganggu.'
+      : 'Choose the Brutti AI interface language. This low-risk phase stores the preference while keeping system-critical Content Studio and Planner labels unchanged.'
     select.value = language
   }
 
   select.addEventListener('change', () => render(applyLanguage(select.value)))
   row.append(copy, select)
   panel.append(heading, row)
-  settingsGrid.prepend(panel)
+
+  if (pageHeader) pageHeader.insertAdjacentElement('afterend', panel)
+  else page.prepend(panel)
+
   render(readLanguage())
 }
 
@@ -82,7 +86,7 @@ export default function AppLanguageLock() {
       timer = window.setTimeout(() => {
         const page = activeSettingsPage()
         if (page) createLanguagePanel(page)
-      }, 40)
+      }, 30)
     }
 
     const onLanguageChange = () => {
