@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { buildSoulDraft } from './lib/bruttiSoulSource'
-import { lockBruttiVoice } from './lib/bruttiVoiceQuality'
+import { buildBruttiCaptionV3 } from './lib/bruttiCaptionEngineV3'
 
 const STYLE_ID = 'brutti-soul-caption-stabilizer-style'
 const STABILIZING_ATTR = 'data-brutti-caption-stabilizing'
+const HISTORY_KEY = 'brutti-caption-v3-structure-history'
 
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
@@ -44,6 +44,26 @@ function readForm(page) {
   }
 }
 
+function readStructureHistory() {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(HISTORY_KEY) || '[]')
+    return Array.isArray(value) ? value.slice(-20) : []
+  } catch {
+    return []
+  }
+}
+
+function rememberStructure(meta) {
+  if (!meta?.inputKey || !meta?.structure) return
+  try {
+    const history = readStructureHistory().filter((item) => item?.inputKey !== meta.inputKey)
+    history.push({ inputKey: meta.inputKey, structure: meta.structure, pillar: meta.storyPillar })
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-20)))
+  } catch {
+    // Structure history is optional; generation must still work if storage is unavailable.
+  }
+}
+
 function setReactValue(element, value) {
   if (!element || !value || element.value === value) return
   const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set
@@ -62,7 +82,7 @@ function finish() {
   window.requestAnimationFrame(() => setStabilizing(false))
 }
 
-function applySoulDraft(variation = 0, attempt = 0) {
+function applyCaptionV3(variation = 0, attempt = 0) {
   const page = activeStudio()
   if (!page) {
     finish()
@@ -78,7 +98,7 @@ function applySoulDraft(variation = 0, attempt = 0) {
   const textarea = page.querySelector('.output-editor-label textarea')
   if (!textarea) {
     if (attempt < 10) {
-      window.setTimeout(() => applySoulDraft(variation, attempt + 1), 20 + attempt * 15)
+      window.setTimeout(() => applyCaptionV3(variation, attempt + 1), 20 + attempt * 15)
       return
     }
     finish()
@@ -87,17 +107,19 @@ function applySoulDraft(variation = 0, attempt = 0) {
 
   try {
     const version = Math.max(0, Math.min(2, variation))
-    const soulDraft = buildSoulDraft(form, 'balanced', version)
-    const locked = lockBruttiVoice(soulDraft, form, version)
-    if (locked.copy) {
-      setReactValue(textarea, locked.copy)
+    const result = buildBruttiCaptionV3(form, version, { recentStructures: readStructureHistory() })
+    if (result.copy) {
+      setReactValue(textarea, result.copy)
+      rememberStructure(result.meta)
       const panel = page.querySelector('.generator-output')
       if (panel) {
-        panel.dataset.captionEngine = 'brutti-soul-master-voice-lock'
-        panel.dataset.captionVersion = String(Math.max(1, Math.min(3, version + 1)))
-        panel.dataset.captionQuality = locked.report.pass ? 'locked' : 'review'
-        panel.dataset.captionVoiceRefined = locked.refined ? 'true' : 'false'
-        panel.dataset.captionQualityFallback = locked.fallback ? 'true' : 'false'
+        panel.dataset.captionEngine = 'brutti-caption-engine-v3'
+        panel.dataset.captionVersion = String(result.meta.version)
+        panel.dataset.captionStoryPillar = result.meta.storyPillar
+        panel.dataset.captionStoryStructure = result.meta.structure
+        panel.dataset.captionQuality = result.report.pass ? 'locked' : 'review'
+        panel.dataset.captionVoiceRefined = result.refined ? 'true' : 'false'
+        panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
       }
     }
   } finally {
@@ -127,7 +149,7 @@ export default function SoulCaptionStabilizer() {
       if (!form || form.language !== 'Bahasa Melayu') return
       setStabilizing(true)
       armSafetyReveal()
-      window.setTimeout(() => applySoulDraft(0), 0)
+      window.setTimeout(() => applyCaptionV3(0), 0)
     }
 
     const onClick = (event) => {
@@ -139,7 +161,7 @@ export default function SoulCaptionStabilizer() {
       setStabilizing(true)
       armSafetyReveal()
       const variation = selectedVersion(button)
-      window.setTimeout(() => applySoulDraft(variation), 0)
+      window.setTimeout(() => applyCaptionV3(variation), 0)
     }
 
     document.addEventListener('submit', onSubmit, true)
