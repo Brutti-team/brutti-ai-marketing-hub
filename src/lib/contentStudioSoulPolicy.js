@@ -39,6 +39,30 @@ export const CONTENT_SOUL_POLICY = Object.freeze({
   ].every(Boolean),
 })
 
+const AIISH_PATTERNS = [
+  /in today's fast-paced/i,
+  /unlock (?:the|your) potential/i,
+  /elevate your/i,
+  /seamlessly/i,
+  /exceptional quality/i,
+  /crafted to perfection/i,
+  /where (?:style|function) meets/i,
+  /we are thrilled to/i,
+  /kami berbesar hati/i,
+  /kami amat teruja/i,
+  /komitmen kami terhadap/i,
+  /pengalaman yang tidak dapat dilupakan/i,
+]
+
+const HARD_SELL_PATTERNS = [
+  /beli sekarang/i,
+  /dapatkan sekarang/i,
+  /jangan lepaskan peluang/i,
+  /limited time/i,
+  /grab yours/i,
+  /order now/i,
+]
+
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
@@ -170,6 +194,85 @@ function sabahanPass(lines, form, factSet, mode) {
   })
 }
 
+function softenGenericLine(line, form, factSet) {
+  if (factSet.has(normalized(line))) return line
+  const english = form.language === 'English'
+  const aiish = AIISH_PATTERNS.some((pattern) => pattern.test(line))
+  const hardSell = form.type !== 'Promotion' && HARD_SELL_PATTERNS.some((pattern) => pattern.test(line))
+  if (!aiish && !hardSell) return line
+
+  if (english) return 'We keep this one simple — the real work is already the story.'
+  return 'Yang ni kami cerita simple ja — kerja sebenar tu sendiri sudah cukup jadi cerita.'
+}
+
+function contextualBridges(form = {}) {
+  const english = form.language === 'English'
+  const type = form.type || 'Brand Awareness'
+  const text = clean(`${form.title || ''} ${form.brief || ''}`).toLowerCase()
+  const eventContext = /event|acara|booth|kiosk|display|stesen|pameran|expo|festival/.test(text)
+  const makingContext = /freshly made|baru siap|workshop|kkip|bikin|buat|hasilkan|piece/.test(text)
+
+  if (english) {
+    if (type === 'Brand Awareness' && eventContext && makingContext) {
+      return [
+        'What we want people to notice is not only where Brutti showed up, but what we brought from our own work.',
+        'The setup becomes part of the brand story when the pieces themselves come from the hands behind Brutti.',
+      ]
+    }
+    if (type === 'Brand Awareness') return [
+      'We would rather let the real work show what Brutti stands for than force a sales line into the story.',
+      'That is the kind of brand story we want to keep building — grounded in things we actually do.',
+    ]
+    if (type === 'Behind the Scenes') return [
+      'A lot of the story happens before the final setup is seen.',
+      'Those small working moments are part of Brutti too.',
+    ]
+    return [
+      'We keep the real detail visible so the story still feels human.',
+      'One honest detail usually says more than a long marketing line.',
+    ]
+  }
+
+  if (type === 'Brand Awareness' && eventContext && makingContext) {
+    return [
+      'Yang kami mau orang nampak bukan setakat Brutti ada di sana, tapi apa yang kami bawa dari kerja kami sendiri.',
+      'Bila pieces yang kami bikin sendiri jadi sebahagian daripada setup, situ pun cerita Brutti sudah berjalan.',
+    ]
+  }
+  if (type === 'Brand Awareness') return [
+    'Kami lagi suka kasi kerja sebenar yang tunjuk siapa Brutti, daripada paksa masuk ayat jualan.',
+    'Macam ni la kami mau brand Brutti dikenali — dari benda yang memang kami buat, bukan cerita yang dibuat-buat.',
+  ]
+  if (type === 'Behind the Scenes') return [
+    'Banyak juga cerita berlaku sebelum hasil akhir orang nampak.',
+    'Part-part kecil macam ni pun sebenarnya sebahagian dari Brutti.',
+  ]
+  return [
+    'Kami kasi detail sebenar tu tetap nampak supaya cerita masih rasa human.',
+    'Kadang satu benda yang jujur lagi kuat daripada panjang-panjang ayat marketing.',
+  ]
+}
+
+function removeRepeatedStarts(lines = []) {
+  const seen = new Map()
+  return lines.filter((line) => {
+    const key = normalized(line).split(/\s+/).slice(0, 3).join(' ')
+    if (!key) return false
+    const count = seen.get(key) || 0
+    seen.set(key, count + 1)
+    return count < 2
+  })
+}
+
+function qualityPass(lines, form, factSet) {
+  return removeRepeatedStarts(
+    lines
+      .map((line) => softenGenericLine(line, form, factSet))
+      .map(clean)
+      .filter(Boolean),
+  )
+}
+
 function keepShape(lines, form, mode) {
   const unique = []
   lines.forEach((line) => {
@@ -179,13 +282,10 @@ function keepShape(lines, form, mode) {
     unique.push(next)
   })
 
-  const fallback = form.language === 'English'
-    ? ['We keep the real detail visible so the story still feels human.', 'We would rather say one honest thing clearly than fill the caption with marketing lines.']
-    : ['Kami kasi detail sebenar tu tetap nampak supaya cerita masih rasa human.', 'Kami lagi rela cerita satu benda yang jujur dengan jelas daripada isi caption dengan ayat marketing.']
-
+  const bridges = contextualBridges(form)
   let cursor = 0
-  while (unique.length < 7 && cursor < fallback.length) {
-    unique.splice(Math.max(1, unique.length - 1), 0, fallback[cursor])
+  while (unique.length < 7 && cursor < bridges.length) {
+    unique.splice(Math.max(1, unique.length - 1), 0, bridges[cursor])
     cursor += 1
   }
 
@@ -208,6 +308,7 @@ export function applyBruttiSoulPolicy(caption, form = {}, mode = 'balanced') {
   lines = ensureFirstPerson(lines, form, factSet, mode)
   lines = ensureBilingual(lines, form, factSet)
   lines = sabahanPass(lines, form, factSet, mode)
+  lines = qualityPass(lines, form, factSet)
   lines = capEmoji(lines)
   lines = keepShape(lines, form, mode)
   return lines.join('\n')
@@ -226,6 +327,7 @@ export function soulPolicyLabel(form = {}) {
   if (CONTENT_SOUL_POLICY.shortLineRhythm) rules.push('short-line rhythm')
   if (CONTENT_SOUL_POLICY.noHashtags) rules.push('no hashtags')
   if (CONTENT_SOUL_POLICY.storyPillars) rules.push(`pillar: ${storyPillarFor(form)}`)
+  rules.push('quality pass')
   rules.push(`max ${CONTENT_SOUL_POLICY.maxEmoji} emoji`)
   return `${SOUL_SOURCE_LABEL} · ${rules.join(' · ')}`
 }
