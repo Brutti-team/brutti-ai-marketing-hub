@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { buildSoulDraft } from './lib/bruttiSoulSource'
+import { lockBruttiVoice } from './lib/bruttiVoiceQuality'
 
 const STYLE_ID = 'brutti-soul-caption-stabilizer-style'
 const STABILIZING_ATTR = 'data-brutti-caption-stabilizing'
@@ -85,13 +86,18 @@ function applySoulDraft(variation = 0, attempt = 0) {
   }
 
   try {
-    const draft = buildSoulDraft(form, 'balanced', Math.max(0, Math.min(2, variation)))
-    if (draft) {
-      setReactValue(textarea, draft)
+    const version = Math.max(0, Math.min(2, variation))
+    const soulDraft = buildSoulDraft(form, 'balanced', version)
+    const locked = lockBruttiVoice(soulDraft, form, version)
+    if (locked.copy) {
+      setReactValue(textarea, locked.copy)
       const panel = page.querySelector('.generator-output')
       if (panel) {
-        panel.dataset.captionEngine = 'brutti-soul-master'
-        panel.dataset.captionVersion = String(Math.max(1, Math.min(3, variation + 1)))
+        panel.dataset.captionEngine = 'brutti-soul-master-voice-lock'
+        panel.dataset.captionVersion = String(Math.max(1, Math.min(3, version + 1)))
+        panel.dataset.captionQuality = locked.report.pass ? 'locked' : 'review'
+        panel.dataset.captionVoiceRefined = locked.refined ? 'true' : 'false'
+        panel.dataset.captionQualityFallback = locked.fallback ? 'true' : 'false'
       }
     }
   } finally {
