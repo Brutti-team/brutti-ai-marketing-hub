@@ -7,46 +7,60 @@ function ensureStyle() {
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
-    .smart-rewrite-panel .smart-rewrite-head,
-    .smart-rewrite-panel .rewrite-actions {
+    .brief-polish-row,
+    .smart-rewrite-panel {
       display: none !important;
     }
 
-    .smart-rewrite-panel .variation-row {
-      display: flex !important;
-      margin-top: 0 !important;
-      padding-top: 0 !important;
-      border-top: 0 !important;
+    .generator-output .regenerate-caption-button {
+      white-space: nowrap;
     }
   `
   document.head.append(style)
 }
 
+function hide(element) {
+  if (!element) return
+  element.hidden = true
+  element.style.display = 'none'
+  element.setAttribute('aria-hidden', 'true')
+}
+
+function ensureRegenerateButton(page) {
+  const actions = page.querySelector('.generator-output.has-output .output-actions.assist-actions')
+  if (!actions || actions.querySelector('.regenerate-caption-button')) return
+
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.className = 'button secondary regenerate-caption-button'
+  button.textContent = 'Regenerate'
+  button.setAttribute('aria-label', 'Regenerate caption')
+
+  const saveButton = [...actions.querySelectorAll('button')]
+    .find((item) => /save as draft/i.test(item.textContent || ''))
+  actions.insertBefore(button, saveButton || null)
+}
+
+function simplifyCopy(page) {
+  const steps = page.querySelectorAll('.assist-steps span')
+  if (steps[1]) steps[1].innerHTML = '<b>2</b>Regenerate if needed'
+
+  const emptyTitle = page.querySelector('.empty-output h3')
+  const emptyCopy = page.querySelector('.empty-output p')
+  if (emptyTitle) emptyTitle.textContent = 'Caption generator is ready.'
+  if (emptyCopy) emptyCopy.textContent = 'Add verified facts and Content Direction to generate one Facebook caption. If the first result is not right, press Regenerate.'
+}
+
 function sync() {
   ensureStyle()
 
-  document.querySelectorAll('.brief-polish-row').forEach((row) => {
-    row.style.display = 'none'
-    row.setAttribute('aria-hidden', 'true')
-  })
+  const page = [...document.querySelectorAll('#root .page')]
+    .find((item) => item.offsetParent !== null && item.querySelector('.page-header h1')?.textContent?.trim() === 'Content Studio')
+  if (!page) return
 
-  document.querySelectorAll('.smart-rewrite-panel .smart-rewrite-head, .smart-rewrite-panel .rewrite-actions').forEach((section) => {
-    section.hidden = true
-    section.style.display = 'none'
-    section.setAttribute('aria-hidden', 'true')
-  })
-
-  document.querySelectorAll('.smart-rewrite-panel .variation-row').forEach((row) => {
-    row.hidden = false
-    row.style.display = 'flex'
-    row.removeAttribute('aria-hidden')
-    row.querySelectorAll('button').forEach((button) => {
-      button.hidden = false
-      button.style.display = ''
-      button.removeAttribute('aria-hidden')
-      button.tabIndex = 0
-    })
-  })
+  page.querySelectorAll('.brief-polish-row, .smart-rewrite-panel').forEach(hide)
+  simplifyCopy(page)
+  ensureRegenerateButton(page)
 }
 
 export default function ContentStudioUiSimplifier() {
