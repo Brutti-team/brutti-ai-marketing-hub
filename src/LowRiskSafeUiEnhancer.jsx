@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 
-const LANGUAGE_KEY = 'brutti-app-language-v2'
+const LANGUAGE_KEY = 'brutti-ui-language-v1'
+const LANGUAGE_EVENT = 'brutti:languagechange'
 
 const PAGE_DESCRIPTIONS = {
   Dashboard: {
@@ -131,47 +131,27 @@ function applyLanguage(language) {
   })
 }
 
-function LanguageControl({ language, onChange }) {
-  return (
-    <section className="panel app-language-panel" aria-label="App display language settings">
-      <div>
-        <span className="eyebrow">App Language</span>
-        <h3>{language === 'bm' ? 'Bahasa paparan' : 'Display language'}</h3>
-        <p>{language === 'bm'
-          ? 'Pilih bahasa utama untuk teks bantuan dalam app. Nama modul standard seperti Dashboard, Content Studio dan Analytics dikekalkan supaya fungsi dalaman tidak terganggu.'
-          : 'Choose one primary language for helper copy. Standard module names such as Dashboard, Content Studio and Analytics stay unchanged so internal behaviour remains stable.'}</p>
-      </div>
-      <div className="app-language-options" role="group" aria-label="Choose app display language">
-        <button type="button" className={language === 'bm' ? 'active' : ''} aria-pressed={language === 'bm'} onClick={() => onChange('bm')}>Bahasa Melayu</button>
-        <button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => onChange('en')}>English</button>
-      </div>
-      <small>{language === 'bm' ? 'Bahasa caption dalam Content Studio kekal berasingan.' : 'Caption language in Content Studio remains a separate setting.'}</small>
-    </section>
-  )
-}
-
 export default function LowRiskSafeUiEnhancer({ page }) {
   const [language, setLanguage] = useState(readLanguage)
-  const [settingsTarget, setSettingsTarget] = useState(null)
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(LANGUAGE_KEY, language)
-    } catch {
-      // Keep the current-session preference when storage is unavailable.
+    const onLanguageChange = (event) => {
+      const next = event.detail?.language === 'en' ? 'en' : 'bm'
+      setLanguage(next)
     }
-  }, [language])
+
+    window.addEventListener(LANGUAGE_EVENT, onLanguageChange)
+    return () => window.removeEventListener(LANGUAGE_EVENT, onLanguageChange)
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       polishKnownLabels()
       applyLanguage(language)
-      setSettingsTarget(page === 'Settings' ? document.querySelector('.settings-grid') : null)
     }, 0)
 
     return () => window.clearTimeout(timer)
   }, [page, language])
 
-  if (!settingsTarget) return null
-  return createPortal(<LanguageControl language={language} onChange={setLanguage} />, settingsTarget)
+  return null
 }
