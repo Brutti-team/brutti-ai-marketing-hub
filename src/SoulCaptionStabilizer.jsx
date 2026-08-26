@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { buildBruttiCaptionV3 } from './lib/bruttiCaptionEngineV3'
+import { buildBruttiCaptionV32 } from './lib/bruttiCaptionEngineV32'
 
 const STYLE_ID = 'brutti-soul-caption-stabilizer-style'
 const STABILIZING_ATTR = 'data-brutti-caption-stabilizing'
@@ -86,7 +86,7 @@ function finish() {
   window.requestAnimationFrame(() => setStabilizing(false))
 }
 
-function applyCaptionV3(variation = 0, attempt = 0) {
+function applyCaptionV32(variation = 0, attempt = 0) {
   const page = activeStudio()
   if (!page) {
     finish()
@@ -102,7 +102,7 @@ function applyCaptionV3(variation = 0, attempt = 0) {
   const textarea = page.querySelector('.output-editor-label textarea')
   if (!textarea) {
     if (attempt < 10) {
-      window.setTimeout(() => applyCaptionV3(variation, attempt + 1), 20 + attempt * 15)
+      window.setTimeout(() => applyCaptionV32(variation, attempt + 1), 20 + attempt * 15)
       return
     }
     finish()
@@ -111,18 +111,17 @@ function applyCaptionV3(variation = 0, attempt = 0) {
 
   try {
     const version = Math.max(0, Math.min(2, variation))
-    const result = buildBruttiCaptionV3(form, version, { recentStructures: readStructureHistory() })
+    const result = buildBruttiCaptionV32(form, version, { recentStructures: readStructureHistory() })
     if (!result.copy) return
 
-    // Lightweight mode: Caption Engine V3 already performs verified-claim checks.
-    // Soul Master stays as a reference inside the engine, but the final caption is no
-    // longer forced through extra Soul-policy + fact-first rewrite layers.
+    // V3.2 keeps Soul as a soft reference while making Content Direction story-first.
+    // Technical facts remain supporting information unless the direction explicitly asks for them.
     setReactValue(textarea, result.copy)
     rememberStructure(result.meta)
 
     const panel = page.querySelector('.generator-output')
     if (panel) {
-      panel.dataset.captionEngine = 'brutti-caption-engine-v3-light'
+      panel.dataset.captionEngine = 'brutti-caption-engine-v3.2'
       panel.dataset.captionVersion = String(result.meta.version)
       panel.dataset.captionStoryPillar = result.meta.storyPillar
       panel.dataset.captionStoryStructure = result.meta.structure
@@ -132,6 +131,8 @@ function applyCaptionV3(variation = 0, attempt = 0) {
       panel.dataset.captionIntegrityGuard = 'verified-claims'
       panel.dataset.captionFinalPolish = 'single-pass'
       panel.dataset.captionStyleMode = 'soft-reference'
+      panel.dataset.captionDirectionMode = result.meta.directionMode || 'story-first'
+      panel.dataset.captionTechnicalFactsSkipped = String(result.meta.technicalFactsSkipped || 0)
     }
   } finally {
     finish()
@@ -160,7 +161,7 @@ export default function SoulCaptionStabilizer() {
       if (!form || !supportedLanguage(form.language)) return
       setStabilizing(true)
       armSafetyReveal()
-      window.setTimeout(() => applyCaptionV3(0), 0)
+      window.setTimeout(() => applyCaptionV32(0), 0)
     }
 
     const onClick = (event) => {
@@ -171,7 +172,7 @@ export default function SoulCaptionStabilizer() {
       if (!form || !supportedLanguage(form.language)) return
       setStabilizing(true)
       armSafetyReveal()
-      window.setTimeout(() => applyCaptionV3(selectedVersion(button)), 0)
+      window.setTimeout(() => applyCaptionV32(selectedVersion(button)), 0)
     }
 
     document.addEventListener('submit', onSubmit, true)
