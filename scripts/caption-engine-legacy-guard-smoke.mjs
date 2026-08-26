@@ -19,8 +19,11 @@ const forbiddenRuntimeModules = [
 
 assert(main.includes("import SoulCaptionStabilizer from './SoulCaptionStabilizer.jsx'"), 'SoulCaptionStabilizer must remain the mounted BM final-output owner.')
 assert((main.match(/<SoulCaptionStabilizer\s*\/>/g) || []).length === 1, 'SoulCaptionStabilizer must be mounted exactly once.')
-assert(stabilizer.includes("buildBruttiCaptionV3"), 'SoulCaptionStabilizer must use Brutti Caption Engine V3.')
-assert(stabilizer.includes("panel.dataset.captionEngine = 'brutti-caption-engine-v3'"), 'V3 output ownership marker is missing.')
+assert(stabilizer.includes('buildBruttiCaptionV3'), 'SoulCaptionStabilizer must use Brutti Caption Engine V3.')
+assert(stabilizer.includes("panel.dataset.captionEngine = 'brutti-caption-engine-v3-light'"), 'Light V3 output ownership marker is missing.')
+assert(stabilizer.includes("panel.dataset.captionStyleMode = 'soft-reference'"), 'Soft-reference style marker is missing.')
+assert(!stabilizer.includes('applyBruttiSoulPolicy'), 'Live caption output must not be routed through the strict Soul policy layer.')
+assert(!stabilizer.includes('polishBruttiFinalCaption'), 'Live caption output must not be routed through the extra final-polish layer.')
 
 for (const moduleName of forbiddenRuntimeModules) {
   assert(!main.includes(moduleName), `Legacy caption module ${moduleName} must not be imported or mounted in main.jsx.`)
@@ -29,4 +32,4 @@ for (const moduleName of forbiddenRuntimeModules) {
 assert(!main.includes('contentStudioEngineV2'), 'Legacy Content Studio Engine V2 must not be wired into the live entrypoint.')
 assert(!main.includes('liveCaptionNarrativeEngine'), 'Legacy narrative engine must not be wired into the live entrypoint.')
 
-console.log('PASS: Caption Engine V3 is the sole mounted BM final-output owner; legacy caption engines remain unmounted and cannot be silently reintroduced without failing CI.')
+console.log('PASS: Caption Engine V3 Light is the sole mounted BM final-output owner; Soul style is a soft reference and legacy/extra rewrite layers remain outside the live output path.')
