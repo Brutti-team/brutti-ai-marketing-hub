@@ -17,8 +17,9 @@ const forbiddenRuntimeModules = [
   'SmartRewriteDirectionEnhancer',
 ]
 
-assert(main.includes("import SoulCaptionStabilizer from './SoulCaptionStabilizer.jsx'"), 'SoulCaptionStabilizer must remain the mounted BM final-output owner.')
+assert(main.includes("import('./SoulCaptionStabilizer.jsx')"), 'SoulCaptionStabilizer must remain available through the page-scoped lazy loader.')
 assert((main.match(/<SoulCaptionStabilizer\s*\/>/g) || []).length === 1, 'SoulCaptionStabilizer must be mounted exactly once.')
+assert(main.includes("page === 'Content Studio' ? <SoulCaptionStabilizer /> : null"), 'SoulCaptionStabilizer must only run while Content Studio is active.')
 assert(stabilizer.includes('buildBruttiCaptionV3'), 'SoulCaptionStabilizer must use Brutti Caption Engine V3.')
 assert(stabilizer.includes("panel.dataset.captionEngine = 'brutti-caption-engine-v3-light'"), 'Light V3 output ownership marker is missing.')
 assert(stabilizer.includes("panel.dataset.captionStyleMode = 'soft-reference'"), 'Soft-reference style marker is missing.')
@@ -29,7 +30,8 @@ for (const moduleName of forbiddenRuntimeModules) {
   assert(!main.includes(moduleName), `Legacy caption module ${moduleName} must not be imported or mounted in main.jsx.`)
 }
 
+assert(!main.includes('BruttiSoulSystemEnhancer'), 'The always-on legacy Soul DOM enhancer must stay out of the live entrypoint.')
 assert(!main.includes('contentStudioEngineV2'), 'Legacy Content Studio Engine V2 must not be wired into the live entrypoint.')
 assert(!main.includes('liveCaptionNarrativeEngine'), 'Legacy narrative engine must not be wired into the live entrypoint.')
 
-console.log('PASS: Caption Engine V3 Light is the sole mounted BM final-output owner; Soul style is a soft reference and legacy/extra rewrite layers remain outside the live output path.')
+console.log('PASS: Caption Engine V3 Light is page-scoped to Content Studio; Soul style is a soft reference and legacy/extra rewrite layers remain outside the live output path.')
