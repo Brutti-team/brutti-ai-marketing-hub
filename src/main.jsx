@@ -22,6 +22,7 @@ import './interface-cleanup.css'
 import './free-assist-output.css'
 import './content-studio-v2.css'
 import './low-risk-safe-ui.css'
+import './dark-mode-contrast-pass-3.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')

@@ -1,0 +1,213 @@
+/* Dark-mode contrast pass 3: targeted readability fixes for Idea Vault, Content Library and Content Studio assist steps. */
+
+html[data-theme='dark'] {
+  --dm3-surface: #18231d;
+  --dm3-surface-2: #1e2d25;
+  --dm3-surface-3: #263a30;
+  --dm3-input: #101914;
+  --dm3-border: #526b5e;
+  --dm3-border-strong: #6d8b7a;
+  --dm3-text: #f5f8f6;
+  --dm3-text-2: #d7e2dc;
+  --dm3-text-3: #afc2b8;
+  --dm3-mint: #d6efdf;
+  --dm3-mint-strong: #ecf8f0;
+}
+
+/* Idea Vault: never leave a white card with pale text in dark mode. */
+html[data-theme='dark'] .idea-vault-panel {
+  background: var(--dm3-surface) !important;
+  border-color: var(--dm3-border) !important;
+  color: var(--dm3-text) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+html[data-theme='dark'] .idea-vault-eyebrow {
+  color: #b8ddc5 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .idea-vault-head h2,
+html[data-theme='dark'] .idea-vault-card h3,
+html[data-theme='dark'] .idea-vault-form label,
+html[data-theme='dark'] .idea-vault-form label > span {
+  color: var(--dm3-text) !important;
+}
+
+html[data-theme='dark'] .idea-vault-head p,
+html[data-theme='dark'] .idea-vault-card p,
+html[data-theme='dark'] .idea-vault-actions small,
+html[data-theme='dark'] .idea-vault-count,
+html[data-theme='dark'] .idea-vault-empty,
+html[data-theme='dark'] .idea-vault-match small {
+  color: var(--dm3-text-2) !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .idea-vault-form input,
+html[data-theme='dark'] .idea-vault-form select,
+html[data-theme='dark'] .idea-vault-form textarea,
+html[data-theme='dark'] .idea-vault-search {
+  background: var(--dm3-input) !important;
+  border-color: var(--dm3-border) !important;
+  color: var(--dm3-text) !important;
+  caret-color: var(--dm3-mint);
+}
+
+html[data-theme='dark'] .idea-vault-form input::placeholder,
+html[data-theme='dark'] .idea-vault-form textarea::placeholder,
+html[data-theme='dark'] .idea-vault-search::placeholder {
+  color: var(--dm3-text-3) !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .idea-vault-form input:focus,
+html[data-theme='dark'] .idea-vault-form select:focus,
+html[data-theme='dark'] .idea-vault-form textarea:focus,
+html[data-theme='dark'] .idea-vault-search:focus {
+  border-color: #89ad98 !important;
+  box-shadow: 0 0 0 3px rgba(137,173,152,.14);
+}
+
+html[data-theme='dark'] .idea-vault-card,
+html[data-theme='dark'] .idea-vault-match {
+  background: var(--dm3-surface-2) !important;
+  border-color: var(--dm3-border) !important;
+}
+
+html[data-theme='dark'] .idea-vault-pill {
+  background: #30453a !important;
+  border: 1px solid #557363;
+  color: #e7f5ec !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .idea-vault-empty {
+  background: #152019 !important;
+  border-color: #496256 !important;
+}
+
+html[data-theme='dark'] .idea-vault-actions .button.primary {
+  background: var(--dm3-mint) !important;
+  border-color: var(--dm3-mint-strong) !important;
+  color: #102118 !important;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .idea-vault-actions .button.primary:hover {
+  background: #e5f6eb !important;
+}
+
+/* Content Library: strengthen rows, metadata, tabs and controls. */
+html[data-theme='dark'] .content-library {
+  background: var(--dm3-surface) !important;
+  border-color: var(--dm3-border) !important;
+}
+
+html[data-theme='dark'] .library-toolbar {
+  background: #17221c !important;
+  border-bottom-color: #455e51 !important;
+}
+
+html[data-theme='dark'] .search-box,
+html[data-theme='dark'] .library-toolbar > select {
+  background: var(--dm3-input) !important;
+  border-color: var(--dm3-border) !important;
+  color: var(--dm3-text) !important;
+}
+
+html[data-theme='dark'] .search-box input {
+  color: var(--dm3-text) !important;
+}
+
+html[data-theme='dark'] .search-box input::placeholder {
+  color: var(--dm3-text-3) !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .content-table {
+  background: var(--dm3-surface) !important;
+}
+
+html[data-theme='dark'] .content-table th {
+  background: #293b32 !important;
+  color: #dff1e6 !important;
+  border-color: #536e60 !important;
+  font-weight: 800;
+}
+
+html[data-theme='dark'] .content-table td {
+  background: #1a2720 !important;
+  border-top-color: #465e51 !important;
+  color: var(--dm3-text-2) !important;
+}
+
+html[data-theme='dark'] .content-table tr:nth-child(even) td {
+  background: #1d2b24 !important;
+}
+
+html[data-theme='dark'] .content-table td:first-child strong {
+  color: var(--dm3-text) !important;
+}
+
+html[data-theme='dark'] .content-table td:first-child small {
+  color: #c3d2ca !important;
+}
+
+html[data-theme='dark'] .row-actions button {
+  color: #c6d6cd !important;
+}
+
+html[data-theme='dark'] .row-actions button:hover {
+  background: #2a3d33 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='dark'] .tab-bar {
+  border-color: #40584c !important;
+}
+
+html[data-theme='dark'] .tab-bar button {
+  color: #bacac1 !important;
+}
+
+html[data-theme='dark'] .tab-bar button.active,
+html[data-theme='dark'] .tab-bar button[aria-selected='true'] {
+  color: var(--dm3-text) !important;
+  border-bottom-color: #cfe8d8 !important;
+}
+
+/* Content Studio: make assist workflow cards unmistakably readable. */
+html[data-theme='dark'] .assist-steps span {
+  background: #203027 !important;
+  border-color: #587363 !important;
+  color: #eef5f1 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+html[data-theme='dark'] .assist-steps b {
+  background: #d7efdf !important;
+  color: #102118 !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18);
+}
+
+html[data-theme='dark'] .form-disclaimer,
+html[data-theme='dark'] .checkbox-row {
+  color: #e0e9e4 !important;
+}
+
+html[data-theme='dark'] .generator-form .button.primary.wide {
+  background: #d9eee0 !important;
+  border-color: #edf8f1 !important;
+  color: #102118 !important;
+}
+
+html[data-theme='dark'] .generator-form .button.primary.wide:hover {
+  background: #e6f5eb !important;
+}
+
+@media (max-width: 760px) {
+  html[data-theme='dark'] .assist-steps {
+    grid-template-columns: 1fr;
+  }
+}
