@@ -1,29 +1,12 @@
 import { useEffect } from 'react'
 
-const STYLE_ID = 'brutti-content-studio-ui-simplifier-style'
-
-function ensureStyle() {
-  if (document.getElementById(STYLE_ID)) return
-  const style = document.createElement('style')
-  style.id = STYLE_ID
-  style.textContent = `
-    .brief-polish-row,
-    .smart-rewrite-panel {
-      display: none !important;
-    }
-
-    .generator-output .regenerate-caption-button {
-      white-space: nowrap;
-    }
-  `
-  document.head.append(style)
+function activeStudio() {
+  return [...document.querySelectorAll('#root .page')]
+    .find((item) => item.offsetParent !== null && item.querySelector('.page-header h1')?.textContent?.trim() === 'Content Studio') || null
 }
 
-function hide(element) {
-  if (!element) return
-  element.hidden = true
-  element.style.display = 'none'
-  element.setAttribute('aria-hidden', 'true')
+function removeLegacyControls(page) {
+  page.querySelectorAll('.brief-polish-row, .smart-rewrite-panel').forEach((element) => element.remove())
 }
 
 function ensureRegenerateButton(page) {
@@ -51,40 +34,42 @@ function simplifyCopy(page) {
   if (emptyCopy) emptyCopy.textContent = 'Add verified facts and Content Direction to generate one Facebook caption. If the first result is not right, press Regenerate.'
 }
 
-function sync() {
-  ensureStyle()
-
-  const page = [...document.querySelectorAll('#root .page')]
-    .find((item) => item.offsetParent !== null && item.querySelector('.page-header h1')?.textContent?.trim() === 'Content Studio')
-  if (!page) return
-
-  page.querySelectorAll('.brief-polish-row, .smart-rewrite-panel').forEach(hide)
+function sync(page) {
+  if (!page?.isConnected) return
+  removeLegacyControls(page)
   simplifyCopy(page)
   ensureRegenerateButton(page)
 }
 
 export default function ContentStudioUiSimplifier() {
   useEffect(() => {
+    let observer = null
     let timer = 0
-    const schedule = () => {
-      window.clearTimeout(timer)
-      timer = window.setTimeout(sync, 30)
+    let retryTimer = 0
+
+    const start = () => {
+      const page = activeStudio()
+      if (!page) {
+        retryTimer = window.setTimeout(start, 40)
+        return
+      }
+
+      const schedule = () => {
+        window.clearTimeout(timer)
+        timer = window.setTimeout(() => sync(page), 20)
+      }
+
+      sync(page)
+      observer = new MutationObserver(schedule)
+      observer.observe(page, { childList: true, subtree: true })
     }
 
-    const root = document.getElementById('root')
-    if (!root) return undefined
-
-    const observer = new MutationObserver(schedule)
-    observer.observe(root, { childList: true, subtree: true })
-    document.addEventListener('click', schedule, true)
-    document.addEventListener('submit', schedule, true)
-    sync()
+    start()
 
     return () => {
       window.clearTimeout(timer)
-      observer.disconnect()
-      document.removeEventListener('click', schedule, true)
-      document.removeEventListener('submit', schedule, true)
+      window.clearTimeout(retryTimer)
+      observer?.disconnect()
     }
   }, [])
 
