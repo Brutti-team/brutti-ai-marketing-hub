@@ -115,7 +115,7 @@ function applyCaptionV32(variation = 0, attempt = 0) {
     if (!result.copy) return
 
     // V3.2 keeps Soul as a soft reference while making Content Direction story-first.
-    // Technical facts remain supporting information unless the direction explicitly asks for them.
+    // Alternatives are exposed through one Regenerate action instead of visible versions.
     setReactValue(textarea, result.copy)
     rememberStructure(result.meta)
 
@@ -133,21 +133,18 @@ function applyCaptionV32(variation = 0, attempt = 0) {
       panel.dataset.captionStyleMode = 'soft-reference'
       panel.dataset.captionDirectionMode = result.meta.directionMode || 'story-first'
       panel.dataset.captionTechnicalFactsSkipped = String(result.meta.technicalFactsSkipped || 0)
+      panel.dataset.captionRegenerateMode = 'single-action'
     }
   } finally {
     finish()
   }
 }
 
-function selectedVersion(button) {
-  const match = clean(button?.textContent).match(/Version\s*(\d+)/i)
-  return Math.max(0, Math.min(2, Number(match?.[1] || 1) - 1))
-}
-
 export default function SoulCaptionStabilizer() {
   useEffect(() => {
     ensureStyle()
     let safetyTimer = 0
+    let regenerateIndex = 0
 
     const armSafetyReveal = () => {
       window.clearTimeout(safetyTimer)
@@ -159,20 +156,23 @@ export default function SoulCaptionStabilizer() {
       const page = activeStudio()
       const form = page ? readForm(page) : null
       if (!form || !supportedLanguage(form.language)) return
+      regenerateIndex = 0
       setStabilizing(true)
       armSafetyReveal()
-      window.setTimeout(() => applyCaptionV32(0), 0)
+      window.setTimeout(() => applyCaptionV32(regenerateIndex), 0)
     }
 
     const onClick = (event) => {
-      const button = event.target.closest?.('.variation-row button')
+      const button = event.target.closest?.('.regenerate-caption-button')
       if (!button) return
       const page = activeStudio()
       const form = page ? readForm(page) : null
       if (!form || !supportedLanguage(form.language)) return
+      event.preventDefault()
+      regenerateIndex = (regenerateIndex + 1) % 3
       setStabilizing(true)
       armSafetyReveal()
-      window.setTimeout(() => applyCaptionV32(selectedVersion(button)), 0)
+      window.setTimeout(() => applyCaptionV32(regenerateIndex), 0)
     }
 
     document.addEventListener('submit', onSubmit, true)
