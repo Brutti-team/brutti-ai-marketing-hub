@@ -1,7 +1,5 @@
 import { useEffect } from 'react'
 import { buildBruttiCaptionV3 } from './lib/bruttiCaptionEngineV3'
-import { applyBruttiSoulPolicy } from './lib/contentStudioSoulPolicy'
-import { polishBruttiFinalCaption } from './lib/bruttiCaptionFinalPolish'
 
 const STYLE_ID = 'brutti-soul-caption-stabilizer-style'
 const STABILIZING_ATTR = 'data-brutti-caption-stabilizing'
@@ -9,6 +7,10 @@ const HISTORY_KEY = 'brutti-caption-v3-structure-history'
 
 function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function supportedLanguage(language = '') {
+  return language === 'Bahasa Melayu' || language === 'BM + English'
 }
 
 function ensureStyle() {
@@ -62,7 +64,7 @@ function rememberStructure(meta) {
     history.push({ inputKey: meta.inputKey, structure: meta.structure, pillar: meta.storyPillar })
     window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-20)))
   } catch {
-    // Structure history is optional; generation must still work if storage is unavailable.
+    // Structure history is optional.
   }
 }
 
@@ -92,7 +94,7 @@ function applyCaptionV3(variation = 0, attempt = 0) {
   }
 
   const form = readForm(page)
-  if (!clean(form.title) || !clean(form.brief) || form.language !== 'Bahasa Melayu') {
+  if (!clean(form.title) || !clean(form.brief) || !supportedLanguage(form.language)) {
     finish()
     return
   }
@@ -110,26 +112,26 @@ function applyCaptionV3(variation = 0, attempt = 0) {
   try {
     const version = Math.max(0, Math.min(2, variation))
     const result = buildBruttiCaptionV3(form, version, { recentStructures: readStructureHistory() })
-    if (result.copy) {
-      // V3 is the active Bahasa Melayu caption engine. First route the copy through
-      // the Soul integrity guard, then apply a final fact-first polish so repeated
-      // filler cannot displace the strongest verified facts.
-      const guardedCopy = applyBruttiSoulPolicy(result.copy, form, 'balanced') || result.copy
-      const finalCopy = polishBruttiFinalCaption(guardedCopy, form) || guardedCopy
-      setReactValue(textarea, finalCopy)
-      rememberStructure(result.meta)
-      const panel = page.querySelector('.generator-output')
-      if (panel) {
-        panel.dataset.captionEngine = 'brutti-caption-engine-v3'
-        panel.dataset.captionVersion = String(result.meta.version)
-        panel.dataset.captionStoryPillar = result.meta.storyPillar
-        panel.dataset.captionStoryStructure = result.meta.structure
-        panel.dataset.captionQuality = result.report.pass ? 'locked' : 'review'
-        panel.dataset.captionVoiceRefined = result.refined ? 'true' : 'false'
-        panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
-        panel.dataset.captionIntegrityGuard = 'soul-policy'
-        panel.dataset.captionFinalPolish = 'fact-first'
-      }
+    if (!result.copy) return
+
+    // Lightweight mode: Caption Engine V3 already performs verified-claim checks.
+    // Soul Master stays as a reference inside the engine, but the final caption is no
+    // longer forced through extra Soul-policy + fact-first rewrite layers.
+    setReactValue(textarea, result.copy)
+    rememberStructure(result.meta)
+
+    const panel = page.querySelector('.generator-output')
+    if (panel) {
+      panel.dataset.captionEngine = 'brutti-caption-engine-v3-light'
+      panel.dataset.captionVersion = String(result.meta.version)
+      panel.dataset.captionStoryPillar = result.meta.storyPillar
+      panel.dataset.captionStoryStructure = result.meta.structure
+      panel.dataset.captionQuality = result.report.pass ? 'guarded' : 'review'
+      panel.dataset.captionVoiceRefined = result.refined ? 'true' : 'false'
+      panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
+      panel.dataset.captionIntegrityGuard = 'verified-claims'
+      panel.dataset.captionFinalPolish = 'single-pass'
+      panel.dataset.captionStyleMode = 'soft-reference'
     }
   } finally {
     finish()
@@ -148,14 +150,14 @@ export default function SoulCaptionStabilizer() {
 
     const armSafetyReveal = () => {
       window.clearTimeout(safetyTimer)
-      safetyTimer = window.setTimeout(() => setStabilizing(false), 650)
+      safetyTimer = window.setTimeout(() => setStabilizing(false), 500)
     }
 
     const onSubmit = (event) => {
       if (!event.target.matches?.('.generator-form')) return
       const page = activeStudio()
       const form = page ? readForm(page) : null
-      if (!form || form.language !== 'Bahasa Melayu') return
+      if (!form || !supportedLanguage(form.language)) return
       setStabilizing(true)
       armSafetyReveal()
       window.setTimeout(() => applyCaptionV3(0), 0)
@@ -166,11 +168,10 @@ export default function SoulCaptionStabilizer() {
       if (!button) return
       const page = activeStudio()
       const form = page ? readForm(page) : null
-      if (!form || form.language !== 'Bahasa Melayu') return
+      if (!form || !supportedLanguage(form.language)) return
       setStabilizing(true)
       armSafetyReveal()
-      const variation = selectedVersion(button)
-      window.setTimeout(() => applyCaptionV3(variation), 0)
+      window.setTimeout(() => applyCaptionV3(selectedVersion(button)), 0)
     }
 
     document.addEventListener('submit', onSubmit, true)
