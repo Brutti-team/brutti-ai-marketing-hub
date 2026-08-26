@@ -20,8 +20,9 @@ const forbiddenRuntimeModules = [
 assert(main.includes("import('./SoulCaptionStabilizer.jsx')"), 'SoulCaptionStabilizer must remain available through the page-scoped lazy loader.')
 assert((main.match(/<SoulCaptionStabilizer\s*\/>/g) || []).length === 1, 'SoulCaptionStabilizer must be mounted exactly once.')
 assert(main.includes("page === 'Content Studio' ? <SoulCaptionStabilizer /> : null"), 'SoulCaptionStabilizer must only run while Content Studio is active.')
-assert(stabilizer.includes('buildBruttiCaptionV3'), 'SoulCaptionStabilizer must use Brutti Caption Engine V3.')
-assert(stabilizer.includes("panel.dataset.captionEngine = 'brutti-caption-engine-v3-light'"), 'Light V3 output ownership marker is missing.')
+assert(stabilizer.includes('buildBruttiCaptionV32'), 'SoulCaptionStabilizer must use direction-aware Brutti Caption Engine V3.2.')
+assert(stabilizer.includes("panel.dataset.captionEngine = 'brutti-caption-engine-v3.2'"), 'V3.2 output ownership marker is missing.')
+assert(stabilizer.includes("panel.dataset.captionDirectionMode"), 'Story-first direction marker is missing.')
 assert(stabilizer.includes("panel.dataset.captionStyleMode = 'soft-reference'"), 'Soft-reference style marker is missing.')
 assert(!stabilizer.includes('applyBruttiSoulPolicy'), 'Live caption output must not be routed through the strict Soul policy layer.')
 assert(!stabilizer.includes('polishBruttiFinalCaption'), 'Live caption output must not be routed through the extra final-polish layer.')
@@ -34,4 +35,4 @@ assert(!main.includes('BruttiSoulSystemEnhancer'), 'The always-on legacy Soul DO
 assert(!main.includes('contentStudioEngineV2'), 'Legacy Content Studio Engine V2 must not be wired into the live entrypoint.')
 assert(!main.includes('liveCaptionNarrativeEngine'), 'Legacy narrative engine must not be wired into the live entrypoint.')
 
-console.log('PASS: Caption Engine V3 Light is page-scoped to Content Studio; Soul style is a soft reference and legacy/extra rewrite layers remain outside the live output path.')
+console.log('PASS: Caption Engine V3.2 is story-first and page-scoped to Content Studio; Soul stays a soft reference and legacy rewrite layers remain outside the live output path.')
