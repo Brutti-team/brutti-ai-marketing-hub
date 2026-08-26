@@ -10,6 +10,7 @@ import LowRiskSafeUiEnhancer from './LowRiskSafeUiEnhancer.jsx'
 import ContentStudioUiSimplifier from './ContentStudioUiSimplifier.jsx'
 import SoulCaptionStabilizer from './SoulCaptionStabilizer.jsx'
 import AppLanguageLock from './AppLanguageLock.jsx'
+import IntegrationBrandIconEnhancer from './IntegrationBrandIconEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -129,6 +130,7 @@ createRoot(document.getElementById('root')).render(
     <ContentStudioUiSimplifier />
     <SoulCaptionStabilizer />
     <AppLanguageLock />
+    <IntegrationBrandIconEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
 )
