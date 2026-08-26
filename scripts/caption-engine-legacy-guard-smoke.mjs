@@ -28,7 +28,11 @@ assert(stabilizer.includes("panel.dataset.captionStyleMode = 'soft-reference'"),
 assert(stabilizer.includes("'.regenerate-caption-button'"), 'Caption alternatives must be routed through the single Regenerate action.')
 assert(!stabilizer.includes("'.variation-row button'"), 'Visible Version 1/2/3 controls must not own caption regeneration anymore.')
 assert(simplifier.includes("button.textContent = 'Regenerate'"), 'Content Studio must expose a Regenerate button.')
-assert(simplifier.includes("'.brief-polish-row, .smart-rewrite-panel'"), 'Legacy Smart Rewrite UI must stay hidden in the simplified flow.')
+assert(simplifier.includes("page.querySelectorAll('.brief-polish-row, .smart-rewrite-panel')"), 'Legacy Smart Rewrite controls must be targeted for removal.')
+assert(simplifier.includes('element.remove()'), 'Legacy Smart Rewrite controls must be removed from the live DOM instead of hidden with CSS.')
+assert(!simplifier.includes("document.addEventListener('click'"), 'Content Studio simplifier must not install a global click listener.')
+assert(!simplifier.includes("document.addEventListener('submit'"), 'Content Studio simplifier must not install a global submit listener.')
+assert(simplifier.includes('observer.observe(page'), 'Content Studio observer must be scoped to the active Content Studio page.')
 assert(!stabilizer.includes('applyBruttiSoulPolicy'), 'Live caption output must not be routed through the strict Soul policy layer.')
 assert(!stabilizer.includes('polishBruttiFinalCaption'), 'Live caption output must not be routed through the extra final-polish layer.')
 
@@ -40,4 +44,4 @@ assert(!main.includes('BruttiSoulSystemEnhancer'), 'The always-on legacy Soul DO
 assert(!main.includes('contentStudioEngineV2'), 'Legacy Content Studio Engine V2 must not be wired into the live entrypoint.')
 assert(!main.includes('liveCaptionNarrativeEngine'), 'Legacy narrative engine must not be wired into the live entrypoint.')
 
-console.log('PASS: Caption Engine V3.2 is story-first and page-scoped; Content Studio exposes one Regenerate action while Version/Smart Rewrite controls stay out of the live user flow.')
+console.log('PASS: Caption Engine V3.2 remains story-first and page-scoped; legacy Smart Rewrite/Version controls are removed from the live DOM, and Regenerate remains the single visible alternative action.')
