@@ -129,7 +129,7 @@ function customerDraft(form = {}, profile = {}, variation = 0) {
     'Custom work memang macam ni — lain client, lain direction.',
     'Yang penting, kita faham dulu apa yang dia mau sebelum masuk benda lain.',
     'Bila idea sudah jelas, senang team fokus pada benda yang betul-betul penting.',
-    'Tidak perlu kasi semua technical detail masuk satu caption kalau bukan itu point utama.',
+    'Idea utama dia jelas dulu, detail lain boleh ikut kemudian.',
     'Bagi kami, cerita client dan idea dia dulu yang kasi project ni ada context.',
   ]
 
