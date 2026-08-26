@@ -36,6 +36,7 @@ const loadContentStudioUi = () => import('./ContentStudioUiSimplifier.jsx')
 const loadSoulCaption = () => import('./SoulCaptionStabilizer.jsx')
 const loadAppLanguage = () => import('./AppLanguageLock.jsx')
 const loadIntegrationIcons = () => import('./IntegrationBrandIconEnhancer.jsx')
+const loadIdeaVault = () => import('./IdeaVaultEnhancer.jsx')
 
 const ProductImageEnhancer = lazy(loadProductImage)
 const AnalyticsCopyPolish = lazy(loadAnalyticsCopy)
@@ -50,6 +51,7 @@ const ContentStudioUiSimplifier = lazy(loadContentStudioUi)
 const SoulCaptionStabilizer = lazy(loadSoulCaption)
 const AppLanguageLock = lazy(loadAppLanguage)
 const IntegrationBrandIconEnhancer = lazy(loadIntegrationIcons)
+const IdeaVaultEnhancer = lazy(loadIdeaVault)
 
 function activePageLabel() {
   return document.querySelector('#root .nav-link.active span')?.textContent?.trim() || 'Dashboard'
@@ -59,12 +61,16 @@ function preloadForPage(label) {
   if (label === 'Dashboard') {
     loadDailyRecommendation()
     loadHistoricalTiming()
+    loadIdeaVault()
   }
   if (label === 'Content Studio') {
     loadContentStudioUi()
     loadSoulCaption()
   }
-  if (label === 'Campaign Planner') loadHistoricalTiming()
+  if (label === 'Campaign Planner') {
+    loadHistoricalTiming()
+    loadIdeaVault()
+  }
   if (label === 'Product Library') {
     loadProductImage()
     loadProductCatalogQuality()
@@ -130,6 +136,7 @@ export function DeferredEnhancers() {
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
       {page === 'Dashboard' ? <DailyContentRecommendationEnhancer /> : null}
+      {page === 'Dashboard' || page === 'Campaign Planner' ? <IdeaVaultEnhancer page={page} /> : null}
       {page === 'Dashboard' || page === 'Campaign Planner' ? <HistoricalPostingTimeEnhancer /> : null}
       {page === 'Content Studio' ? <ContentStudioUiSimplifier /> : null}
       {page === 'Content Studio' ? <SoulCaptionStabilizer /> : null}
