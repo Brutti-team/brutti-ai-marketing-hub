@@ -1,6 +1,9 @@
 const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL
 const workspaceKeyName = 'brutti-google-workspace-key'
 
+let verifiedWorkspaceKey = ''
+let verificationPromise = null
+
 export const googleConfigured = Boolean(appsScriptUrl)
 
 export function hasWorkspaceKey() {
@@ -11,21 +14,26 @@ export function setWorkspaceKey(key) {
   const cleanKey = key.trim()
   if (!cleanKey) throw new Error('Enter the BRUTTI workspace key.')
   window.sessionStorage.setItem(workspaceKeyName, cleanKey)
+  verifiedWorkspaceKey = ''
+  verificationPromise = null
 }
 
 export function clearWorkspaceKey() {
   window.sessionStorage.removeItem(workspaceKeyName)
+  verifiedWorkspaceKey = ''
+  verificationPromise = null
 }
 
 function getWorkspaceKey() {
   return window.sessionStorage.getItem(workspaceKeyName) || ''
 }
 
-export async function callMarketingApi(action, payload = {}) {
-  if (!googleConfigured) throw new Error('Google Apps Script is not configured yet.')
-  const accessKey = getWorkspaceKey()
-  if (!accessKey) throw new Error('Connect the internal Google workspace first.')
+function isWorkspaceAuthError(message = '') {
+  const value = String(message).toLowerCase()
+  return value.includes('workspace key') || value.includes('workspace_key')
+}
 
+async function requestMarketingApi(action, payload, accessKey) {
   let response
   try {
     response = await fetch(appsScriptUrl, {
@@ -47,9 +55,37 @@ export async function callMarketingApi(action, payload = {}) {
   }
 
   if (!response.ok || !result?.ok) {
-    throw new Error(result?.error || `Google Apps Script request failed (${response.status}).`)
+    const message = result?.error || `Google Apps Script request failed (${response.status}).`
+    if (isWorkspaceAuthError(message)) clearWorkspaceKey()
+    throw new Error(message)
   }
   return result.data
+}
+
+async function verifyWorkspaceKey(accessKey) {
+  if (verifiedWorkspaceKey === accessKey) return null
+  if (!verificationPromise) {
+    verificationPromise = requestMarketingApi('integration_status', {}, accessKey)
+      .then((data) => {
+        verifiedWorkspaceKey = accessKey
+        return data
+      })
+      .finally(() => {
+        verificationPromise = null
+      })
+  }
+  return verificationPromise
+}
+
+export async function callMarketingApi(action, payload = {}) {
+  if (!googleConfigured) throw new Error('Google Apps Script is not configured yet.')
+  const accessKey = getWorkspaceKey()
+  if (!accessKey) throw new Error('Connect the internal Google workspace first.')
+
+  if (action === 'integration_status') return verifyWorkspaceKey(accessKey)
+
+  await verifyWorkspaceKey(accessKey)
+  return requestMarketingApi(action, payload, accessKey)
 }
 
 export async function loadWorkspace() {
