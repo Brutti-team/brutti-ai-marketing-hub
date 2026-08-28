@@ -1410,6 +1410,28 @@ h1 {
 .report-period strong { margin: 7px 0; font: 500 17px Georgia, serif; }
 .report-period small { color: #b7c8bd; font-size: 9px; }
 
+.live-insights-panel { overflow: hidden; }
+.live-insights-grid { display: grid; grid-template-columns: minmax(230px, .85fr) minmax(0, 1.15fr); gap: 14px; }
+.live-insight-card { min-height: 235px; padding: 20px; border: 1px solid #dfe4dd; border-radius: 16px; background: #fbfaf6; }
+.instagram-card { background: linear-gradient(145deg, #f8f1e7, #fbfaf6 65%); }
+.live-insight-label { display: flex; align-items: center; gap: 8px; color: #617066; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.live-insight-label .platform-icon { width: 25px; height: 25px; font-size: 12px; }
+.platform-icon.instagram { background: #f3e0cf; color: #a5544a; }
+.live-insight-card > strong { display: block; margin-top: 18px; font: 500 39px Georgia, serif; color: var(--ink); }
+.live-insight-card > small { display: block; margin-top: 3px; color: var(--ink-soft); font-size: 10px; }
+.reach-trend { height: 68px; display: flex; align-items: end; gap: 7px; margin-top: 22px; padding: 7px 0 0; border-bottom: 1px solid #d9ddd7; }
+.reach-trend span { min-width: 12px; flex: 1; border-radius: 6px 6px 2px 2px; background: linear-gradient(#be774e, #9b4f44); }
+.facebook-top-posts h4 { margin: 17px 0 10px; font: 500 19px Georgia, serif; }
+.top-post-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.top-post-list li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid #e8e4dc; }
+.top-post-list li > span { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: #dce7f2; color: #315b83; font-size: 9px; font-weight: 800; }
+.top-post-list p { min-width: 0; margin: 0; overflow: hidden; color: #33483c; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.top-post-list p small { display: block; margin-top: 2px; overflow: hidden; color: #89938a; font-size: 8px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.top-post-list strong { font: 600 15px Georgia, serif; }
+.meta-empty, .meta-insights-message, .meta-source-note { margin: 17px 0 0; color: var(--ink-soft); font-size: 10px; line-height: 1.6; }
+.meta-insights-message { padding: 12px 14px; border-radius: 10px; background: #fff3e8; color: #8a503b; }
+.meta-source-note { margin-bottom: 0; color: #7e877f; }
+
 .account-report-grid {
   display: grid;
   grid-template-columns: minmax(230px, 1.35fr) repeat(3, minmax(140px, 1fr));
@@ -1624,6 +1646,7 @@ footer {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .account-report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .live-insights-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 780px) {
@@ -1754,6 +1777,7 @@ footer {
   .activity-strip,
   .missing-kpi-grid { grid-template-columns: 1fr; }
   .content-mix { grid-template-columns: 1fr; }
+  .live-insight-card { min-height: 0; }
   .content-donut { margin-inline: auto; }
 }
 

@@ -18,6 +18,12 @@ import type { MarketingRequestRecord } from "./lib/brutti-store";
 
 type View = "overview" | "requests" | "content" | "products" | "calendar" | "reports";
 
+type MetaInsights = {
+  sourceUpdatedAt: string | null;
+  instagram: { latestReach: number | null; trend: Array<{ date: string; value: number }> };
+  facebook: { topPosts: Array<{ sourceId: string; views: number; measuredAt: string | null }> };
+};
+
 const navigation: Array<{ id: View; icon: string; label: string }> = [
   { id: "overview", icon: "⌂", label: "Overview" },
   { id: "requests", icon: "✦", label: "Marketing Requests" },
@@ -48,6 +54,88 @@ function RequestsList({ requests, compact = false }: { requests: FacebookRequest
         </div>
       ))}
     </div>
+  );
+}
+
+function compactPostId(sourceId: string) {
+  const segments = sourceId.split("_");
+  return segments.length === 2 ? `Post ${segments[1]}` : sourceId;
+}
+
+function displayDate(value: string | null) {
+  if (!value) return "Waiting for source data";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", year: "numeric" }).format(date);
+}
+
+function LiveMetaInsights() {
+  const [insights, setInsights] = useState<MetaInsights | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/meta-insights", { cache: "no-store" });
+      const data = await response.json() as MetaInsights & { error?: string };
+      if (!response.ok) throw new Error(data.error || "Live insights are unavailable.");
+      setInsights(data);
+    } catch (error) {
+      setInsights(null);
+      setMessage(error instanceof Error ? error.message : "Live insights are unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void refresh(); }, []);
+
+  const trend = insights?.instagram.trend || [];
+  const highestTrendValue = Math.max(1, ...trend.map((point) => point.value));
+
+  return (
+    <section className="panel section-gap live-insights-panel" aria-live="polite">
+      <div className="panel-heading">
+        <div><p className="eyebrow">Live Google Sheet sync</p><h3>Meta insights</h3></div>
+        <button className="text-link" onClick={() => void refresh()} disabled={loading}>{loading ? "Refreshing…" : "Refresh ↻"}</button>
+      </div>
+
+      {message && <p className="meta-insights-message">{message}</p>}
+
+      {!message && (
+        <div className="live-insights-grid">
+          <article className="live-insight-card instagram-card">
+            <div className="live-insight-label"><span className="platform-icon instagram">◎</span><span>Instagram</span></div>
+            <strong>{insights?.instagram.latestReach?.toLocaleString() ?? "—"}</strong>
+            <small>Latest recorded daily reach</small>
+            {trend.length > 0 ? (
+              <div className="reach-trend" role="img" aria-label="Instagram reach trend">
+                {trend.map((point) => (
+                  <span key={`${point.date}-${point.value}`} title={`${displayDate(point.date)}: ${point.value.toLocaleString()} reach`} style={{ height: `${Math.max(10, (point.value / highestTrendValue) * 100)}%` }} />
+                ))}
+              </div>
+            ) : <p className="meta-empty">Reach trend will appear after the next sync.</p>}
+          </article>
+
+          <article className="live-insight-card facebook-top-posts">
+            <div className="live-insight-label"><span className="platform-icon facebook">F</span><span>Facebook</span></div>
+            <h4>Top posts by media views</h4>
+            {insights?.facebook.topPosts.length ? (
+              <ol className="top-post-list">
+                {insights.facebook.topPosts.map((post, index) => (
+                  <li key={post.sourceId}><span>{index + 1}</span><p>{compactPostId(post.sourceId)}<small>{displayDate(post.measuredAt)}</small></p><strong>{post.views.toLocaleString()}</strong></li>
+                ))}
+              </ol>
+            ) : <p className="meta-empty">Post performance will appear after the next sync.</p>}
+          </article>
+        </div>
+      )}
+
+      {insights?.sourceUpdatedAt && <p className="meta-source-note">Last sheet update: {displayDate(insights.sourceUpdatedAt)} · Meta token remains on the private backend.</p>}
+    </section>
   );
 }
 
@@ -207,12 +295,14 @@ export default function HubDashboard() {
           <>
             <section className="report-hero">
               <div>
-                <p className="eyebrow">Facebook export dashboard</p>
+                <p className="eyebrow">Facebook &amp; Instagram dashboard</p>
                 <h2>Account &amp; Content Activity Report</h2>
-                <p>Snapshot of BRUTTI&apos;s Facebook account and exported content activity. All figures below are record counts from the supplied workbooks—not live Meta performance metrics.</p>
+                <p>Review the live Meta insight summary alongside BRUTTI&apos;s verified Facebook archive. The account report below remains a historical workbook snapshot.</p>
               </div>
               <div className="report-period"><span>Source period</span><strong>{facebookAnalytics.sourcePeriod}</strong><small>Verified {facebookAnalytics.verifiedAt}</small></div>
             </section>
+
+            <LiveMetaInsights />
 
             <section className="panel section-gap">
               <div className="panel-heading"><div><p className="eyebrow">Account report</p><h3>Facebook account overview</h3></div><span className="snapshot-label">Exported profile data</span></div>
