@@ -24,7 +24,7 @@ export default function MetaInsightsEnhancer() {
     if (!host) return
     let active = true
     setState({ loading: true, data: null, error: '' })
-    fetch(endpoint + '?view=meta-insights', { cache: 'no-store' })
+    fetch(endpoint, { cache: 'no-store' })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Meta endpoint unavailable')))
       .then((data) => active && setState({ loading: false, data, error: '' }))
       .catch(() => active && setState({ loading: false, data: null, error: 'Meta insights are temporarily unavailable.' }))
