@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ContentDirectionPersistenceEnhancer from './ContentDirectionPersistenceEnhancer.jsx'
 
 const LANGUAGE_KEY = 'brutti-ui-language-v1'
 const LANGUAGE_EVENT = 'brutti:languagechange'
@@ -153,5 +154,5 @@ export default function LowRiskSafeUiEnhancer({ page }) {
     return () => window.clearTimeout(timer)
   }, [page, language])
 
-  return null
+  return <ContentDirectionPersistenceEnhancer />
 }

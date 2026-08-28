@@ -1,5 +1,6 @@
 const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL
 const workspaceKeyName = 'brutti-google-workspace-key'
+const contentDirectionKey = 'brutti-content-direction-v1'
 
 let verifiedWorkspaceKey = ''
 let verificationPromise = null
@@ -31,6 +32,52 @@ function getWorkspaceKey() {
 function isWorkspaceAuthError(message = '') {
   const value = String(message).toLowerCase()
   return value.includes('workspace key') || value.includes('workspace_key')
+}
+
+function readDirectionMap() {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(contentDirectionKey) || '{}')
+    return value && typeof value === 'object' ? value : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeDirection(title, direction) {
+  const key = String(title || '').trim().toLowerCase()
+  const value = String(direction || '').trim()
+  if (!key || !value) return
+  try {
+    const map = readDirectionMap()
+    map[key] = value
+    window.localStorage.setItem(contentDirectionKey, JSON.stringify(map))
+    window.__bruttiContentDirections = map
+  } catch {
+    // Content Direction persistence is best-effort in the current browser.
+  }
+}
+
+function currentContentDirection() {
+  const page = [...document.querySelectorAll('#root .page')]
+    .find((item) => item.offsetParent !== null && item.querySelector('.page-header h1')?.textContent?.trim() === 'Content Studio')
+  if (!page) return ''
+  const label = [...page.querySelectorAll('label')].find((item) => {
+    const text = item.textContent?.trim() || ''
+    return text.startsWith('Verified facts / direction') || text.startsWith('Content Direction') || text.startsWith('Verified facts')
+  })
+  return label?.querySelector('textarea')?.value?.trim() || ''
+}
+
+function mergeContentDirections(workspace) {
+  const map = readDirectionMap()
+  window.__bruttiContentDirections = map
+  return {
+    ...workspace,
+    content: (workspace?.content || []).map((item) => ({
+      ...item,
+      contentDirection: item.contentDirection || map[String(item.title || '').trim().toLowerCase()] || '',
+    })),
+  }
 }
 
 async function requestMarketingApi(action, payload, accessKey) {
@@ -89,11 +136,15 @@ export async function callMarketingApi(action, payload = {}) {
 }
 
 export async function loadWorkspace() {
-  return callMarketingApi('load_workspace')
+  const workspace = await callMarketingApi('load_workspace')
+  return mergeContentDirections(workspace)
 }
 
 export async function saveGoogleContent(item) {
-  return callMarketingApi('save_content', { item })
+  const contentDirection = item?.contentDirection || item?.brief || currentContentDirection()
+  const saved = await callMarketingApi('save_content', { item: { ...item, contentDirection } })
+  writeDirection(saved?.title || item?.title, contentDirection)
+  return { ...saved, contentDirection }
 }
 
 export async function deleteGoogleContent(id) {
