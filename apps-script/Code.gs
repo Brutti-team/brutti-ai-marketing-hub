@@ -28,7 +28,8 @@ const PLANNER_HEADERS = [
 const LOG_HEADERS = ['Timestamp', 'Action', 'Record ID', 'Status', 'Message', 'Actor', 'Source'];
 const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 'Dimensions', 'Colour', 'Status', 'Source'];
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.view === 'meta-insights') return json_(metaInsightsPublic_());
   return json_({
     ok: true,
     data: {
@@ -37,6 +38,30 @@ function doGet() {
       message: 'Use an authenticated POST request from the BRUTTI website.'
     }
   });
+}
+
+function metaInsightsPublic_() {
+  const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
+  const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS');
+  if (!sheet || sheet.getLastRow() < 2) return { instagram: { latestReach: null, trend: [] }, facebook: { topPosts: [] } };
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).getValues();
+  const reachByDay = {};
+  const posts = {};
+  rows.forEach(row => {
+    const platform = String(row[1] || '').toLowerCase();
+    const metric = String(row[3] || '').toLowerCase();
+    const value = Number(row[4]);
+    if (!isFinite(value)) return;
+    const date = formatDate_(row[0]);
+    if (platform === 'instagram' && metric === 'reach' && date) reachByDay[date] = Math.max(Number(reachByDay[date] || 0), value);
+    if (platform === 'facebook' && metric === 'post_media_view') {
+      const id = String(row[6] || '');
+      if (id) posts[id] = { sourceId: id, views: value, measuredAt: formatIso_(row[0]) };
+    }
+  });
+  const trend = Object.keys(reachByDay).sort().slice(-30).map(date => ({ date: date, value: reachByDay[date] }));
+  const topPosts = Object.keys(posts).map(id => posts[id]).sort((a, b) => b.views - a.views).slice(0, 5);
+  return { sourceUpdatedAt: new Date().toISOString(), instagram: { latestReach: trend.length ? trend[trend.length - 1].value : null, trend: trend }, facebook: { topPosts: topPosts } };
 }
 
 function doPost(e) {
