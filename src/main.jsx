@@ -53,6 +53,7 @@ const SoulCaptionStabilizer = lazy(loadSoulCaption)
 const AppLanguageLock = lazy(loadAppLanguage)
 const IntegrationBrandIconEnhancer = lazy(loadIntegrationIcons)
 const IdeaVaultEnhancer = lazy(loadIdeaVault)
+const MetaInsightsEnhancer = lazy(() => import('./MetaInsightsEnhancer.jsx'))
 
 function activePageLabel() {
   return document.querySelector('#root .nav-link.active span')?.textContent?.trim() || 'Dashboard'
@@ -133,6 +134,7 @@ export function DeferredEnhancers() {
   return (
     <Suspense fallback={null}>
       <LowRiskSafeUiEnhancer page={page} />
+      <MetaInsightsEnhancer />
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
