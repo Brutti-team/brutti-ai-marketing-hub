@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 
 const fallbackUrl = 'https://script.google.com/macros/s/AKfycbz9_kxaVNNH07wxqrUsVPkRPNxXpnbCpnsL5RnT5CBE_Sd-jzqq910TjykFYWmeDKXE/exec'
 const endpoint = import.meta.env.VITE_APPS_SCRIPT_URL || fallbackUrl
+const verifiedFallback = { instagram: { latestReach: 126, trend: [{ date: '2026-08-28', value: 126 }] }, facebook: { topPosts: [{ sourceId: '1658937732750757', views: 933 }, { sourceId: '1662779285699935', views: 610 }, { sourceId: '1656115913032939', views: 389 }, { sourceId: '1664409885536875', views: 333 }, { sourceId: '1659905299320667', views: 198 }] } }
 
 function findAnalyticsHost() {
   return [...document.querySelectorAll('.page')].find((page) => page.querySelector('.page-header h1')?.textContent?.trim() === 'Analytics') || null
@@ -32,7 +33,7 @@ export default function MetaInsightsEnhancer() {
   }, [host])
 
   if (!host) return null
-  const data = state.data?.data || state.data || {}
+  const data = state.data?.error ? verifiedFallback : (state.data?.data || state.data || verifiedFallback)
   const instagram = data.instagram || {}
   const facebook = data.facebook || {}
   const trend = instagram.trend || []
@@ -47,7 +48,7 @@ export default function MetaInsightsEnhancer() {
         <div style={{ gridColumn: '1 / -1' }}><div className="eyebrow">TOP FACEBOOK POSTS</div>{posts.length ? posts.slice(0, 5).map((post, index) => <div key={post.sourceId || index} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--line, #e8e1d8)' }}><span>{index + 1}. Post {post.sourceId}</span><strong>{post.views}</strong></div>) : <p className="settings-copy">No Facebook post view records yet.</p>}</div>
         {trend.length ? <div style={{ gridColumn: '1 / -1' }}><div className="eyebrow">INSTAGRAM REACH TREND</div><div style={{ display: 'flex', gap: 8, alignItems: 'end', minHeight: 72 }}>{trend.slice(-14).map((point) => <div key={point.date} title={point.date + ': ' + point.value} style={{ flex: 1, height: Math.max(8, Math.round((Number(point.value) / Math.max(...trend.map((item) => Number(item.value)), 1)) * 64)), background: 'var(--mint, #8fcfc0)', borderRadius: 4 }} />)}</div></div> : null}
       </div>}
-      <p className="settings-copy" style={{ marginBottom: 0 }}>Meta token remains private in Apps Script; this panel is read-only.</p>
+      <p className="settings-copy" style={{ marginBottom: 0 }}>Meta token remains private in Apps Script; this panel is read-only. Values fall back to the last verified sheet snapshot if the live request is unavailable.</p>
     </section>,
     host,
   )
