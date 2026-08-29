@@ -33,7 +33,8 @@ export default function MetaInsightsEnhancer() {
   }, [host])
 
   if (!host) return null
-  const data = state.data?.error ? verifiedFallback : (state.data?.data || state.data || verifiedFallback)
+  const rawData = state.data?.data || state.data || {}
+  const data = rawData.instagram || rawData.facebook ? rawData : verifiedFallback
   const instagram = data.instagram || {}
   const facebook = data.facebook || {}
   const trend = instagram.trend || []
