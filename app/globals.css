@@ -1245,6 +1245,15 @@ h1 {
   font-weight: 700;
 }
 
+.generator-panel { margin-bottom: 22px; }
+.generator-panel .panel-heading p:not(.eyebrow) { max-width: 620px; margin: 6px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+.generated-brief { margin-top: 22px; padding: 22px; border: 1px solid #d7ded7; border-radius: 16px; background: #f6f8f3; }
+.generated-brief h4 { margin: 0 0 18px; font: 500 22px Georgia, serif; color: var(--moss); }
+.generated-section { padding: 14px 0; border-top: 1px solid #d7ded7; }
+.generated-section strong { display: block; margin-bottom: 8px; color: var(--ink); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.generated-section p, .generated-section ol { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.7; }
+.generated-section ol { padding-left: 20px; }
+
 .submit-button {
   flex: 0 0 auto;
   border: 0;

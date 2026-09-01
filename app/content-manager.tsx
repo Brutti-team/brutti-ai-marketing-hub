@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ContentRecord } from "./lib/brutti-store";
+import ContentGenerator from "./content-generator";
 
 type Status = ContentRecord["status"];
 
@@ -33,6 +34,12 @@ export default function ContentManager() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const refresh = () => void load();
+    window.addEventListener("brutti-content-created", refresh);
+    return () => window.removeEventListener("brutti-content-created", refresh);
+  });
+
   async function save(item: ContentRecord, status: Status = item.status) {
     setMessage("Saving…");
     const response = await fetch("/api/content", {
@@ -50,7 +57,9 @@ export default function ContentManager() {
   }
 
   return (
-    <section className="panel">
+    <>
+    <ContentGenerator />
+    <section className="panel section-gap">
       <div className="panel-heading">
         <div><p className="eyebrow">AI output</p><h3>Generated Facebook content</h3></div>
         <div className="manager-heading-actions"><span className="snapshot-label">Stored securely on this website</span><button className="text-link" onClick={() => void load()}>Refresh ↻</button></div>
@@ -81,5 +90,6 @@ export default function ContentManager() {
         </div>
       )}
     </section>
+    </>
   );
 }

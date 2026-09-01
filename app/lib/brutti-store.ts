@@ -136,6 +136,17 @@ export async function listContent(): Promise<ContentRecord[]> {
   return (data as D1Result<ContentRecord>).results || [];
 }
 
+export async function createContent(input: Pick<ContentRecord, "title" | "platform" | "contentType" | "productName" | "content">) {
+  await ensureStore();
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  await (await database()).prepare(`INSERT INTO marketing_content
+    (id, title, platform, content_type, product_name, content, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'Review', ?, ?)`)
+    .bind(id, input.title, input.platform, input.contentType, input.productName, input.content, now, now).run();
+  return { id, createdAt: now };
+}
+
 export async function listCalendar(): Promise<CalendarRecord[]> {
   await ensureStore();
   const data = await (await database()).prepare(`SELECT id, title, date, time, platform,

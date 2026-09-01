@@ -21,7 +21,7 @@ type View = "overview" | "requests" | "content" | "products" | "calendar" | "rep
 type MetaInsights = {
   sourceUpdatedAt: string | null;
   instagram: { latestReach: number | null; trend: Array<{ date: string; value: number }> };
-  facebook: { topPosts: Array<{ sourceId: string; views: number; measuredAt: string | null }> };
+  facebook: { topPosts: Array<{ sourceId: string; views: number | null; measuredAt: string | null }> };
 };
 
 const navigation: Array<{ id: View; icon: string; label: string }> = [
@@ -126,7 +126,7 @@ function LiveMetaInsights() {
             {insights?.facebook.topPosts.length ? (
               <ol className="top-post-list">
                 {insights.facebook.topPosts.map((post, index) => (
-                  <li key={post.sourceId}><span>{index + 1}</span><p>{compactPostId(post.sourceId)}<small>{displayDate(post.measuredAt)}</small></p><strong>{post.views.toLocaleString()}</strong></li>
+                  <li key={post.sourceId}><span>{index + 1}</span><p>{compactPostId(post.sourceId)}<small>{displayDate(post.measuredAt)}</small></p><strong>{post.views?.toLocaleString() ?? "—"}</strong></li>
                 ))}
               </ol>
             ) : <p className="meta-empty">Post performance will appear after the next sync.</p>}
