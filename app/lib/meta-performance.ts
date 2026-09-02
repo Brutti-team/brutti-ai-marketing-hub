@@ -1,18 +1,23 @@
 export type TrendPoint = { date: string; value: number };
 export type TopPost = {
   sourceId: string;
+  publishedAt: string | null;
+  permalink: string | null;
+  mediaType: string | null;
+  caption: string | null;
   views: number | null;
   reach: number | null;
   reactions: number | null;
   comments: number | null;
   shares: number | null;
+  saves: number | null;
   engagementRate: number | null;
   measuredAt: string | null;
 };
 
 export type MetaInsightsResponse = {
   sourceUpdatedAt: string | null;
-  instagram: { latestReach: number | null; followers: number | null; trend: TrendPoint[] };
+  instagram: { latestReach: number | null; followers: number | null; trend: TrendPoint[]; topPosts: TopPost[] };
   facebook: { followers: number | null; topPosts: TopPost[] };
 };
 
@@ -45,15 +50,17 @@ export function normalizeMetaInsights(payload: unknown): MetaInsightsResponse | 
     const row = record(point); const date = text(row?.date); const value = metric(row, "value", "reach");
     return date !== null && value !== null ? [{ date, value }] : [];
   }) : [];
-  const topPosts = Array.isArray(facebook.topPosts) ? facebook.topPosts.flatMap((post) => {
+  const normalizePosts = (value: unknown) => Array.isArray(value) ? value.flatMap((post) => {
     const row = record(post); const sourceId = text(row?.sourceId) || text(row?.postId) || text(row?.id);
     if (!sourceId) return [];
-    return [{ sourceId, views: metric(row, "views", "mediaViews", "videoViews"), reach: metric(row, "reach"), reactions: metric(row, "reactions", "likes"), comments: metric(row, "comments"), shares: metric(row, "shares"), engagementRate: metric(row, "engagementRate", "engagement_rate"), measuredAt: text(row?.measuredAt) || text(row?.date) }];
+    return [{ sourceId, publishedAt: text(row?.publishedAt) || text(row?.published_at), permalink: text(row?.permalink) || text(row?.url), mediaType: text(row?.mediaType) || text(row?.contentType) || text(row?.type), caption: text(row?.caption) || text(row?.message), views: metric(row, "views", "mediaViews", "videoViews"), reach: metric(row, "reach"), reactions: metric(row, "reactions", "likes"), comments: metric(row, "comments"), shares: metric(row, "shares"), saves: metric(row, "saves"), engagementRate: metric(row, "engagementRate", "engagement_rate"), measuredAt: text(row?.measuredAt) || text(row?.date) }];
   }) : [];
+  const facebookPosts = normalizePosts(facebook.topPosts);
+  const instagramPosts = normalizePosts(instagram.topPosts);
   return {
     sourceUpdatedAt: text(root.sourceUpdatedAt) || text(root.updatedAt) || text(root.lastUpdated),
-    instagram: { latestReach: metric(instagram, "latestReach", "reach"), followers: metric(instagram, "followers", "followerCount"), trend: trend.slice(-14) },
-    facebook: { followers: metric(facebook, "followers", "followerCount"), topPosts: topPosts.slice(0, 5) },
+    instagram: { latestReach: metric(instagram, "latestReach", "reach"), followers: metric(instagram, "followers", "followerCount"), trend: trend.slice(-14), topPosts: instagramPosts.slice(0, 25) },
+    facebook: { followers: metric(facebook, "followers", "followerCount"), topPosts: facebookPosts.slice(0, 25) },
   };
 }
 
@@ -76,8 +83,10 @@ export function performanceContext(insights: MetaInsightsResponse | null) {
     insights.instagram.followers !== null ? `Instagram followers: ${insights.instagram.followers}` : "Instagram follower count unavailable.",
     insights.instagram.latestReach !== null ? `Latest Instagram recorded daily reach: ${insights.instagram.latestReach}` : "Latest Instagram reach unavailable.",
   ];
-  for (const post of insights.facebook.topPosts) {
-    lines.push(`Facebook post ${post.sourceId}: ${[["views", post.views], ["reach", post.reach], ["reactions", post.reactions], ["comments", post.comments], ["shares", post.shares], ["engagement rate", post.engagementRate]].filter(([, value]) => value !== null).map(([name, value]) => `${name} ${value}`).join(", ") || "no usable metrics"}.`);
+  for (const [platform, posts] of [["Facebook", insights.facebook.topPosts], ["Instagram", insights.instagram.topPosts]] as const) {
+    for (const post of posts.slice(0, 8)) {
+      lines.push(`${platform} post ${post.sourceId}${post.mediaType ? ` (${post.mediaType})` : ""}: ${[["views", post.views], ["reach", post.reach], ["reactions", post.reactions], ["comments", post.comments], ["shares", post.shares], ["saves", post.saves], ["engagement rate", post.engagementRate]].filter(([, value]) => value !== null).map(([name, value]) => `${name} ${value}`).join(", ") || "no usable metrics"}.`);
+    }
   }
   return lines.join("\n");
 }

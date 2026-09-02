@@ -20,9 +20,11 @@ type View = "overview" | "requests" | "content" | "products" | "calendar" | "rep
 
 type MetaInsights = {
   sourceUpdatedAt: string | null;
-  instagram: { latestReach: number | null; trend: Array<{ date: string; value: number }> };
-  facebook: { topPosts: Array<{ sourceId: string; views: number | null; measuredAt: string | null }> };
+  instagram: { latestReach: number | null; followers: number | null; trend: Array<{ date: string; value: number }>; topPosts: MetaPost[] };
+  facebook: { followers: number | null; topPosts: MetaPost[] };
 };
+
+type MetaPost = { sourceId: string; views: number | null; reach: number | null; reactions: number | null; comments: number | null; shares: number | null; mediaType: string | null; caption: string | null; publishedAt: string | null; measuredAt: string | null };
 
 const navigation: Array<{ id: View; icon: string; label: string }> = [
   { id: "overview", icon: "⌂", label: "Overview" },
@@ -70,6 +72,31 @@ function displayDate(value: string | null) {
     : new Intl.DateTimeFormat("en-MY", { day: "numeric", month: "short", year: "numeric" }).format(date);
 }
 
+function postMetric(post: MetaPost) {
+  if (post.views !== null) return `${post.views.toLocaleString()} views`;
+  if (post.reach !== null) return `${post.reach.toLocaleString()} reach`;
+  if (post.reactions !== null) return `${post.reactions.toLocaleString()} reactions`;
+  return "—";
+}
+
+function todayRecommendation(insights: MetaInsights | null) {
+  if (!insights) return null;
+  const candidates = [
+    ...insights.instagram.topPosts.map((post) => ({ platform: "Instagram", post })),
+    ...insights.facebook.topPosts.map((post) => ({ platform: "Facebook", post })),
+  ].filter(({ post }) => post.views !== null || post.reach !== null || post.reactions !== null);
+  if (!candidates.length) return null;
+  const strongest = [...candidates].sort((left, right) => {
+    const score = ({ post }: typeof left) => post.views ?? post.reach ?? post.reactions ?? 0;
+    return score(right) - score(left);
+  })[0];
+  const format = strongest.post.mediaType || "post dengan visual kerja sebenar";
+  return {
+    title: `Fokus ${strongest.platform}: ${format}`,
+    detail: `Untuk susunan hari ini, mula dengan visual atau video proses sebenar. Rujuk satu post ${format} yang direkodkan dengan ${postMetric(strongest.post)} sebagai context — bukan dakwaan ia paling terbaik untuk semua masa.`,
+  };
+}
+
 function LiveMetaInsights() {
   const [insights, setInsights] = useState<MetaInsights | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,6 +122,7 @@ function LiveMetaInsights() {
 
   const trend = insights?.instagram.trend || [];
   const highestTrendValue = Math.max(1, ...trend.map((point) => point.value));
+  const recommendation = todayRecommendation(insights);
 
   return (
     <section className="panel section-gap live-insights-panel" aria-live="polite">
@@ -106,11 +134,14 @@ function LiveMetaInsights() {
       {message && <p className="meta-insights-message">{message}</p>}
 
       {!message && (
+        <>
+        {recommendation && <article className="today-recommendation"><p className="eyebrow">Cadangan hari ini · data-led</p><h4>{recommendation.title}</h4><p>{recommendation.detail}</p></article>}
         <div className="live-insights-grid">
           <article className="live-insight-card instagram-card">
             <div className="live-insight-label"><span className="platform-icon instagram">◎</span><span>Instagram</span></div>
             <strong>{insights?.instagram.latestReach?.toLocaleString() ?? "—"}</strong>
             <small>Latest recorded daily reach</small>
+            {insights?.instagram.followers !== null && insights?.instagram.followers !== undefined && <small>{insights.instagram.followers.toLocaleString()} followers</small>}
             {trend.length > 0 ? (
               <div className="reach-trend" role="img" aria-label="Instagram reach trend">
                 {trend.map((point) => (
@@ -122,16 +153,17 @@ function LiveMetaInsights() {
 
           <article className="live-insight-card facebook-top-posts">
             <div className="live-insight-label"><span className="platform-icon facebook">F</span><span>Facebook</span></div>
-            <h4>Top posts by media views</h4>
+            <h4>Recent post context</h4>
             {insights?.facebook.topPosts.length ? (
               <ol className="top-post-list">
                 {insights.facebook.topPosts.map((post, index) => (
-                  <li key={post.sourceId}><span>{index + 1}</span><p>{compactPostId(post.sourceId)}<small>{displayDate(post.measuredAt)}</small></p><strong>{post.views?.toLocaleString() ?? "—"}</strong></li>
+                  <li key={post.sourceId}><span>{index + 1}</span><p>{post.mediaType || compactPostId(post.sourceId)}<small>{displayDate(post.publishedAt || post.measuredAt)}</small></p><strong>{postMetric(post)}</strong></li>
                 ))}
               </ol>
             ) : <p className="meta-empty">Post performance will appear after the next sync.</p>}
           </article>
         </div>
+        </>
       )}
 
       {insights?.sourceUpdatedAt && <p className="meta-source-note">Last sheet update: {displayDate(insights.sourceUpdatedAt)} · Meta token remains on the private backend.</p>}
