@@ -43,7 +43,7 @@ function doGet(e) {
 function metaInsightsPublic_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
   const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS');
-  if (!sheet || sheet.getLastRow() < 2) return { instagram: { latestReach: null, trend: [] }, facebook: { topPosts: [] } };
+  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).getValues();
   const reachByDay = {};
   const posts = {};
@@ -51,19 +51,33 @@ function metaInsightsPublic_() {
     const platform = String(row[1] || '').toLowerCase();
     const metric = String(row[3] || '').toLowerCase();
     const value = Number(row[4]);
-    if (!isFinite(value)) return;
     const date = formatDate_(row[0]);
-    if (platform === 'instagram' && metric === 'reach' && date) reachByDay[date] = Math.max(Number(reachByDay[date] || 0), value);
-    if (platform === 'facebook' && metric === 'post_media_view') {
-      const id = String(row[6] || '');
-      if (id) posts[id] = { sourceId: id, views: value, measuredAt: formatIso_(row[0]) };
+    const id = String(row[6] || '');
+    if (platform === 'instagram' && metric === 'reach' && isFinite(value) && date) reachByDay[date] = Math.max(Number(reachByDay[date] || 0), value);
+    if (platform === 'instagram' && ['followers', 'follower_count'].indexOf(metric) >= 0 && isFinite(value)) {
+      posts._instagramFollowers = { value: value };
+    }
+    if (id && isFinite(value) && ['post_media_view', 'views', 'reach', 'reactions', 'likes', 'comments', 'shares', 'saves'].indexOf(metric) >= 0) {
+      const post = posts[id] || { sourceId: id, views: null, reach: null, reactions: null, comments: null, shares: null, saves: null, measuredAt: formatIso_(row[0]) };
+      if (metric === 'post_media_view' || metric === 'views') post.views = value;
+      if (metric === 'reach') post.reach = value;
+      if (metric === 'reactions' || metric === 'likes') post.reactions = value;
+      if (metric === 'comments') post.comments = value;
+      if (metric === 'shares') post.shares = value;
+      if (metric === 'saves') post.saves = value;
+      posts[id] = post;
     }
   });
+  const postList = Object.keys(posts).filter(id => id !== '_instagramFollowers').map(id => posts[id]);
+  const rankingValue = post => post.views !== null ? post.views : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : 0;
+  const topPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a)).slice(0, 25);
   const trend = Object.keys(reachByDay).sort().slice(-30).map(date => ({ date: date, value: reachByDay[date] }));
-  const topPosts = Object.keys(posts).map(id => posts[id]).sort((a, b) => b.views - a.views).slice(0, 5);
-  return { sourceUpdatedAt: new Date().toISOString(), instagram: { latestReach: trend.length ? trend[trend.length - 1].value : null, trend: trend }, facebook: { topPosts: topPosts } };
+  return {
+    sourceUpdatedAt: new Date().toISOString(),
+    instagram: { latestReach: trend.length ? trend[trend.length - 1].value : null, followers: posts._instagramFollowers ? posts._instagramFollowers.value : null, trend: trend, topPosts: [] },
+    facebook: { followers: null, topPosts: topPosts }
+  };
 }
-
 function doPost(e) {
   try {
     const request = JSON.parse((e && e.postData && e.postData.contents) || '{}');
