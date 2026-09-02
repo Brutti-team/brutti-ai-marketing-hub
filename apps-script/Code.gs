@@ -40,6 +40,64 @@ function doGet(e) {
   });
 }
 
+function syncMetaInsights() {
+  const properties = scriptProperties_();
+  const pageId = properties.getProperty('META_PAGE_ID');
+  const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
+  const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
+  if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
+  const sheet = ensureMetaInsightsSheet_();
+  const rows = [];
+  const page = metaGraphRequest_(version + '/' + encodeURIComponent(pageId), token, { fields: 'instagram_business_account' });
+  const pageInsights = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/insights', token, { metric: 'page_impressions,page_post_engagements,page_fan_adds', period: 'day' });
+  (pageInsights.data || []).forEach(metric => (metric.values || []).forEach(value => {
+    const date = value.end_time || value.endTime;
+    const number = Number(value.value);
+    if (isFinite(number)) rows.push([new Date(date), 'facebook', 'page', String(metric.name || ''), number, 'Meta Graph API', pageId]);
+  }));
+  const posts = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/posts', token, { fields: 'id,created_time,insights.metric(post_impressions,post_engaged_users)', limit: '50' });
+  (posts.data || []).forEach(post => {
+    const insights = {};
+    ((post.insights && post.insights.data) || []).forEach(metric => {
+      const latest = (metric.values || [])[0];
+      if (latest && isFinite(Number(latest.value))) insights[String(metric.name)] = Number(latest.value);
+    });
+    Object.keys(insights).forEach(metric => rows.push([new Date(post.created_time || new Date()), 'facebook', 'post', metric, insights[metric], 'Meta Graph API', String(post.id || '')]));
+  });
+  const instagramId = properties.getProperty('META_INSTAGRAM_USER_ID') || (page.instagram_business_account && page.instagram_business_account.id);
+  if (instagramId) {
+    const media = metaGraphRequest_(version + '/' + encodeURIComponent(instagramId) + '/media', token, { fields: 'id,timestamp,insights.metric(reach,likes,comments,shares,saved)', limit: '50' });
+    (media.data || []).forEach(post => {
+      const insights = {};
+      ((post.insights && post.insights.data) || []).forEach(metric => {
+        const latest = (metric.values || [])[0];
+        if (latest && isFinite(Number(latest.value))) insights[String(metric.name)] = Number(latest.value);
+      });
+      Object.keys(insights).forEach(metric => rows.push([new Date(post.timestamp || new Date()), 'instagram', 'post', metric, insights[metric], 'Meta Graph API', String(post.id || '')]));
+    });
+  }
+  if (!rows.length) throw new Error('Meta returned no usable insight rows.');
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).clearContent();
+  sheet.getRange(2, 1, rows.length, 7).setValues(rows);
+  logEvent_('sync_meta_insights', '', 'Success', rows.length + ' read-only Meta insight rows synced.');
+  return { rows: rows.length, instagramConnected: Boolean(instagramId), syncedAt: new Date().toISOString() };
+}
+
+function ensureMetaInsightsSheet_() {
+  const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
+  const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS') || spreadsheet.insertSheet('META_DAILY_INSIGHTS');
+  if (sheet.getLastRow() < 1) sheet.getRange(1, 1, 1, 7).setValues([['Date', 'Platform', 'Entity', 'Metric', 'Value', 'Source', 'Source ID']]);
+  return sheet;
+}
+
+function metaGraphRequest_(path, token, params) {
+  const query = Object.keys(params || {}).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+  const response = UrlFetchApp.fetch('https://graph.facebook.com/' + path + (query ? '?' + query : '') + '&access_token=' + encodeURIComponent(token), { muteHttpExceptions: true });
+  const body = JSON.parse(response.getContentText() || '{}');
+  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300 || body.error) throw new Error('Meta Graph API request failed: ' + (body.error && body.error.message ? body.error.message : response.getResponseCode()));
+  return body;
+}
+
 function metaInsightsPublic_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
   const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS');
