@@ -137,7 +137,25 @@ function bindAction(button, key, handler) {
   }, true)
 }
 
-function syncRecommendation() {
+const metaEndpoint = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbz9_kxaVNNH07wxqrUsVPkRPNxXpnbCpnsL5RnT5CBE_Sd-jzqq910TjykFYWmeDKXE/exec'
+
+async function loadMetaSignal() {
+  try {
+    const response = await fetch(metaEndpoint, { cache: 'no-store' })
+    if (!response.ok) return null
+    const payload = await response.json()
+    const data = payload?.data || payload
+    const posts = data?.facebook?.topPosts || []
+    const strongest = posts.find((post) => post.views !== null || post.reach !== null || post.reactions !== null)
+    if (!strongest) return null
+    const metric = strongest.views !== null ? `${strongest.views} views` : strongest.reach !== null ? `${strongest.reach} reach` : `${strongest.reactions} reactions`
+    return `Meta context: rujuk format post yang ada ${metric}; ini panduan dalaman sahaja, bukan claim prestasi.`
+  } catch {
+    return null
+  }
+}
+
+function syncRecommendation(metaSignal = '') {
   if (!soulSourceReady) return
   const page = findActivePage('Dashboard')
   if (!page) return
@@ -148,7 +166,7 @@ function syncRecommendation() {
   const weekday = new Date().toLocaleDateString('en-MY', { weekday: 'long' })
   setLabelText(hero.querySelector('.hero-label'), `TODAY'S RECOMMENDATION · ${weekday}`)
   setText(hero.querySelector('.hero-content h2'), recommendation.idea)
-  setText(hero.querySelector('.hero-content p'), `Brutti Soul Master: ${recommendation.reason}`)
+  setText(hero.querySelector('.hero-content p'), `Brutti Soul Master: ${recommendation.reason}${metaSignal ? ` ${metaSignal}` : ''}`)
 
   const buttons = [...hero.querySelectorAll('.hero-buttons button')]
   const useButton = buttons[0]
@@ -180,7 +198,7 @@ export default function DailyContentRecommendationEnhancer() {
 
     const schedule = () => {
       window.clearTimeout(timer)
-      timer = window.setTimeout(syncRecommendation, 45)
+      timer = window.setTimeout(() => { loadMetaSignal().then((signal) => syncRecommendation(signal || '')) }, 45)
     }
 
     const onClick = (event) => {
