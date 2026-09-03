@@ -165,7 +165,8 @@ function renderDailyIdeas(page, posts = []) {
   section.innerHTML = '<div class="panel-heading"><div><span class="eyebrow">DAILY CONTENT IDEAS</span><h3>3 idea berdasarkan Meta</h3></div></div><div class="recommendation-list">' + ideas.map((idea, i) => '<article><span class="recommend-number">0'+(i+1)+'</span><div><strong>'+idea+'</strong><p>'+(posts[i] ? 'Rujukan post Meta '+(posts[i].id || 'teratas')+'.' : 'Idea berasaskan format content BRUTTI.')+'</p></div></article>').join('') + '</div>'
   page.appendChild(section)
 }
-\nfunction syncRecommendation(metaSignal = '') {
+
+function syncRecommendation(metaSignal = '') {
   if (!soulSourceReady) return
   const page = findActivePage('Dashboard')
   if (!page) return
