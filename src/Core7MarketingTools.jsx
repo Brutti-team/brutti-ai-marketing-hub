@@ -72,7 +72,8 @@ export default function Core7MarketingTools() {
       if (title === 'Dashboard') {
         root.querySelectorAll('.dashboard-page > .stats-grid, .dashboard-page .focus-panel, .dashboard-page .upcoming-panel')
           .forEach((panel) => {
-            if (!panel.hidden) panel.hidden = true
+            panel.hidden = true
+            panel.style.setProperty('display', 'none', 'important')
           })
       }
 
