@@ -87,9 +87,9 @@ function ensureStyle() {
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
-    .planner-workspace-split{display:grid;grid-template-columns:minmax(460px,1.2fr) minmax(340px,.8fr);gap:18px;align-items:start;margin:18px 0 24px}
+    .planner-workspace-split{display:grid;grid-template-columns:minmax(420px,.8fr) minmax(620px,1.2fr);gap:18px;align-items:start;margin:18px 0 24px}
     .planner-calendar-workspace{min-width:0}
-    .planner-calendar-workspace .week-calendar{min-height:0;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .planner-calendar-workspace .week-calendar{min-height:0;grid-template-columns:repeat(7,minmax(88px,1fr))}
     .planner-calendar-workspace .calendar-day{min-height:220px}
     .idea-vault-panel{margin:0;padding:18px;border:1px solid var(--border,rgba(120,120,120,.2));border-radius:18px;background:var(--surface,#fff)}
     .idea-vault-head{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
@@ -113,7 +113,7 @@ function ensureStyle() {
     .idea-vault-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:.75rem;opacity:.7}.idea-vault-pill{padding:3px 7px;border-radius:999px;background:rgba(127,127,127,.11)}
     .idea-vault-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.idea-vault-empty{padding:18px;text-align:center;border:1px dashed var(--border,rgba(120,120,120,.25));border-radius:12px;opacity:.7}
     .idea-vault-match{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(127,127,127,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.idea-vault-match strong{display:block}.idea-vault-match small{opacity:.7}
-    @media(max-width:860px){.planner-workspace-split{grid-template-columns:1fr}.planner-calendar-workspace .calendar-day{min-height:0}}
+    @media(max-width:1380px){.planner-workspace-split{grid-template-columns:1fr}.planner-calendar-workspace .calendar-day{min-height:0}}
     @media(max-width:760px){.idea-vault-form{grid-template-columns:1fr}.idea-vault-form .wide{grid-column:auto}}
   `
   document.head.append(style)
