@@ -176,7 +176,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .tab-bar button.active { color: var(--forest); border-bottom-color: var(--forest); }
 .tab-bar em { font-style: normal; background: #e5e8e3; border-radius: 999px; padding: 2px 6px; font-size: 8px; }
 .generator-layout { display: grid; grid-template-columns: minmax(350px,.78fr) minmax(430px,1.22fr); gap: 16px; align-items: stretch; }
-.generator-layout:not(.has-output) { grid-template-columns: minmax(0, 720px); }
+.generator-layout:not(.has-output) { grid-template-columns: 1fr; }
 .generator-form, .generator-output { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); }
 .generator-form { padding: 24px; }
 .form-section-head { display: flex; gap: 11px; padding-bottom: 18px; margin-bottom: 17px; border-bottom: 1px solid #ebe9e3; }
