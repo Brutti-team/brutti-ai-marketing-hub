@@ -146,6 +146,8 @@ async function loadMetaSignal() {
     const payload = await response.json()
     const data = payload?.data || payload
     const posts = data?.facebook?.topPosts || []
+    const dashboard = findActivePage('Dashboard')
+    if (dashboard) renderDailyIdeas(dashboard, posts)
     const strongest = posts.find((post) => post.views !== null || post.reach !== null || post.reactions !== null)
     if (!strongest) return null
     const metric = strongest.views !== null ? `${strongest.views} views` : strongest.reach !== null ? `${strongest.reach} reach` : `${strongest.reactions} reactions`
