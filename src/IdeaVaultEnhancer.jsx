@@ -208,9 +208,7 @@ function mountVault(page) {
   formActions.className = 'idea-vault-actions'
   const saveButton = button('Save Idea', 'button primary')
   saveButton.type = 'submit'
-  const helper = document.createElement('small')
-  helper.textContent = 'No date required · local lightweight storage'
-  formActions.append(saveButton, helper)
+  formActions.append(saveButton)
   form.append(formActions)
 
   const toolbar = document.createElement('div')
