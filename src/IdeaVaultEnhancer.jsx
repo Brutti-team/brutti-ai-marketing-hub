@@ -108,10 +108,12 @@ function ensureStyle() {
     .idea-vault-form textarea{min-height:82px;resize:vertical}.idea-vault-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;grid-column:1/-1}
     .idea-vault-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:14px 0 10px;flex-wrap:wrap}.idea-vault-search{max-width:420px}
     .idea-vault-count{font-size:.82rem;opacity:.66}.idea-vault-list{display:grid;gap:10px}
-    .idea-vault-card{border:1px solid var(--border,rgba(120,120,120,.2));border-radius:14px;padding:14px;background:rgba(127,127,127,.035)}
-    .idea-vault-card-top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}.idea-vault-card h3{margin:0 0 5px;font-size:1rem}.idea-vault-card p{margin:8px 0 0;white-space:pre-wrap;opacity:.8}
+    .idea-vault-card{border:1px solid var(--border,rgba(120,120,120,.2));border-radius:14px;padding:0;background:rgba(127,127,127,.035)}
+    .idea-vault-card-top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;cursor:pointer;list-style:none;padding:14px}
+    .idea-vault-card-top::-webkit-details-marker{display:none}.idea-vault-card-top::before{content:'▸';margin-top:2px;transition:transform .16s ease}.idea-vault-card[open] .idea-vault-card-top::before{transform:rotate(90deg)}
+    .idea-vault-card h3{margin:0;font-size:1rem}.idea-vault-card p{margin:0 14px 8px;white-space:pre-wrap;opacity:.8}
     .idea-vault-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:.75rem;opacity:.7}.idea-vault-pill{padding:3px 7px;border-radius:999px;background:rgba(127,127,127,.11)}
-    .idea-vault-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.idea-vault-empty{padding:18px;text-align:center;border:1px dashed var(--border,rgba(120,120,120,.25));border-radius:12px;opacity:.7}
+    .idea-vault-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 14px 14px}.idea-vault-empty{padding:18px;text-align:center;border:1px dashed var(--border,rgba(120,120,120,.25));border-radius:12px;opacity:.7}
     .idea-vault-match{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(127,127,127,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.idea-vault-match strong{display:block}.idea-vault-match small{opacity:.7}
     @media(max-width:1380px){.planner-workspace-split{grid-template-columns:1fr}.planner-calendar-workspace .calendar-day{min-height:0}}
     @media(max-width:760px){.idea-vault-form{grid-template-columns:1fr}.idea-vault-form .wide{grid-column:auto}}
@@ -232,7 +234,7 @@ function mountVault(page) {
       .filter((idea) => !query || [idea.title, idea.notes, idea.type, idea.product, idea.target, idea.status].join(' ').toLowerCase().includes(query))
       .sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)))
     count.textContent = `${filtered.length} of ${ideas.length} saved idea${ideas.length === 1 ? '' : 's'}`
-    savedSummary.textContent = `Saved ideas (${ideas.length}) — open folder`
+    savedSummary.textContent = `Folders (${ideas.length})`
     list.replaceChildren()
 
     if (!filtered.length) {
@@ -244,21 +246,14 @@ function mountVault(page) {
     }
 
     filtered.forEach((idea) => {
-      const card = document.createElement('article')
+      const card = document.createElement('details')
       card.className = 'idea-vault-card'
       card.dataset.ideaId = idea.id
-      const top = document.createElement('div')
+      const top = document.createElement('summary')
       top.className = 'idea-vault-card-top'
-      const copy = document.createElement('div')
       const heading = document.createElement('h3')
       heading.textContent = idea.title
-      const meta = document.createElement('div')
-      meta.className = 'idea-vault-meta'
-      ;[idea.status || 'Idea', idea.type, idea.priority, idea.product, idea.target].filter(Boolean).forEach((value) => {
-        const pill = document.createElement('span'); pill.className = 'idea-vault-pill'; pill.textContent = value; meta.append(pill)
-      })
-      copy.append(heading, meta)
-      top.append(copy)
+      top.append(heading)
       card.append(top)
       if (idea.notes) { const notes = document.createElement('p'); notes.textContent = idea.notes; card.append(notes) }
 
