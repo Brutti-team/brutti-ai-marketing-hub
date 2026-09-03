@@ -115,14 +115,16 @@ function metaInsightsPublic_() {
     if (platform === 'instagram' && ['followers', 'follower_count'].indexOf(metric) >= 0 && isFinite(value)) {
       posts._instagramFollowers = { value: value };
     }
-    if (id && isFinite(value) && ['post_media_view', 'views', 'reach', 'reactions', 'likes', 'comments', 'shares', 'saves'].indexOf(metric) >= 0) {
-      const post = posts[id] || { sourceId: id, views: null, reach: null, reactions: null, comments: null, shares: null, saves: null, measuredAt: formatIso_(row[0]) };
-      if (metric === 'post_media_view' || metric === 'views') post.views = value;
+    if (id && isFinite(value) && ['post_media_view', 'views', 'post_impressions', 'reach', 'reactions', 'likes', 'comments', 'shares', 'saves', 'saved', 'post_engaged_users', 'engagement'].indexOf(metric) >= 0) {
+      const post = posts[id] || { sourceId: id, platform: platform, views: null, reach: null, reactions: null, comments: null, shares: null, saves: null, engagement: null, measuredAt: formatIso_(row[0]) };
+      post.platform = platform || post.platform;
+      if (metric === 'post_media_view' || metric === 'views' || metric === 'post_impressions') post.views = value;
       if (metric === 'reach') post.reach = value;
       if (metric === 'reactions' || metric === 'likes') post.reactions = value;
       if (metric === 'comments') post.comments = value;
       if (metric === 'shares') post.shares = value;
-      if (metric === 'saves') post.saves = value;
+      if (metric === 'saves' || metric === 'saved') post.saves = value;
+      if (metric === 'post_engaged_users' || metric === 'engagement') post.engagement = value;
       posts[id] = post;
     }
   });
