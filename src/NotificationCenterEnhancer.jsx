@@ -1,6 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+const READ_KEY = 'brutti-action-center-read-v1'
+
+function alertKey(alert) {
+  return [alert.id, alert.title, alert.detail].join('|')
+}
+
+function readAlerts() {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(READ_KEY) || '[]')
+    return new Set(Array.isArray(value) ? value : [])
+  } catch {
+    return new Set()
+  }
+}
+
 function BellIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -86,20 +101,22 @@ function alertsMatch(current, next) {
   })
 }
 
-function NotificationItem({ alert, onSelect }) {
+function NotificationItem({ alert, onSelect, onRead }) {
   return (
-    <button className={`brutti-notification-item ${alert.level === 'alert' ? 'is-alert' : ''}`} onClick={() => onSelect(alert)}>
+    <div className={`brutti-notification-item ${alert.level === 'alert' ? 'is-alert' : ''}`}>
       <span className="brutti-notification-dot" />
-      <span>
+      <button type="button" className="brutti-notification-copy" onClick={() => onSelect(alert)}>
         <strong>{alert.title}</strong>
         <small>{alert.detail}</small>
-      </span>
-    </button>
+      </button>
+      <button type="button" className="brutti-notification-read" onClick={() => onRead(alert)}>Mark read</button>
+    </div>
   )
 }
 
 export default function NotificationCenterEnhancer() {
   const [alerts, setAlerts] = useState([])
+  const [readKeys, setReadKeys] = useState(() => readAlerts())
   const [open, setOpen] = useState(false)
   const [topbarTarget, setTopbarTarget] = useState(null)
   const [bannerTarget, setBannerTarget] = useState(null)
@@ -126,7 +143,7 @@ export default function NotificationCenterEnhancer() {
         setBannerTarget((current) => current === null ? current : null)
       }
 
-      const nextAlerts = readDashboardSignals()
+      const nextAlerts = readDashboardSignals().filter((alert) => !readKeys.has(alertKey(alert)))
       setAlerts((current) => alertsMatch(current, nextAlerts) ? current : nextAlerts)
     }
 
@@ -136,7 +153,7 @@ export default function NotificationCenterEnhancer() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [])
+  }, [readKeys])
 
   useEffect(() => {
     const close = (event) => {
@@ -147,6 +164,21 @@ export default function NotificationCenterEnhancer() {
   }, [])
 
   const primaryAlert = useMemo(() => alerts.find((alert) => alert.level === 'alert') || alerts[0] || null, [alerts])
+
+  const markRead = (alert) => {
+    const next = new Set(readKeys)
+    next.add(alertKey(alert))
+    window.localStorage.setItem(READ_KEY, JSON.stringify([...next]))
+    setReadKeys(next)
+  }
+
+  const markAllRead = () => {
+    const next = new Set(readKeys)
+    alerts.forEach((alert) => next.add(alertKey(alert)))
+    window.localStorage.setItem(READ_KEY, JSON.stringify([...next]))
+    setReadKeys(next)
+    setOpen(false)
+  }
 
   const handleSelect = (alert) => {
     setOpen(false)
@@ -171,9 +203,9 @@ export default function NotificationCenterEnhancer() {
           </button>
           {open ? (
             <div className="brutti-notification-popover" role="dialog" aria-label="Marketing reminders" onClick={(event) => event.stopPropagation()}>
-              <strong>Action Center</strong>
+              <div className="brutti-notification-heading"><strong>Action Center</strong>{alerts.length ? <button type="button" onClick={markAllRead}>Mark all read</button> : null}</div>
               {alerts.length
-                ? alerts.map((alert) => <NotificationItem key={alert.id} alert={alert} onSelect={handleSelect} />)
+                ? alerts.map((alert) => <NotificationItem key={alert.id} alert={alert} onSelect={handleSelect} onRead={markRead} />)
                 : <div className="brutti-notification-item"><span className="brutti-notification-dot" /><span><strong>Tiada reminder urgent sekarang</strong><small>Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.</small></span></div>}
             </div>
           ) : null}
