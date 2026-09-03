@@ -178,11 +178,6 @@ function dashboardPage() {
     .find((page) => page.offsetParent !== null && page.classList.contains('dashboard-page')) || null
 }
 
-function plannerPage() {
-  return [...document.querySelectorAll('#root .page')]
-    .find((page) => page.offsetParent !== null && page.querySelector('h1')?.textContent?.trim() === 'Campaign Planner') || null
-}
-
 function setMarkup(node, markup) {
   if (node && node.innerHTML !== markup) node.innerHTML = markup
 }
