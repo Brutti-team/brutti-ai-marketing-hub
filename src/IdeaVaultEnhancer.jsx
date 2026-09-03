@@ -87,8 +87,13 @@ function ensureStyle() {
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
-    .idea-vault-panel{margin:18px 0 24px;padding:20px;border:1px solid var(--border,rgba(120,120,120,.2));border-radius:18px;background:var(--surface,#fff)}
-    .idea-vault-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    .planner-workspace-split{display:grid;grid-template-columns:minmax(280px,.65fr) minmax(0,1.55fr);gap:18px;align-items:start;margin:18px 0 24px}
+    .planner-calendar-workspace{min-width:0}
+    .idea-vault-panel{margin:0;padding:18px;border:1px solid var(--border,rgba(120,120,120,.2));border-radius:18px;background:var(--surface,#fff)}
+    .idea-vault-head{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .idea-vault-toggle{white-space:nowrap}
+    .idea-vault-body{margin-top:14px;max-height:calc(100vh - 220px);overflow:auto;padding-right:2px}
+    .idea-vault-body[hidden]{display:none}
     .idea-vault-head h2{margin:4px 0 5px;font-size:1.15rem}.idea-vault-head p{margin:0;max-width:720px;opacity:.72}
     .idea-vault-eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.62}
     .idea-vault-form{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin:16px 0}
@@ -102,6 +107,7 @@ function ensureStyle() {
     .idea-vault-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:.75rem;opacity:.7}.idea-vault-pill{padding:3px 7px;border-radius:999px;background:rgba(127,127,127,.11)}
     .idea-vault-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.idea-vault-empty{padding:18px;text-align:center;border:1px dashed var(--border,rgba(120,120,120,.25));border-radius:12px;opacity:.7}
     .idea-vault-match{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(127,127,127,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.idea-vault-match strong{display:block}.idea-vault-match small{opacity:.7}
+    @media(max-width:1080px){.planner-workspace-split{grid-template-columns:1fr}.idea-vault-body{max-height:none}}
     @media(max-width:760px){.idea-vault-form{grid-template-columns:1fr}.idea-vault-form .wide{grid-column:auto}}
   `
   document.head.append(style)
@@ -161,7 +167,12 @@ function mountVault(page) {
   const description = document.createElement('p')
   description.textContent = 'Simpan idea yang belum ada tarikh. Ia tidak masuk Calendar sehingga kamu sendiri decide bila mahu guna.'
   headCopy.append(eyebrow, title, description)
-  head.append(headCopy)
+  const toggle = button('Open saved ideas', 'button secondary small idea-vault-toggle')
+  toggle.setAttribute('aria-expanded', 'false')
+  head.append(headCopy, toggle)
+
+  const body = document.createElement('div')
+  body.className = 'idea-vault-body'
 
   const form = document.createElement('form')
   form.className = 'idea-vault-form'
@@ -214,12 +225,21 @@ function mountVault(page) {
 
   let ideas = loadIdeas()
 
+  const setExpanded = (expanded) => {
+    body.hidden = !expanded
+    toggle.textContent = expanded ? 'Hide saved ideas' : `Open saved ideas (${ideas.length})`
+    toggle.setAttribute('aria-expanded', String(expanded))
+  }
+  toggle.addEventListener('click', () => setExpanded(body.hidden))
+  setExpanded(false)
+
   const render = () => {
     const query = clean(search.value).toLowerCase()
     const filtered = ideas
       .filter((idea) => !query || [idea.title, idea.notes, idea.type, idea.product, idea.target, idea.status].join(' ').toLowerCase().includes(query))
       .sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)))
     count.textContent = `${filtered.length} of ${ideas.length} saved idea${ideas.length === 1 ? '' : 's'}`
+    if (body.hidden) toggle.textContent = `Open saved ideas (${ideas.length})`
     list.replaceChildren()
 
     if (!filtered.length) {
@@ -298,11 +318,35 @@ function mountVault(page) {
   })
   search.addEventListener('input', render)
 
-  panel.append(head, form, toolbar, list)
-  const header = page.querySelector('.page-header')
-  if (header?.nextSibling) header.parentNode.insertBefore(panel, header.nextSibling)
-  else page.prepend(panel)
+  body.append(form, toolbar, list)
+  panel.append(head, body)
+  arrangePlannerLayout(page, panel)
   render()
+}
+
+function arrangePlannerLayout(page, panel) {
+  const existing = page.querySelector('.planner-workspace-split')
+  if (existing) {
+    if (!existing.contains(panel)) existing.prepend(panel)
+    return
+  }
+
+  const header = page.querySelector('.page-header')
+  const summary = page.querySelector('.dynamic-planner-summary')
+  const calendar = page.querySelector('.week-calendar')
+  if (!header?.parentNode || !summary || !calendar) {
+    if (header?.nextSibling) header.parentNode.insertBefore(panel, header.nextSibling)
+    else page.prepend(panel)
+    return
+  }
+
+  const workspace = document.createElement('div')
+  workspace.className = 'planner-workspace-split'
+  const calendarWorkspace = document.createElement('div')
+  calendarWorkspace.className = 'planner-calendar-workspace'
+  calendarWorkspace.append(summary, calendar)
+  workspace.append(panel, calendarWorkspace)
+  header.insertAdjacentElement('afterend', workspace)
 }
 
 function mountDashboardMatch(page) {
