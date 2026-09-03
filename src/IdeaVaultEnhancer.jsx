@@ -87,16 +87,22 @@ function ensureStyle() {
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
-    .planner-workspace-split{display:grid;grid-template-columns:minmax(280px,.65fr) minmax(0,1.55fr);gap:18px;align-items:start;margin:18px 0 24px}
+    .planner-workspace-split{display:grid;grid-template-columns:minmax(460px,1.2fr) minmax(340px,.8fr);gap:18px;align-items:start;margin:18px 0 24px}
     .planner-calendar-workspace{min-width:0}
+    .planner-calendar-workspace .week-calendar{min-height:0;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .planner-calendar-workspace .calendar-day{min-height:220px}
     .idea-vault-panel{margin:0;padding:18px;border:1px solid var(--border,rgba(120,120,120,.2));border-radius:18px;background:var(--surface,#fff)}
     .idea-vault-head{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .idea-vault-toggle{white-space:nowrap}
-    .idea-vault-body{margin-top:14px;max-height:calc(100vh - 220px);overflow:auto;padding-right:2px}
-    .idea-vault-body[hidden]{display:none}
+    .idea-vault-body{margin-top:14px}
+    .idea-vault-folder{margin-top:16px;border:1px solid var(--border,rgba(120,120,120,.2));border-radius:12px;background:rgba(127,127,127,.035)}
+    .idea-vault-folder summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:13px 14px;font-weight:800;list-style:none}
+    .idea-vault-folder summary::-webkit-details-marker{display:none}
+    .idea-vault-folder summary::before{content:'▸';font-size:.9rem;transition:transform .16s ease}
+    .idea-vault-folder[open] summary::before{transform:rotate(90deg)}
+    .idea-vault-folder-content{padding:0 14px 14px}
     .idea-vault-head h2{margin:4px 0 5px;font-size:1.15rem}.idea-vault-head p{margin:0;max-width:720px;opacity:.72}
     .idea-vault-eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.62}
-    .idea-vault-form{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin:16px 0}
+    .idea-vault-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
     .idea-vault-form label{display:grid;gap:6px;font-size:.82rem;font-weight:700}.idea-vault-form .wide{grid-column:1/-1}
     .idea-vault-form input,.idea-vault-form select,.idea-vault-form textarea,.idea-vault-search{width:100%;box-sizing:border-box;border:1px solid var(--border,rgba(120,120,120,.25));border-radius:10px;padding:10px 11px;background:var(--surface,#fff);color:inherit;font:inherit}
     .idea-vault-form textarea{min-height:82px;resize:vertical}.idea-vault-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;grid-column:1/-1}
@@ -107,7 +113,7 @@ function ensureStyle() {
     .idea-vault-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:.75rem;opacity:.7}.idea-vault-pill{padding:3px 7px;border-radius:999px;background:rgba(127,127,127,.11)}
     .idea-vault-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.idea-vault-empty{padding:18px;text-align:center;border:1px dashed var(--border,rgba(120,120,120,.25));border-radius:12px;opacity:.7}
     .idea-vault-match{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(127,127,127,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.idea-vault-match strong{display:block}.idea-vault-match small{opacity:.7}
-    @media(max-width:1080px){.planner-workspace-split{grid-template-columns:1fr}.idea-vault-body{max-height:none}}
+    @media(max-width:860px){.planner-workspace-split{grid-template-columns:1fr}.planner-calendar-workspace .calendar-day{min-height:0}}
     @media(max-width:760px){.idea-vault-form{grid-template-columns:1fr}.idea-vault-form .wide{grid-column:auto}}
   `
   document.head.append(style)
@@ -167,12 +173,18 @@ function mountVault(page) {
   const description = document.createElement('p')
   description.textContent = 'Simpan idea yang belum ada tarikh. Ia tidak masuk Calendar sehingga kamu sendiri decide bila mahu guna.'
   headCopy.append(eyebrow, title, description)
-  const toggle = button('Open saved ideas', 'button secondary small idea-vault-toggle')
-  toggle.setAttribute('aria-expanded', 'false')
-  head.append(headCopy, toggle)
+  head.append(headCopy)
 
   const body = document.createElement('div')
   body.className = 'idea-vault-body'
+
+  const savedFolder = document.createElement('details')
+  savedFolder.className = 'idea-vault-folder'
+  const savedSummary = document.createElement('summary')
+  savedFolder.append(savedSummary)
+  const savedFolderContent = document.createElement('div')
+  savedFolderContent.className = 'idea-vault-folder-content'
+  savedFolder.append(savedFolderContent)
 
   const form = document.createElement('form')
   form.className = 'idea-vault-form'
@@ -193,7 +205,7 @@ function mountVault(page) {
   notesInput.placeholder = 'Verified facts, angle, hook, reference atau apa saja yang kamu tidak mahu lupa.'
 
   form.append(
-    createField('Idea / title', titleInput),
+    createField('Idea / title', titleInput, true),
     createField('Content type', typeSelect),
     createField('Priority', prioritySelect),
     createField('Product', productInput),
@@ -225,21 +237,13 @@ function mountVault(page) {
 
   let ideas = loadIdeas()
 
-  const setExpanded = (expanded) => {
-    body.hidden = !expanded
-    toggle.textContent = expanded ? 'Hide saved ideas' : `Open saved ideas (${ideas.length})`
-    toggle.setAttribute('aria-expanded', String(expanded))
-  }
-  toggle.addEventListener('click', () => setExpanded(body.hidden))
-  setExpanded(false)
-
   const render = () => {
     const query = clean(search.value).toLowerCase()
     const filtered = ideas
       .filter((idea) => !query || [idea.title, idea.notes, idea.type, idea.product, idea.target, idea.status].join(' ').toLowerCase().includes(query))
       .sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)))
     count.textContent = `${filtered.length} of ${ideas.length} saved idea${ideas.length === 1 ? '' : 's'}`
-    if (body.hidden) toggle.textContent = `Open saved ideas (${ideas.length})`
+    savedSummary.textContent = `Saved ideas (${ideas.length}) — open folder`
     list.replaceChildren()
 
     if (!filtered.length) {
@@ -318,7 +322,8 @@ function mountVault(page) {
   })
   search.addEventListener('input', render)
 
-  body.append(form, toolbar, list)
+  savedFolderContent.append(toolbar, list)
+  body.append(form, savedFolder)
   panel.append(head, body)
   arrangePlannerLayout(page, panel)
   render()
