@@ -195,21 +195,12 @@ function mountVault(page) {
   ;['Brand Awareness','Behind The Scenes','Product Highlight','Educational','Customer Story','Promotion','General'].forEach((value) => {
     const option = document.createElement('option'); option.value = value; option.textContent = value; typeSelect.append(option)
   })
-  const prioritySelect = document.createElement('select')
-  ;['Medium','High','Low'].forEach((value) => { const option = document.createElement('option'); option.value = value; option.textContent = value; prioritySelect.append(option) })
-  const productInput = document.createElement('input')
-  productInput.placeholder = 'Optional'
-  const targetInput = document.createElement('input')
-  targetInput.placeholder = 'Optional — contoh: Dec 2026 / next year'
   const notesInput = document.createElement('textarea')
   notesInput.placeholder = 'Verified facts, angle, hook, reference atau apa saja yang kamu tidak mahu lupa.'
 
   form.append(
     createField('Idea / title', titleInput, true),
     createField('Content type', typeSelect),
-    createField('Priority', prioritySelect),
-    createField('Product', productInput),
-    createField('Target month / timing', targetInput),
     createField('Notes / facts', notesInput, true),
   )
 
@@ -306,9 +297,6 @@ function mountVault(page) {
       id: `idea-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       title: clean(titleInput.value),
       type: typeSelect.value,
-      priority: prioritySelect.value,
-      product: clean(productInput.value),
-      target: clean(targetInput.value),
       notes: clean(notesInput.value),
       status: 'Idea',
       createdAt: now,
@@ -317,7 +305,6 @@ function mountVault(page) {
     saveIdeas(ideas)
     form.reset()
     typeSelect.value = 'Brand Awareness'
-    prioritySelect.value = 'Medium'
     render()
   })
   search.addEventListener('input', render)
