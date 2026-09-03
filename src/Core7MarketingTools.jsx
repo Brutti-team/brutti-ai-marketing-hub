@@ -75,6 +75,8 @@ export default function Core7MarketingTools() {
             panel.hidden = true
             panel.style.setProperty('display', 'none', 'important')
           })
+        root.querySelector('.dashboard-page .pipeline-panel')
+          ?.style.setProperty('grid-column', '1 / -1', 'important')
       }
 
       if (title === 'Content Studio' && activePage) {
