@@ -262,6 +262,7 @@ function AssetLibraryEnhancer() {
         if (!nativeGrid) return
         nativeGrid.classList.add('asset-grid-native')
         nativeGrid.setAttribute('aria-hidden', 'true')
+        nativeGrid.style.display = 'none'
 
         let metadata = readJson(META_KEY, {})
         let hidden = new Set(readJson(HIDDEN_KEY, []))
@@ -533,6 +534,7 @@ function AssetLibraryEnhancer() {
         helperCopy.append(helperStrong, helperText)
         helper.append(helperCopy)
         if (folderId) helper.append(makeButton('Open Drive asset folder', 'button secondary small', () => window.open(`https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`, '_blank', 'noopener')))
+        helper.style.display = 'none'
         panel.insertBefore(helper, statusLine)
 
         render()
@@ -549,6 +551,7 @@ function AssetLibraryEnhancer() {
           if (headerButton) headerButton.removeEventListener('click', interceptAdd, true)
           nativeGrid.classList.remove('asset-grid-native')
           nativeGrid.removeAttribute('aria-hidden')
+          nativeGrid.style.display = ''
         }
       }, 80)
     }
