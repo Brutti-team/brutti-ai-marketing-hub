@@ -178,11 +178,6 @@ function dashboardPage() {
     .find((page) => page.offsetParent !== null && page.classList.contains('dashboard-page')) || null
 }
 
-function plannerPage() {
-  return [...document.querySelectorAll('#root .page')]
-    .find((page) => page.offsetParent !== null && page.querySelector('h1')?.textContent?.trim() === 'Campaign Planner') || null
-}
-
 function setMarkup(node, markup) {
   if (node && node.innerHTML !== markup) node.innerHTML = markup
 }
@@ -222,25 +217,6 @@ function syncDashboardTiming() {
   setMarkup(card, timingCardMarkup(timing))
 }
 
-function syncPlannerTiming() {
-  const page = plannerPage()
-  if (!page) return
-  const summary = page.querySelector('.planner-summary')
-  if (!summary) return
-
-  const timing = getHistoricalPostingTime(new Date(), true)
-  let strip = page.querySelector('.planner-smart-timing-strip')
-  if (!strip) {
-    strip = document.createElement('div')
-    strip.className = 'planner-smart-timing-strip'
-    strip.style.cssText = 'margin:12px 0 18px;padding:11px 14px;border:1px solid rgba(20,74,58,.16);border-radius:14px;background:rgba(238,246,239,.65);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:12px;'
-    summary.insertAdjacentElement('afterend', strip)
-  }
-  const when = timing.shiftedToNextDay ? `Tomorrow · ${timing.dayLabel}` : `Today · ${timing.dayLabel}`
-  const markup = `<span><strong>Historical Smart Timing · Office Hours</strong> · ${when}: <strong>${timing.time}</strong> <span style="opacity:.68">(${timing.window})</span></span><span style="opacity:.68">8:30 am–5:00 pm · ${timing.confidence} confidence · not live Meta</span>`
-  setMarkup(strip, markup)
-}
-
 function syncPlanModalTiming() {
   const modal = document.querySelector('#root .plan-modal')
   if (!modal) return
@@ -271,7 +247,6 @@ function syncPlanModalTiming() {
 
 function syncAll() {
   syncDashboardTiming()
-  syncPlannerTiming()
   syncPlanModalTiming()
 }
 
