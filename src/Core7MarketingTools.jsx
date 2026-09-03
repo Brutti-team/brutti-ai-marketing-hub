@@ -69,6 +69,13 @@ export default function Core7MarketingTools() {
       const sidebarStatus = root.querySelector('.sidebar .system-card')
       if (sidebarStatus && !sidebarStatus.hidden) sidebarStatus.hidden = true
 
+      if (title === 'Dashboard') {
+        root.querySelectorAll('.dashboard-page > .stats-grid, .dashboard-page .focus-panel, .dashboard-page .upcoming-panel')
+          .forEach((panel) => {
+            if (!panel.hidden) panel.hidden = true
+          })
+      }
+
       if (title === 'Content Studio' && activePage) {
         const platformLabel = [...activePage.querySelectorAll('label')]
           .find((label) => /^Platform/i.test(label.textContent || ''))
