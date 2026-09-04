@@ -794,3 +794,61 @@ html[data-theme='dark'] .brutti-notification-count {
     display: none;
   }
 }
+
+
+.brutti-notification-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 8px 9px;
+}
+
+.brutti-notification-popover > .brutti-notification-heading > strong {
+  padding: 0;
+}
+
+.brutti-notification-heading button,
+.brutti-notification-read {
+  border: 1px solid var(--ui-line);
+  border-radius: 7px;
+  background: var(--ui-surface-soft);
+  color: var(--ui-primary);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.brutti-notification-heading button {
+  min-height: 28px;
+  padding: 0 8px;
+}
+
+.brutti-notification-item {
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.brutti-notification-copy {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.brutti-notification-read {
+  margin-top: 2px;
+  min-height: 27px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.brutti-notification-heading button:hover,
+.brutti-notification-read:hover {
+  border-color: var(--ui-primary);
+  background: var(--ui-primary-soft);
+}
