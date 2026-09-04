@@ -5,19 +5,6 @@ const LANGUAGE_EVENT = 'brutti:languagechange'
 const SUPPORTED = new Set(['bm', 'en'])
 
 const BM = {
-  'Dashboard': 'Dashboard',
-  'Content Studio': 'Content Studio',
-  'Campaign Planner': 'Perancang Kempen',
-  'Brand Library': 'Pustaka Jenama',
-  'Product Library': 'Pustaka Produk',
-  'Asset Library': 'Pustaka Aset',
-  'AI Tools': 'Alat AI',
-  'Analytics': 'Analitik',
-  'Settings': 'Tetapan',
-  'Home': 'Utama',
-  'Content': 'Kandungan',
-  'Planner': 'Perancang',
-  'Assets': 'Aset',
   'Content direction': 'Arah kandungan',
   'Only use facts you can verify.': 'Gunakan fakta yang boleh disahkan sahaja.',
   'Content title': 'Tajuk kandungan',
@@ -134,7 +121,7 @@ function translateDocument(language) {
 
 function activeSettingsPage() {
   return [...document.querySelectorAll('#root .page')]
-    .find((page) => page.offsetParent !== null && page.querySelector('.page-header h1')?.textContent?.trim() === 'Settings') || null
+    .find((page) => page.offsetParent !== null && ['Settings', 'Tetapan'].includes(page.querySelector('.page-header h1')?.textContent?.trim())) || null
 }
 
 function mountControl(language) {
