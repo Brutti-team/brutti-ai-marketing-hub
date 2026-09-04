@@ -223,6 +223,9 @@ function replaceText(value, dictionary, language) {
   const original = value.trim()
   const core = language === 'bm' ? (BM_NORMALIZE[original] || original) : original
   const translated = Object.prototype.hasOwnProperty.call(dictionary, core) ? dictionary[core] : core
+  // Do not touch unknown text nodes (especially whitespace): rewriting those re-triggers
+  // the observer indefinitely and can freeze the browser.
+  if (translated === original) return value
   return leading + translated + trailing
 }
 
