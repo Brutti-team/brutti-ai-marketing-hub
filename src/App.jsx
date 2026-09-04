@@ -642,9 +642,26 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   const [showReferenceForm, setShowReferenceForm] = useState(false)
-  const [reference, setReference] = useState({ name: '', category: 'Kiosk / Project', location: '', notes: '' })
+  const [reference, setReference] = useState({ name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '' })
+  const [imageError, setImageError] = useState('')
   const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
   const visible = productData.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''}`.toLowerCase().includes(query.toLowerCase()))
+
+  const handleImage = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/') || file.size > 1200000) {
+      setImageError('Use an image file up to 1.2 MB.')
+      event.target.value = ''
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      setReference((current) => ({ ...current, imageDataUrl: String(reader.result || ''), imageName: file.name }))
+      setImageError('')
+    }
+    reader.readAsDataURL(file)
+  }
 
   const saveReference = (event) => {
     event.preventDefault()
@@ -654,17 +671,20 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
       category: reference.category,
       location: reference.location.trim(),
       notes: reference.notes.trim(),
+      imageDataUrl: reference.imageDataUrl,
+      imageName: reference.imageName,
     })
-    setReference({ name: '', category: 'Kiosk / Project', location: '', notes: '' })
+    setReference({ name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '' })
+    setImageError('')
     setShowReferenceForm(false)
   }
 
   return (
     <div className="page">
       <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => setShowReferenceForm((open) => !open)}><Icon name="plus"/>Add kiosk / project</button></div>} />
-      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>Save a past kiosk or project</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><div className="modal-actions"><span className="settings-copy">Saved safely in this browser as a future reference.</span><div><button className="button secondary" type="button" onClick={() => setShowReferenceForm(false)}>Cancel</button><button className="button primary" type="submit">Save reference</button></div></div></form></section> : null}
+      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>Save a past kiosk or project</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/*" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName}</small></div> : null}<div className="modal-actions"><span className="settings-copy">Saved safely in this browser as a future reference.</span><div><button className="button secondary" type="button" onClick={() => setShowReferenceForm(false)}>Cancel</button><button className="button primary" type="submit">Save reference</button></div></div></form></section> : null}
       <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
-      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}><div className="furniture-shape"><span/><span/><span/></div><span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
+      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}>{product.imageDataUrl ? <img src={product.imageDataUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div className="furniture-shape"><span/><span/><span/></div>}<span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
     </div>
   )
@@ -902,6 +922,8 @@ function App() {
       dimensions: reference.location || '',
       sourceStatus: 'Saved reference',
       photoConfirmed: false,
+      imageDataUrl: reference.imageDataUrl || '',
+      imageName: reference.imageName || '',
     }
     setCustomProducts((items) => [item, ...items])
     toast('Kiosk / project reference saved for future content.')
