@@ -148,7 +148,7 @@ export function DeferredEnhancers() {
       {page === 'Asset Library' ? <AssetLibraryEnhancer /> : null}
       {page === 'Analytics' ? <AnalyticsCopyPolish /> : null}
       {page === 'Analytics' ? <LightModeAnalyticsContrastEnhancer /> : null}
-      {page === 'Settings' ? <AppLanguageLock /> : null}
+      {backgroundReady ? <AppLanguageLock /> : null}
       {page === 'Settings' ? <IntegrationBrandIconEnhancer /> : null}
     </Suspense>
   )
