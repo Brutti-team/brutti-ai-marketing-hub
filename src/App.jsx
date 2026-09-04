@@ -638,18 +638,34 @@ function BrandLibrary() {
   )
 }
 
-function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing }) {
+function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing, onAddReference }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
+  const [showReferenceForm, setShowReferenceForm] = useState(false)
+  const [reference, setReference] = useState({ name: '', category: 'Kiosk / Project', location: '', notes: '' })
   const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
-  const visible = productData.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''}`.toLowerCase().includes(query.toLowerCase()))
+  const visible = productData.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''}`.toLowerCase().includes(query.toLowerCase()))
+
+  const saveReference = (event) => {
+    event.preventDefault()
+    if (!reference.name.trim()) return
+    onAddReference({
+      name: reference.name.trim(),
+      category: reference.category,
+      location: reference.location.trim(),
+      notes: reference.notes.trim(),
+    })
+    setReference({ name: '', category: 'Kiosk / Project', location: '', notes: '' })
+    setShowReferenceForm(false)
+  }
+
   return (
     <div className="page">
-      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}</div>} />
+      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => setShowReferenceForm((open) => !open)}><Icon name="plus"/>Add kiosk / project</button></div>} />
+      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>Save a past kiosk or project</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><div className="modal-actions"><span className="settings-copy">Saved safely in this browser as a future reference.</span><div><button className="button secondary" type="button" onClick={() => setShowReferenceForm(false)}>Cancel</button><button className="button primary" type="submit">Save reference</button></div></div></form></section> : null}
       <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
-      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index%5}`}><div className="furniture-shape"><span/><span/><span/></div><span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
+      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}><div className="furniture-shape"><span/><span/><span/></div><span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
-      <div className="source-notice"><Icon name={productData.length >= 88 ? 'check' : 'alert'}/><div><strong>{productData.length >= 88 ? 'Product source loaded' : 'Product sync readiness'}</strong><p>{productData.length >= 88 ? 'The full verified product set is available in this workspace.' : 'The website is using its verified fallback set. Configure Notion in Apps Script, then sync the source table here.'}</p></div></div>
     </div>
   )
 }
@@ -786,6 +802,7 @@ function App() {
   const toastTimer = useRef(null)
   const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
   const [productData, setProductData] = useState(products)
+  const [customProducts, setCustomProducts] = useStoredState('brutti-product-references-v1', [])
   const [syncingProducts, setSyncingProducts] = useState(false)
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
@@ -874,6 +891,21 @@ function App() {
     }
   }
 
+  const allProductData = useMemo(() => [...customProducts, ...productData], [customProducts, productData])
+  const addProductReference = (reference) => {
+    const item = {
+      id: `reference-${Date.now()}`,
+      name: reference.name,
+      category: reference.category,
+      price: '',
+      material: reference.notes || 'Saved kiosk or project reference',
+      dimensions: reference.location || '',
+      sourceStatus: 'Saved reference',
+      photoConfirmed: false,
+    }
+    setCustomProducts((items) => [item, ...items])
+    toast('Kiosk / project reference saved for future content.')
+  }
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
   const openNewPlan = (date = localDateKey(), idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || localDateKey(), channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
   const savePlan = async (plan) => {
@@ -915,24 +947,24 @@ function App() {
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={productData} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
-    products: <ProductLibrary onUseProduct={useProduct} productData={productData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} />,
+    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onAddReference={addProductReference} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
-    analytics: <Analytics content={content} plans={plans} productData={productData} integrations={integrations} />,
+    analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output, workspaceActive, integrations, productData, syncingProducts])
+  }), [page, content, plans, generator, output, workspaceActive, integrations, allProductData, syncingProducts])
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:productData.length}}/>
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/>
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
       <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}
-      {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={productData}/> : null}
+      {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={allProductData}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
     </div>
   )
