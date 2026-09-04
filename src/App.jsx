@@ -802,6 +802,7 @@ function App() {
   const toastTimer = useRef(null)
   const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
   const [productData, setProductData] = useState(products)
+  const [customProducts, setCustomProducts] = useStoredState('brutti-product-references-v1', [])
   const [syncingProducts, setSyncingProducts] = useState(false)
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
@@ -890,6 +891,21 @@ function App() {
     }
   }
 
+  const allProductData = useMemo(() => [...customProducts, ...productData], [customProducts, productData])
+  const addProductReference = (reference) => {
+    const item = {
+      id: `reference-${Date.now()}`,
+      name: reference.name,
+      category: reference.category,
+      price: '',
+      material: reference.notes || 'Saved kiosk or project reference',
+      dimensions: reference.location || '',
+      sourceStatus: 'Saved reference',
+      photoConfirmed: false,
+    }
+    setCustomProducts((items) => [item, ...items])
+    toast('Kiosk / project reference saved for future content.')
+  }
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
   const openNewPlan = (date = localDateKey(), idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || localDateKey(), channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
   const savePlan = async (plan) => {
@@ -931,24 +947,24 @@ function App() {
 
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
-    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={productData} />,
+    studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
-    products: <ProductLibrary onUseProduct={useProduct} productData={productData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} />,
+    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onAddReference={addProductReference} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
-    analytics: <Analytics content={content} plans={plans} productData={productData} integrations={integrations} />,
+    analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [page, content, plans, generator, output, workspaceActive, integrations, productData, syncingProducts])
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:productData.length}}/>
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/>
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
       <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}
-      {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={productData}/> : null}
+      {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={allProductData}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>
     </div>
   )
