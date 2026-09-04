@@ -956,7 +956,7 @@ function App() {
     analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [page, content, plans, generator, output, workspaceActive, integrations, productData, syncingProducts])
+  }), [page, content, plans, generator, output, workspaceActive, integrations, allProductData, syncingProducts])
 
   return (
     <div className="app-shell">
