@@ -547,3 +547,10 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .selected-asset button { border:0; background:transparent; text-decoration:underline; cursor:pointer; }
 .asset-use-button { display:inline-flex; align-items:center; justify-content:center; }
 .product-card-body p strong { font-weight:700; }
+
+
+.app-language-control { display:flex; align-items:center; justify-content:space-between; gap:22px; margin:0 0 16px; padding:22px 23px; }
+.app-language-control h3 { margin:6px 0 5px; font-size:18px; }
+.app-language-control p { max-width:650px; margin:0; color:var(--muted); font-size:11px; line-height:1.55; }
+.app-language-control select { flex:0 0 210px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:inherit; font:inherit; }
+@media (max-width:650px) { .app-language-control { align-items:stretch; flex-direction:column; } .app-language-control select { flex-basis:auto; width:100%; } }
