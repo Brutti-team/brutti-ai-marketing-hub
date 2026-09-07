@@ -161,6 +161,7 @@ function doPost(e) {
       save_product_reference: () => saveProductReference_(payload.reference),
       delete_product_reference: () => deleteProductReference_(payload.id),
       sync_notion_planner: syncNotionPlanner_,
+      sync_meta_insights: syncMetaInsights,
       publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); }
     };
     if (!handlers[action]) throw new Error('Unsupported action: ' + action);
@@ -190,14 +191,29 @@ function setupBruttiWorkspace() {
 function integrationStatus_() {
   const tests = testIntegrations_();
   const properties = scriptProperties_();
+  const meta = metaConnectionStatus_();
   return {
     appsScript: true,
     sheets: Boolean(tests.sheets && tests.sheets.connected),
     drive: Boolean(tests.drive && tests.drive.connected),
     notion: Boolean(tests.notion && tests.notion.connected),
-    meta: false,
-    details: tests
+    meta: Boolean(meta.connected),
+    details: Object.assign({}, tests, { meta: meta })
   };
+}
+
+function metaConnectionStatus_() {
+  const properties = scriptProperties_();
+  const pageId = properties.getProperty('META_PAGE_ID');
+  const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
+  const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
+  if (!pageId || !token) return { connected: false, configured: false, message: 'Meta Page ID and access token are not configured.' };
+  try {
+    const page = metaGraphRequest_(version + '/' + encodeURIComponent(pageId), token, { fields: 'id,name' });
+    return { connected: true, configured: true, pageName: String(page.name || ''), checkedAt: new Date().toISOString() };
+  } catch (error) {
+    return { connected: false, configured: true, message: clean_(error.message) };
+  }
 }
 
 function loadWorkspace_() {
