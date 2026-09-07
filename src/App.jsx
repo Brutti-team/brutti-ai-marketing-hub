@@ -11,7 +11,6 @@ import {
 import {
   callMarketingApi,
   loadPublicMetaInsights,
-  loadPublicMetaInsights,
   clearWorkspaceKey,
   deleteGoogleContent,
   deleteGooglePlan,
