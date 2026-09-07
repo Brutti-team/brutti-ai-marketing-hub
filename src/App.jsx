@@ -221,7 +221,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
           <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3>3 content ideas for today</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
           <p className="settings-copy">Cadangan ini hanya menggunakan data prestasi Meta yang diselaraskan dan boleh terus dibuka dalam Content Studio.</p>
           <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.description}</p><small><b>Format:</b> {idea.format} · <b>Hook:</b> {idea.hook}</small><small><b>Arah:</b> {idea.direction}</small></div><Icon name="chevron"/></button>)}</div>
-          <div className="guardrail-note"><Icon name="check"/><p><strong>{dashboardIdeas.length === 3 ? 'Data Meta disahkan' : 'Cadangan menunggu data Meta'}</strong> {dashboardIdeas.length === 3 ? 'Sumber: ' + dashboardIdeas[0].source : 'Sekurang-kurangnya tiga post-level insight yang disahkan diperlukan. Sistem tidak menggunakan fallback template.'}</p></div>
+          <div className="guardrail-note"><Icon name="check"/><p><strong>{dashboardIdeas.length === 3 ? 'Data Meta disahkan' : 'Cadangan menunggu data Meta'}</strong> {dashboardIdeas.length === 3 ? 'Sumber: ' + dashboardIdeas[0].source : 'Sambungkan Meta dan tunggu sekurang-kurangnya satu post-level insight sebenar. Sistem tidak menggunakan fallback template atau KPI rekaan.'}</p></div>
         </section>
       </div>
 
@@ -761,12 +761,14 @@ function performanceIdeasFromInsights(insights) {
   const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])].filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
   const metricValue = (post) => Number(post.engagement ?? post.reactions ?? post.views ?? post.reach ?? post.comments ?? 0)
   const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
-  if (ranked.length < 3) return []
-  return ranked.slice(0, 3).map((post, index) => {
+  if (!ranked.length) return []
+  const angles = ['before/after atau transformasi ruang', 'soalan pilihan yang mengundang komen', 'tip praktikal yang boleh disimpan dan dikongsi']
+  return angles.map((angle, index) => {
+    const post = ranked[index % ranked.length]
     const topic = String(post.message || '').replace(/#[^\s]+/g, '').replace(/\s+/g, ' ').trim().split(' ').slice(0, 9).join(' ') || 'post BRUTTI berprestasi tinggi'
     const value = Math.round(metricValue(post)).toLocaleString()
     const metric = post.engagement !== null ? 'engagement' : post.reach !== null ? 'reach' : post.reactions !== null ? 'reactions' : 'views'
-    return { title: `Follow up: ${topic}`, format: post.format === 'video' ? 'Video pendek' : 'Facebook post', objective: 'Engagement', description: `Kembangkan topik dan format daripada post ranking #${index + 1}; bina sudut baharu tanpa menyalin caption asal.`, hook: `Berpandukan post #${index + 1}`, direction: `Gunakan topik sebenar: ${topic}.`, cta: 'Semak dan lengkapkan fakta sebelum siar.', source: `Facebook · ${value} ${metric}`, post }
+    return { title: `Follow up: ${topic} — ${angle}`, format: post.format === 'video' ? 'Video pendek' : 'Facebook post', objective: 'Engagement', description: `Idea ini berpandukan post Meta ranking #${ranked.indexOf(post) + 1} yang menerima ${value} ${metric}; bina sudut baharu tanpa menyalin caption asal.`, hook: `Berpandukan pattern post #${ranked.indexOf(post) + 1}`, direction: `Gunakan topik sebenar: ${topic}. Fokus pada ${angle}.`, cta: 'Semak dan lengkapkan fakta sebelum siar.', source: `Facebook · ${value} ${metric}`, post }
   })
 }
 
