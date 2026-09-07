@@ -20,7 +20,8 @@ The production website does not call a paid AI API and does not require staff to
 - refine captions inside the website with More Engaging, Casual, Professional, Shorten, New Hook, New CTA and Refresh Hashtags controls
 - provide three Brutti-style variations for every verified direction
 - run rule-based checks for Brutti Facebook style, readability, CTA, hashtag discipline and unsupported claims
-- save drafts and planner records to Google Sheets
+- save drafts, planner records and shared kiosk/project references to Google Sheets
+- store optional kiosk/project reference photos in Google Drive
 - require human approval before any future Meta publishing
 
 Google remains the operational source of truth:
@@ -80,6 +81,7 @@ The web app URL is public because GitHub Pages must reach it, but every operatio
 The backend preserves the current `Daily Planner` columns and uses these additional tabs in `BRUTTI DAILY CONTENT PLANNER`:
 
 - `Content Library` — draft, approval and publishing records
+- `Product References` — shared kiosk/project references, notes and Drive image links
 - `Integration Log` — timestamped Sheet, Drive and Meta actions
 
 The existing `BRUTTI AI MARKETING MASTER DATA`, `BRUTTI Website & Make Sync Mapping`, `BRUTTI Sync` workflow and Drive folder structure remain separate and are not deleted.

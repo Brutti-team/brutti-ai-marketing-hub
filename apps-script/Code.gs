@@ -2,6 +2,7 @@ const CONTENT_SHEET = 'Content Library';
 const PLANNER_SHEET = 'Daily Planner';
 const LOG_SHEET = 'Integration Log';
 const PRODUCT_SHEET = 'Product Library';
+const PRODUCT_REFERENCE_SHEET = 'Product References';
 
 const BRUTTI_RESOURCE_IDS = {
   plannerSpreadsheet: '10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ',
@@ -27,6 +28,7 @@ const PLANNER_HEADERS = [
 
 const LOG_HEADERS = ['Timestamp', 'Action', 'Record ID', 'Status', 'Message', 'Actor', 'Source'];
 const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 'Dimensions', 'Colour', 'Status', 'Source'];
+const PRODUCT_REFERENCE_HEADERS = ['ID', 'Project / Kiosk Name', 'Reference Type', 'Location / Client', 'Notes / Posting Direction', 'Drive File ID', 'Drive URL', 'Image Name', 'Updated At', 'Source'];
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.view === 'meta-insights') return json_(metaInsightsPublic_());
@@ -156,6 +158,8 @@ function doPost(e) {
       delete_plan: () => deletePlan_(payload.id),
       list_drive_assets: listDriveAssets_,
       sync_notion_products: syncNotionProducts_,
+      save_product_reference: () => saveProductReference_(payload.reference),
+      delete_product_reference: () => deleteProductReference_(payload.id),
       sync_notion_planner: syncNotionPlanner_,
       publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); }
     };
@@ -174,6 +178,7 @@ function setupBruttiWorkspace() {
   ensureSheet_(spreadsheet, PLANNER_SHEET, PLANNER_HEADERS);
   ensureSheet_(spreadsheet, LOG_SHEET, LOG_HEADERS);
   ensureSheet_(spreadsheet, PRODUCT_SHEET, PRODUCT_HEADERS);
+  ensureSheet_(spreadsheet, PRODUCT_REFERENCE_SHEET, PRODUCT_REFERENCE_HEADERS);
   const tests = testIntegrations_();
   return JSON.stringify({
     message: 'BRUTTI Google workspace setup completed.',
@@ -200,10 +205,12 @@ function loadWorkspace_() {
   const contentSheet = ensureSheet_(spreadsheet, CONTENT_SHEET, CONTENT_HEADERS);
   const plannerSheet = ensureSheet_(spreadsheet, PLANNER_SHEET, PLANNER_HEADERS);
   const productSheet = ensureSheet_(spreadsheet, PRODUCT_SHEET, PRODUCT_HEADERS);
+  const referenceSheet = ensureSheet_(spreadsheet, PRODUCT_REFERENCE_SHEET, PRODUCT_REFERENCE_HEADERS);
   return {
     content: contentRows_(contentSheet),
     plans: planRows_(plannerSheet),
-    products: productRows_(productSheet)
+    products: productRows_(productSheet),
+    references: productReferenceRows_(referenceSheet)
   };
 }
 
@@ -552,6 +559,117 @@ function productRows_(sheet) {
       colour: String(row[6] || ''), status: String(row[7] || ''), sourceStatus: String(row[8] || 'Verified source'),
       photoConfirmed: false
     }));
+}
+
+function productReferenceRows_(sheet) {
+  if (sheet.getLastRow() < 2) return [];
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, PRODUCT_REFERENCE_HEADERS.length).getValues()
+    .filter(row => row[0] && row[1])
+    .map(productReferenceFromValues_);
+}
+
+function productReferenceFromValues_(row) {
+  const fileId = String(row[5] || '');
+  return {
+    id: String(row[0] || ''),
+    name: String(row[1] || ''),
+    category: String(row[2] || 'Kiosk / Project'),
+    price: '',
+    material: String(row[4] || 'Saved kiosk or project reference'),
+    dimensions: String(row[3] || ''),
+    sourceStatus: String(row[9] || 'Saved kiosk / project reference'),
+    photoConfirmed: Boolean(fileId),
+    imageDataUrl: fileId ? driveImageUrl_(fileId) : '',
+    imageName: String(row[7] || ''),
+    driveFileId: fileId,
+    driveUrl: String(row[6] || ''),
+    isReference: true,
+    isRemoteReference: true
+  };
+}
+
+function saveProductReference_(reference) {
+  if (!reference || !clean_(reference.name)) throw new Error('Project or kiosk name is required.');
+  return withLock_(() => {
+    const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_REFERENCE_SHEET, PRODUCT_REFERENCE_HEADERS);
+    const id = String(reference.id || Utilities.getUuid());
+    const rowNumber = findRow_(sheet, 1, id);
+    const existing = rowNumber ? sheet.getRange(rowNumber, 1, 1, PRODUCT_REFERENCE_HEADERS.length).getValues()[0] : [];
+    let driveFileId = String(existing[5] || reference.driveFileId || '');
+    let driveUrl = String(existing[6] || reference.driveUrl || '');
+    let imageName = String(existing[7] || reference.imageName || '');
+    if (reference.imageDataUrl) {
+      const uploaded = uploadReferenceImage_(reference.imageDataUrl, reference.imageName || ('brutti-reference-' + id + '.jpg'));
+      if (driveFileId && driveFileId !== uploaded.id) trashDriveFile_(driveFileId);
+      driveFileId = uploaded.id;
+      driveUrl = uploaded.url;
+      imageName = uploaded.name;
+    } else if (reference.removeImage && driveFileId) {
+      trashDriveFile_(driveFileId);
+      driveFileId = '';
+      driveUrl = '';
+      imageName = '';
+    }
+    const values = [
+      id,
+      clean_(reference.name),
+      clean_(reference.category || 'Kiosk / Project'),
+      clean_(reference.location || ''),
+      clean_(reference.notes || ''),
+      driveFileId,
+      driveUrl,
+      imageName,
+      new Date(),
+      'BRUTTI shared kiosk / project reference'
+    ];
+    upsertRow_(sheet, rowNumber, values);
+    logEvent_('save_product_reference', id, 'Success', reference.name);
+    return productReferenceFromValues_(values);
+  });
+}
+
+function deleteProductReference_(id) {
+  return withLock_(() => {
+    const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_REFERENCE_SHEET, PRODUCT_REFERENCE_HEADERS);
+    const rowNumber = findRow_(sheet, 1, String(id));
+    if (!rowNumber) throw new Error('Kiosk or project reference was not found.');
+    const values = sheet.getRange(rowNumber, 1, 1, PRODUCT_REFERENCE_HEADERS.length).getValues()[0];
+    if (values[5]) trashDriveFile_(String(values[5]));
+    sheet.deleteRow(rowNumber);
+    logEvent_('delete_product_reference', String(id), 'Success', 'Kiosk / project reference deleted');
+    return { id: String(id) };
+  });
+}
+
+function uploadReferenceImage_(dataUrl, fileName) {
+  const match = String(dataUrl || '').match(/^data:(image\/(?:png|jpe?g|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!match) throw new Error('Use a PNG, JPG, WEBP or GIF image for the reference.');
+  const bytes = Utilities.base64Decode(match[2].replace(/\s/g, ''));
+  if (bytes.length > 1200000) throw new Error('Reference image must be 1.2 MB or smaller.');
+  const safeName = clean_(fileName).replace(/[^a-z0-9._ -]/gi, '_') || ('brutti-reference-' + Utilities.getUuid() + '.jpg');
+  const file = productReferenceFolder_().createFile(Utilities.newBlob(bytes, match[1].toLowerCase(), safeName));
+  return { id: file.getId(), name: file.getName(), url: file.getUrl() };
+}
+
+function productReferenceFolder_() {
+  const properties = scriptProperties_();
+  const knownId = properties.getProperty('PRODUCT_REFERENCE_FOLDER_ID');
+  if (knownId) {
+    try { return DriveApp.getFolderById(knownId); } catch (error) { properties.deleteProperty('PRODUCT_REFERENCE_FOLDER_ID'); }
+  }
+  const rootId = properties.getProperty('DRIVE_ROOT_FOLDER_ID') || properties.getProperty('DRIVE_FOLDER_ID');
+  if (!rootId) throw new Error('Google Drive folder is not configured for product references.');
+  const folder = DriveApp.getFolderById(rootId).createFolder('BRUTTI Product References');
+  properties.setProperty('PRODUCT_REFERENCE_FOLDER_ID', folder.getId());
+  return folder;
+}
+
+function trashDriveFile_(fileId) {
+  try { DriveApp.getFileById(fileId).setTrashed(true); } catch (error) { logEvent_('reference_image_delete', fileId, 'Warning', error.message); }
+}
+
+function driveImageUrl_(fileId) {
+  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w1200';
 }
 
 function syncNotionProducts_() {
