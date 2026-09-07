@@ -774,11 +774,10 @@ function performanceIdeasFromInsights(insights) {
   ]
 }
 
-function Analytics({ content, plans, productData, integrations, workspaceActive, onUseIdea, toast }) {
+function Analytics({ content, plans, productData, integrations, workspaceActive, toast }) {
   const [metaInsights, setMetaInsights] = useState(null)
   const [syncing, setSyncing] = useState(false)
   const [metaError, setMetaError] = useState('')
-  const ideas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
   const syncInsights = useCallback(async () => {
     setSyncing(true); setMetaError('')
     try {
