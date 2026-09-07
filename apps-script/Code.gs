@@ -52,9 +52,10 @@ function syncMetaInsights() {
   if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
   const unavailable = {};
   const posts = fetchAllMetaPosts_(version, pageId, token);
+  const metricMap = fetchMetaMetricsBatch_(version, posts, token, unavailable);
   const syncedAt = new Date().toISOString();
   const records = posts.map(post => {
-    const metrics = safeMetaPostMetrics_(version, post.id, token, unavailable);
+    const metrics = metricMap[String(post.id)] || { post_video_views: null, post_impressions_unique: null, post_saves: null, post_engaged_users: null };
     const attachment = post.attachments && post.attachments.data && post.attachments.data[0];
     return {
       sourceId: String(post.id || ''), platform: 'facebook', createdTime: post.created_time || '', message: post.message || '', permalink: post.permalink_url || '',
@@ -71,6 +72,38 @@ function syncMetaInsights() {
   ]));
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
+}
+
+function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
+  const result = {};
+  const metricNames = ['post_video_views', 'post_impressions_unique', 'post_saves', 'post_engaged_users'];
+  for (let start = 0; start < posts.length; start += 50) {
+    const batch = posts.slice(start, start + 50).map(post => ({
+      method: 'GET',
+      relative_url: version + '/' + encodeURIComponent(post.id) + '/insights?metric=' + encodeURIComponent(metricNames.join(','))
+    }));
+    const response = UrlFetchApp.fetch('https://graph.facebook.com', {
+      method: 'post',
+      payload: { batch: JSON.stringify(batch), access_token: token },
+      muteHttpExceptions: true
+    });
+    const body = JSON.parse(response.getContentText() || '[]');
+    batch.forEach((request, index) => {
+      const post = posts[start + index];
+      const item = body[index] || {};
+      const metrics = {};
+      try {
+        const payload = JSON.parse(item.body || '{}');
+        (payload.data || []).forEach(entry => {
+          const values = entry.values || [];
+          metrics[entry.name] = values.length ? numericOrNull_(values[values.length - 1].value) : null;
+        });
+      } catch (error) { /* Leave unavailable metrics blank. */ }
+      metricNames.forEach(name => { if (metrics[name] === undefined || metrics[name] === null) { metrics[name] = null; unavailable[name] = true; } });
+      result[String(post.id)] = metrics;
+    });
+  }
+  return result;
 }
 
 function safeMetaPostMetrics_(version, postId, token, unavailable) {
