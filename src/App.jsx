@@ -13,12 +13,14 @@ import {
   clearWorkspaceKey,
   deleteGoogleContent,
   deleteGooglePlan,
+  deleteGoogleProductReference,
   googleConfigured,
   hasWorkspaceKey,
   loadWorkspace,
   syncNotionProducts,
   saveGoogleContent,
   saveGooglePlan,
+  saveGoogleProductReference,
   setWorkspaceKey,
 } from './lib/googleWorkspace'
 import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
@@ -638,15 +640,40 @@ function BrandLibrary() {
   )
 }
 
-function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing, onAddReference }) {
+function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing, onSaveReference, onDeleteReference }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   const [showReferenceForm, setShowReferenceForm] = useState(false)
-  const [reference, setReference] = useState({ name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '' })
+  const [reference, setReference] = useState({ id: '', name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '', existingImageUrl: '', driveFileId: '', driveUrl: '' })
   const [imageError, setImageError] = useState('')
+  const [savingReference, setSavingReference] = useState(false)
   const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
   const visible = productData.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''}`.toLowerCase().includes(query.toLowerCase()))
 
+  const blankReference = () => ({ id: '', name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '', existingImageUrl: '', driveFileId: '', driveUrl: '' })
+  const closeReferenceForm = () => {
+    setReference(blankReference())
+    setImageError('')
+    setShowReferenceForm(false)
+  }
+  const editReference = (product) => {
+    setReference({
+      id: product.id || '',
+      name: product.name || '',
+      category: product.category || 'Kiosk / Project',
+      location: product.dimensions || '',
+      notes: product.material || '',
+      imageDataUrl: '',
+      imageName: product.imageName || '',
+      existingImageUrl: product.imageDataUrl || '',
+      driveFileId: product.driveFileId || '',
+      driveUrl: product.driveUrl || '',
+      isRemoteReference: Boolean(product.isRemoteReference),
+    })
+    setImageError('')
+    setShowReferenceForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const handleImage = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -662,34 +689,46 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     }
     reader.readAsDataURL(file)
   }
+  const removeImage = () => setReference((current) => ({ ...current, imageDataUrl: '', imageName: '', existingImageUrl: '' }))
 
-  const saveReference = (event) => {
+  const saveReference = async (event) => {
     event.preventDefault()
-    if (!reference.name.trim()) return
-    onAddReference({
-      name: reference.name.trim(),
-      category: reference.category,
-      location: reference.location.trim(),
-      notes: reference.notes.trim(),
-      imageDataUrl: reference.imageDataUrl,
-      imageName: reference.imageName,
-    })
-    setReference({ name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '' })
-    setImageError('')
-    setShowReferenceForm(false)
+    if (!reference.name.trim() || savingReference) return
+    setSavingReference(true)
+    try {
+      await onSaveReference({
+        id: reference.id,
+        name: reference.name.trim(),
+        category: reference.category,
+        location: reference.location.trim(),
+        notes: reference.notes.trim(),
+        imageDataUrl: reference.imageDataUrl,
+        imageName: reference.imageName,
+        driveFileId: reference.driveFileId,
+        driveUrl: reference.driveUrl,
+        removeImage: Boolean(reference.driveFileId && !reference.imageDataUrl && !reference.existingImageUrl),
+        isRemoteReference: reference.isRemoteReference,
+      })
+      closeReferenceForm()
+    } finally {
+      setSavingReference(false)
+    }
+  }
+  const removeReference = async (product) => {
+    if (!window.confirm(`Delete “${product.name}” and its saved reference image?`)) return
+    await onDeleteReference(product)
   }
 
   return (
     <div className="page">
-      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => setShowReferenceForm((open) => !open)}><Icon name="plus"/>Add kiosk / project</button></div>} />
-      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>Save a past kiosk or project</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/*" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName}</small></div> : null}<div className="modal-actions"><span className="settings-copy">Saved safely in this browser as a future reference.</span><div><button className="button secondary" type="button" onClick={() => setShowReferenceForm(false)}>Cancel</button><button className="button primary" type="submit">Save reference</button></div></div></form></section> : null}
+      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add kiosk / project</button></div>} />
+      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions"><span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : 'Connect Google Workspace to save a shared team reference.'}</span><div><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : reference.id ? 'Save changes' : 'Save reference'}</button></div></div></form></section> : null}
       <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
-      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}>{product.imageDataUrl ? <img src={product.imageDataUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div className="furniture-shape"><span/><span/><span/></div>}<span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button></div></article>)}</div>
+      <div className="product-grid">{visible.map((product,index) => <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}>{product.imageDataUrl ? <img src={product.imageDataUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div className="furniture-shape"><span/><span/><span/></div>}<span className="photo-status">{product.photoConfirmed ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article>)}</div>
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
     </div>
   )
 }
-
 function AssetLibrary({ toast, workspaceActive, driveActive, onUseAsset }) {
   const fallbackAssets = ['KAANAGAN front view','KAANAGAN side view','AHTAM XL front view','AHTAM M front view','GANTUNG product view','PUSMA display view','POPO console view','SULOB shoe rack view','TOMODON organizer view','BRUTTI workshop reference'].map((name,index) => ({id:`fallback-${index}`,name,url:'',mimeType:'reference'}))
   const [driveAssets, setDriveAssets] = useState([])
@@ -823,6 +862,7 @@ function App() {
   const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
   const [productData, setProductData] = useState(products)
   const [customProducts, setCustomProducts] = useStoredState('brutti-product-references-v1', [])
+  const [sharedProductReferences, setSharedProductReferences] = useState([])
   const [syncingProducts, setSyncingProducts] = useState(false)
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
@@ -858,6 +898,7 @@ function App() {
         setContent(workspace.content || [])
         setPlans(workspace.plans || [])
         setProductData(workspace.products?.length ? workspace.products : products)
+        setSharedProductReferences(workspace.references || [])
         setWorkspaceActive(true)
       })
       .catch((error) => { clearWorkspaceKey(); toast(error.message) })
@@ -872,6 +913,7 @@ function App() {
       setContent(workspace.content || [])
       setPlans(workspace.plans || [])
       setProductData(workspace.products?.length ? workspace.products : products)
+      setSharedProductReferences(workspace.references || [])
       setWorkspaceActive(true)
       toast('BRUTTI Google workspace connected.')
     } catch (error) {
@@ -887,6 +929,7 @@ function App() {
     setContent(initialContent)
     setPlans(initialPlans)
     setProductData(products)
+    setSharedProductReferences([])
     toast('Google workspace disconnected. Local preview mode restored.')
   }
 
@@ -911,22 +954,53 @@ function App() {
     }
   }
 
-  const allProductData = useMemo(() => [...customProducts, ...productData], [customProducts, productData])
-  const addProductReference = (reference) => {
-    const item = {
-      id: `reference-${Date.now()}`,
+  const allProductData = useMemo(() => [...sharedProductReferences, ...customProducts, ...productData], [sharedProductReferences, customProducts, productData])
+  const saveProductReference = async (reference) => {
+    const localItem = {
+      id: reference.id || `reference-${Date.now()}`,
       name: reference.name,
       category: reference.category,
       price: '',
       material: reference.notes || 'Saved kiosk or project reference',
       dimensions: reference.location || '',
       sourceStatus: 'Saved reference',
-      photoConfirmed: false,
-      imageDataUrl: reference.imageDataUrl || '',
+      photoConfirmed: Boolean(reference.imageDataUrl || reference.existingImageUrl),
+      imageDataUrl: reference.imageDataUrl || reference.existingImageUrl || '',
       imageName: reference.imageName || '',
+      driveFileId: reference.driveFileId || '',
+      driveUrl: reference.driveUrl || '',
+      isReference: true,
+      isRemoteReference: false,
     }
-    setCustomProducts((items) => [item, ...items])
-    toast('Kiosk / project reference saved for future content.')
+    try {
+      if (workspaceActive) {
+        const saved = await saveGoogleProductReference(reference)
+        setSharedProductReferences((items) => reference.id ? items.map((item) => item.id === saved.id ? saved : item) : [saved, ...items])
+        toast(reference.id ? 'Shared kiosk / project reference updated.' : 'Kiosk / project reference saved to Google Sheet and Drive.')
+        return saved
+      }
+      setCustomProducts((items) => reference.id ? items.map((item) => item.id === reference.id ? localItem : item) : [localItem, ...items])
+      toast('Reference saved in this browser. Connect Google Workspace to share it with the team.')
+      return localItem
+    } catch (error) {
+      toast(error.message)
+      throw error
+    }
+  }
+  const deleteProductReference = async (reference) => {
+    try {
+      if (workspaceActive && reference.isRemoteReference) {
+        await deleteGoogleProductReference(reference.id)
+        setSharedProductReferences((items) => items.filter((item) => item.id !== reference.id))
+        toast('Shared kiosk / project reference deleted.')
+        return
+      }
+      setCustomProducts((items) => items.filter((item) => item.id !== reference.id))
+      toast('Local kiosk / project reference deleted.')
+    } catch (error) {
+      toast(error.message)
+      throw error
+    }
   }
   const newContent = () => { setPage('studio'); setOutput(''); window.scrollTo({top:0,behavior:'smooth'}) }
   const openNewPlan = (date = localDateKey(), idea) => setActivePlan({ id:null, title:idea?.title || '', date:date || localDateKey(), channel:'Facebook', type:idea?.pillar?.includes('Educational') ? 'Educational' : 'Brand Awareness', status:'Idea', product:'General / No Product' })
@@ -972,7 +1046,7 @@ function App() {
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
-    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onAddReference={addProductReference} />,
+    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
     analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} />,
