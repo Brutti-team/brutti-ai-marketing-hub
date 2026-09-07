@@ -70,7 +70,7 @@ export default function Core7MarketingTools() {
       if (sidebarStatus && !sidebarStatus.hidden) sidebarStatus.hidden = true
 
       if (title === 'Dashboard') {
-        root.querySelectorAll('.dashboard-page > .stats-grid, .dashboard-page .focus-panel, .dashboard-page .upcoming-panel')
+        root.querySelectorAll('.dashboard-page > .stats-grid, .dashboard-page .upcoming-panel')
           .forEach((panel) => {
             panel.hidden = true
             panel.style.setProperty('display', 'none', 'important')
