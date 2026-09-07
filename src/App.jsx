@@ -218,10 +218,10 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
         </section>
 
         <section className="panel focus-panel performance-dashboard-panel">
-          <div className="panel-heading"><div><span className="eyebrow">PERFORMANCE-BASED CONTENT IDEAS</span><h3>3 idea baharu daripada prestasi Meta</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
-          <p className="settings-copy">Idea dijana daripada post yang mempunyai prestasi tertinggi berdasarkan data Meta yang disahkan.</p>
-          <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.format} · {idea.source}</p></div><Icon name="chevron"/></button>)}</div>
-          <div className="guardrail-note"><Icon name="check"/><p><strong>{metaInsights?.sourceUpdatedAt ? 'Snapshot Meta disahkan' : 'Menunggu snapshot Meta'}</strong>Idea boleh disemak dahulu dalam Content Studio sebelum disimpan atau dijadualkan.</p></div>
+          <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3>3 content ideas for today</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
+          <p className="settings-copy">Cadangan ini menggunakan data prestasi Meta yang diselaraskan dan boleh terus disemak dalam Content Studio.</p>
+          <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.description}</p><small><b>Format:</b> {idea.format} · <b>Hook:</b> {idea.hook}</small><small><b>Arah:</b> {idea.direction}</small></div><Icon name="chevron"/></button>)}</div>
+          <div className="guardrail-note"><Icon name="check"/><p><strong>{metaInsights?.sourceUpdatedAt ? 'Data Meta disahkan' : 'Menunggu data Meta'}</strong> {metaInsights?.sourceUpdatedAt ? 'Sumber: ' + (dashboardIdeas[0]?.source || 'Meta Insights') : 'Sambungkan Meta Insights untuk cadangan berdasarkan prestasi sebenar.'}</p></div>
         </section>
       </div>
 
@@ -758,31 +758,26 @@ function AITools({ onUsePrompt }) {
 }
 
 function performanceIdeasFromInsights(insights) {
-  const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])]
-    .filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
+  const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])].filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
   const metricValue = (post) => Number(post.engagement ?? post.reactions ?? post.views ?? post.reach ?? post.comments ?? 0)
   const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
   const sourceLabel = (post) => post?.platform === 'instagram' ? 'Instagram' : 'Facebook'
-  const base = ranked[0]
-  const second = ranked[1] || base
-  const third = ranked[2] || second || base
-  const make = (post, angle, format, objective) => ({
-    title: post ? `${angle} berdasarkan post ${String(post.sourceId || '').slice(-6)}` : angle,
-    source: post ? `${sourceLabel(post)} · ${Math.round(metricValue(post)).toLocaleString()} interaksi/hasil` : 'Tiada post-level insight lagi',
-    format, objective, post,
+  const make = (post, title, format, objective, description, hook, direction, cta) => ({
+    title, format, objective, description, hook, direction, cta,
+    source: post ? `${sourceLabel(post)} · ${Math.round(metricValue(post)).toLocaleString()} prestasi` : 'Belum ada post-level insight',
+    post,
   })
   return [
-    make(base, 'Ulang semula sudut kandungan berprestasi tinggi', 'Video pendek + demonstrasi', 'Maksimumkan reach dan engagement'),
-    make(second, 'Kembangkan cerita di sebalik projek Brutti', 'Carousel before/after', 'Tukar perhatian kepada kepercayaan'),
-    make(third, 'Jawab soalan pelanggan yang paling dekat dengan produk', 'Post pendidikan + CTA lembut', 'Galakkan komen dan pertanyaan'),
+    make(ranked[0], 'Ulang semula sudut kandungan berprestasi tinggi', 'Video pendek + demonstrasi', 'Maksimumkan reach dan engagement', 'Tunjukkan satu projek atau produk Brutti dari masalah asal sampai hasil siap. Masukkan 3 shot: bahan, proses tangan dan hasil akhir dalam ruang sebenar.', 'Hook: “Nampak simple, tapi proses di belakang dia bukan biasa-biasa.”', 'Ceritakan apa yang dibuat, kenapa bahan itu dipilih dan satu detail yang pelanggan selalu tidak nampak.', 'Tanya: “Bahagian mana kamu mau tengok lebih dekat?”'),
+    make(ranked[1], 'Kembangkan cerita di sebalik projek Brutti', 'Carousel before / after', 'Tukar perhatian kepada kepercayaan', 'Buat 5 slaid: keadaan awal, cabaran ruang, lakaran atau bahan, proses pemasangan dan hasil akhir. Gunakan satu ayat pendek pada setiap slaid.', 'Hook: “Ini bukan sekadar tukar rupa ruang.”', 'Tekankan keputusan reka bentuk yang menyelesaikan keperluan sebenar, tanpa tambah dakwaan harga atau prestasi yang tiada sumber.', 'Tanya: “Kamu lebih suka before atau after?”'),
+    make(ranked[2], 'Jawab soalan pelanggan yang paling dekat dengan produk', 'Post pendidikan + CTA lembut', 'Galakkan komen dan pertanyaan', 'Pilih satu soalan lazim tentang saiz, penjagaan, bahan atau kegunaan. Jawab dalam 3 poin mudah dan sertakan visual close-up produk atau projek yang berkaitan.', 'Hook: “Sebelum pilih furniture, cuba semak 3 benda ini dulu.”', 'Akhiri dengan arahan untuk komen soalan mereka; jangan masukkan spesifikasi yang belum disahkan.', 'CTA: “Tulis soalan kamu di komen — kami jawab ikut maklumat yang disahkan.”'),
   ]
 }
 
-function Analytics({ content, plans, productData, integrations, workspaceActive, onUseIdea, toast }) {
+function Analytics({ content, plans, productData, integrations, workspaceActive, toast }) {
   const [metaInsights, setMetaInsights] = useState(null)
   const [syncing, setSyncing] = useState(false)
   const [metaError, setMetaError] = useState('')
-  const ideas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
   const syncInsights = useCallback(async () => {
     setSyncing(true); setMetaError('')
     try {
@@ -806,7 +801,7 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
       <PageHeader eyebrow="VERIFIED ACTIVITY DATA" title="Analytics" description="Analitik operasi berdasarkan data workspace yang disahkan. Insight Meta digunakan untuk mencadangkan idea baharu." actions={<><button className="button secondary small" onClick={syncInsights} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula Insight Meta'}</button><span className={`status-chip ${integrations.meta && metaInsights?.sourceUpdatedAt ? 'connected' : 'pending'}`}><span/>{integrations.meta && metaInsights?.sourceUpdatedAt ? 'Meta Insights connected' : 'Meta Insights pending'}</span></>} />
       {metaError ? <div className="analytics-notice"><Icon name="alert"/><div><strong>Insight Meta belum dapat diselaraskan</strong><p>{metaError}</p></div></div> : null}
       <div className="stats-grid analytics-stats"><article className="stat-card"><div className="stat-icon file"><Icon name="file"/></div><div><span>Content records</span><strong>{content.length}</strong><small>{content.filter((item)=>item.stage==='Review').length} awaiting review</small></div></article><article className="stat-card"><div className="stat-icon calendar"><Icon name="calendar"/></div><div><span>Scheduled plans</span><strong>{scheduledPlans}</strong><small>{plans.length} total planner items</small></div></article><article className="stat-card"><div className="stat-icon image"><Icon name="image"/></div><div><span>Drafts with visual</span><strong>{withAssets}</strong><small>Drive assets attached to content</small></div></article><article className="stat-card"><div className="stat-icon check"><Icon name="check"/></div><div><span>Published records</span><strong>{published}</strong><small>Workspace publishing history</small></div></article></div>
-      <section className="panel performance-ideas-panel"><div className="panel-heading"><div><span className="eyebrow">PERFORMANCE-BASED CONTENT IDEAS</span><h3>3 idea baharu daripada prestasi Meta</h3></div><span className="verified-label"><Icon name="check"/>{metaInsights?.sourceUpdatedAt ? 'Berdasarkan snapshot disahkan' : 'Menunggu snapshot Meta'}</span></div><p className="settings-copy">Idea ini dijana secara automatik daripada post yang mempunyai views, reach, reaksi, komen atau engagement tertinggi. Ia bukan KPI rekaan.</p><div className="performance-ideas-grid">{ideas.map((idea, index) => <article className="performance-idea-card" key={`${idea.title}-${index}`}><span className="eyebrow">IDEA {String(index + 1).padStart(2, '0')}</span><h4>{idea.title}</h4><p>{idea.objective}</p><small>{idea.format} · {idea.source}</small><button className="button secondary small" onClick={() => onUseIdea(idea)}>Guna idea ini</button></article>)}</div></section>
+
       <div className="analytics-grid"><section className="panel activity-chart"><div className="panel-heading"><div><span className="eyebrow">CONTENT ACTIVITY</span><h3>Live workflow distribution</h3></div><span className="verified-label"><Icon name="check"/>Workspace records</span></div><div className="bar-chart">{stages.map((stage) => { const count = content.filter((item) => item.stage === stage).length; return <div key={stage}><span>{stage}</span><i><b style={{width:`${Math.round((count/maxCount)*100)}%`}}/></i><strong>{count}</strong></div> })}</div></section><section className="panel insight-card"><span className="eyebrow">RULE-BASED OBSERVATION</span><h3>{content.some((item)=>item.stage==='Review') ? 'Clear the review queue before adding too many new drafts.' : 'The review queue is clear.'}</h3><p>{integrations.notion ? 'Notion planner sync is configured for shared planning records.' : 'Notion backend sync is not configured yet; Google remains the current operational source.'}</p><div className="insight-source"><Icon name="file"/><span><strong>Next data upgrade</strong><small>Verified post URL + reach + views + engagements</small></span></div></section></div>
       <section className="panel source-table-panel"><div className="panel-heading"><div><span className="eyebrow">DATA SOURCES</span><h3>Available source snapshot</h3></div></div><div className="source-table"><div className="source-row header"><span>Source</span><span>Platform</span><span>Volume</span><span>Status</span></div>{sources.map((row) => <div className="source-row" key={row[0]}>{row.map((cell,index) => <span key={`${row[0]}-${index}`}>{index===3 ? <StatusPill>{cell}</StatusPill> : cell}</span>)}</div>)}</div></section>
     </div>
