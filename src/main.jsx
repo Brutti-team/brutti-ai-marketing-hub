@@ -31,7 +31,6 @@ const loadProductCatalogQuality = () => import('./ProductCatalogQualityEnhancer.
 const loadLightModeAnalyticsContrast = () => import('./LightModeAnalyticsContrastEnhancer.jsx')
 const loadBrandCasing = () => import('./BrandCasingEnhancer.jsx')
 const loadAssetLibrary = () => import('./AssetLibraryEnhancer.jsx')
-const loadDailyRecommendation = () => import('./DailyContentRecommendationEnhancer.jsx')
 const loadHistoricalTiming = () => import('./HistoricalPostingTimeEnhancer.jsx')
 const loadContentStudioUi = () => import('./ContentStudioUiSimplifier.jsx')
 const loadSoulCaption = () => import('./SoulCaptionStabilizer.jsx')
@@ -46,7 +45,6 @@ const ProductCatalogQualityEnhancer = lazy(loadProductCatalogQuality)
 const LightModeAnalyticsContrastEnhancer = lazy(loadLightModeAnalyticsContrast)
 const BrandCasingEnhancer = lazy(loadBrandCasing)
 const AssetLibraryEnhancer = lazy(loadAssetLibrary)
-const DailyContentRecommendationEnhancer = lazy(loadDailyRecommendation)
 const HistoricalPostingTimeEnhancer = lazy(loadHistoricalTiming)
 const ContentStudioUiSimplifier = lazy(loadContentStudioUi)
 const SoulCaptionStabilizer = lazy(loadSoulCaption)
@@ -61,7 +59,6 @@ function activePageLabel() {
 
 function preloadForPage(label) {
   if (label === 'Dashboard') {
-    loadDailyRecommendation()
     loadHistoricalTiming()
     loadIdeaVault()
   }
@@ -138,7 +135,6 @@ export function DeferredEnhancers() {
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
-      {page === 'Dashboard' ? <DailyContentRecommendationEnhancer /> : null}
       {page === 'Dashboard' || page === 'Campaign Planner' ? <IdeaVaultEnhancer page={page} /> : null}
       {page === 'Dashboard' || page === 'Campaign Planner' ? <HistoricalPostingTimeEnhancer /> : null}
       {page === 'Content Studio' ? <ContentStudioUiSimplifier /> : null}

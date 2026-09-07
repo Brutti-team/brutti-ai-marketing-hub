@@ -61,8 +61,8 @@ The backend source is in `apps-script/Code.gs` and `apps-script/appsscript.json`
    - `NOTION_TOKEN` — optional; secret integration token for direct Product/Planner sync
    - `NOTION_PRODUCT_PAGE_ID` — optional; Notion page containing the 2.1 Product Database table
    - `NOTION_DAILY_PLANNER_DATABASE_ID` — optional; BRUTTI DAILY CONTENT PLANNER database ID
-   - `META_PAGE_ID` — optional until Meta publishing is activated
-   - `META_PAGE_ACCESS_TOKEN` — optional until Meta publishing is activated
+   - `META_PAGE_ID` — Page ID permitted to read post insights
+   - `META_PAGE_ACCESS_TOKEN` — stored only in Script Properties; never in GitHub or the website
    - `META_GRAPH_VERSION` — required with the Meta connection
 
 5. Run `setupBruttiWorkspace()` once and approve the requested Google permissions.
@@ -73,6 +73,7 @@ The backend source is in `apps-script/Code.gs` and `apps-script/appsscript.json`
 
 7. Copy the final `/exec` URL. Add it to GitHub repository variables as `VITE_APPS_SCRIPT_URL`.
 8. Redeploy the website, open Settings, and enter `WORKSPACE_KEY` for the current browser session.
+9. Run `syncMetaInsights()` once to verify the Page connection and create `META_POST_INSIGHTS`. Then run `installDailyMetaInsightsSync()` once to schedule the secure daily sync at 7am in the Apps Script timezone.
 
 The web app URL is public because GitHub Pages must reach it, but every operational POST request requires the separate workspace key. Never place that key or another private credential in GitHub variables, Vite environment files, screenshots or chat messages.
 
@@ -91,7 +92,7 @@ The existing `BRUTTI AI MARKETING MASTER DATA`, `BRUTTI Website & Make Sync Mapp
 - Template drafts and Smart Rewrite receive only the verified facts entered in the website.
 - Content stays review-first; Meta publishing requires the `Approved` stage.
 - The system does not fabricate prices, promotions, availability, delivery dates, specifications or social-performance KPI.
-- Live Meta analytics remain blank until real Meta data is connected.
+- Live Meta analytics remain blank until real post-level Meta data is connected. Missing metrics appear as unavailable; the app never substitutes a zero or a template recommendation.
 
 ## Local development and validation
 

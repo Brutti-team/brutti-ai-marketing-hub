@@ -3,6 +3,8 @@ const PLANNER_SHEET = 'Daily Planner';
 const LOG_SHEET = 'Integration Log';
 const PRODUCT_SHEET = 'Product Library';
 const PRODUCT_REFERENCE_SHEET = 'Product References';
+const META_POST_INSIGHTS_SHEET = 'META_POST_INSIGHTS';
+const META_POST_INSIGHTS_HEADERS = ['Post ID', 'Platform', 'Created Time', 'Message', 'Permalink', 'Format', 'Views', 'Reach', 'Reactions', 'Comments', 'Shares', 'Saves', 'Engagement', 'Synced At'];
 
 const BRUTTI_RESOURCE_IDS = {
   plannerSpreadsheet: '10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ',
@@ -31,7 +33,7 @@ const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 
 const PRODUCT_REFERENCE_HEADERS = ['ID', 'Project / Kiosk Name', 'Reference Type', 'Location / Client', 'Notes / Posting Direction', 'Drive File ID', 'Drive URL', 'Image Name', 'Updated At', 'Source'];
 
 function doGet(e) {
-  if (e && e.parameter && e.parameter.view === 'meta-insights') return json_(metaInsightsPublic_());
+  if (e && e.parameter && e.parameter.view === 'meta-insights') return json_({ ok: true, data: metaInsightsPublic_() });
   return json_({
     ok: true,
     data: {
@@ -48,53 +50,67 @@ function syncMetaInsights() {
   const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
   const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
   if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
-  const sheet = ensureMetaInsightsSheet_();
-  const rows = [];
-  const page = metaGraphRequest_(version + '/' + encodeURIComponent(pageId), token, { fields: 'instagram_business_account' });
-  const pageInsights = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/insights', token, { metric: 'page_impressions,page_post_engagements,page_fan_adds', period: 'day' });
-  (pageInsights.data || []).forEach(metric => (metric.values || []).forEach(value => {
-    const date = value.end_time || value.endTime;
-    const number = Number(value.value);
-    if (isFinite(number)) rows.push([new Date(date), 'facebook', 'page', String(metric.name || ''), number, 'Meta Graph API', pageId]);
-  }));
-  const posts = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/posts', token, { fields: 'id,created_time,insights.metric(post_impressions,post_engaged_users)', limit: '50' });
-  (posts.data || []).forEach(post => {
-    const insights = {};
-    ((post.insights && post.insights.data) || []).forEach(metric => {
-      const latest = (metric.values || [])[0];
-      if (latest && isFinite(Number(latest.value))) insights[String(metric.name)] = Number(latest.value);
-    });
-    Object.keys(insights).forEach(metric => rows.push([new Date(post.created_time || new Date()), 'facebook', 'post', metric, insights[metric], 'Meta Graph API', String(post.id || '')]));
-  });
-  const instagramId = properties.getProperty('META_INSTAGRAM_USER_ID') || (page.instagram_business_account && page.instagram_business_account.id);
-  if (instagramId) {
-    const media = metaGraphRequest_(version + '/' + encodeURIComponent(instagramId) + '/media', token, { fields: 'id,timestamp,insights.metric(reach,likes,comments,shares,saved)', limit: '50' });
-    (media.data || []).forEach(post => {
-      const insights = {};
-      ((post.insights && post.insights.data) || []).forEach(metric => {
-        const latest = (metric.values || [])[0];
-        if (latest && isFinite(Number(latest.value))) insights[String(metric.name)] = Number(latest.value);
-      });
-      Object.keys(insights).forEach(metric => rows.push([new Date(post.timestamp || new Date()), 'instagram', 'post', metric, insights[metric], 'Meta Graph API', String(post.id || '')]));
-    });
-  }
-  if (!rows.length) throw new Error('Meta returned no usable insight rows.');
-  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).clearContent();
-  sheet.getRange(2, 1, rows.length, 7).setValues(rows);
-  logEvent_('sync_meta_insights', '', 'Success', rows.length + ' read-only Meta insight rows synced.');
-  return { rows: rows.length, instagramConnected: Boolean(instagramId), syncedAt: new Date().toISOString() };
+  const unavailable = {};
+  const posts = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/published_posts', token, {
+    fields: 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares',
+    limit: '25'
+  }).data || [];
+  const syncedAt = new Date().toISOString();
+  const records = posts.map(post => {
+    const metric = name => safeMetaPostMetric_(version, post.id, token, name, unavailable);
+    const attachment = post.attachments && post.attachments.data && post.attachments.data[0];
+    return {
+      sourceId: String(post.id || ''), platform: 'facebook', createdTime: post.created_time || '', message: post.message || '', permalink: post.permalink_url || '',
+      format: attachment ? (attachment.media_type || attachment.type || 'post') : 'post',
+      views: metric('post_video_views'), reach: metric('post_impressions_unique'),
+      reactions: metaCount_(post.reactions), comments: metaCount_(post.comments), shares: post.shares ? numericOrNull_(post.shares.count) : null,
+      saves: metric('post_saves'), engagement: metric('post_engaged_users'), syncedAt: syncedAt
+    };
+  }).filter(post => post.sourceId && hasMetaPostMetric_(post));
+  const sheet = ensureMetaPostInsightsSheet_();
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).clearContent();
+  if (records.length) sheet.getRange(2, 1, records.length, META_POST_INSIGHTS_HEADERS.length).setValues(records.map(post => [
+    post.sourceId, post.platform, post.createdTime, post.message, post.permalink, post.format, post.views, post.reach, post.reactions, post.comments, post.shares, post.saves, post.engagement, post.syncedAt
+  ]));
+  logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
+  return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
 }
 
-function ensureMetaInsightsSheet_() {
+// Run once from Apps Script after Script Properties are set. The trigger uses
+// the project's configured timezone and keeps Meta requests off GitHub Pages.
+function installDailyMetaInsightsSync() {
+  ScriptApp.getProjectTriggers().forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'syncMetaInsights') ScriptApp.deleteTrigger(trigger);
+  });
+  ScriptApp.newTrigger('syncMetaInsights').timeBased().everyDays(1).atHour(7).create();
+}
+
+function ensureMetaPostInsightsSheet_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
-  const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS') || spreadsheet.insertSheet('META_DAILY_INSIGHTS');
-  if (sheet.getLastRow() < 1) sheet.getRange(1, 1, 1, 7).setValues([['Date', 'Platform', 'Entity', 'Metric', 'Value', 'Source', 'Source ID']]);
+  const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET) || spreadsheet.insertSheet(META_POST_INSIGHTS_SHEET);
+  if (sheet.getLastRow() < 1) sheet.getRange(1, 1, 1, META_POST_INSIGHTS_HEADERS.length).setValues([META_POST_INSIGHTS_HEADERS]);
   return sheet;
 }
 
+function safeMetaPostMetric_(version, postId, token, metricName, unavailable) {
+  try {
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: metricName }).data || [];
+    const values = data[0] && data[0].values ? data[0].values : [];
+    const latest = values.length ? values[values.length - 1] : null;
+    const value = latest ? numericOrNull_(latest.value) : null;
+    if (value === null) unavailable[metricName] = true;
+    return value;
+  } catch (error) { unavailable[metricName] = true; return null; }
+}
+
+function metaCount_(field) { return field && field.summary ? numericOrNull_(field.summary.total_count) : null; }
+function numericOrNull_(value) { return typeof value === 'number' && isFinite(value) ? value : null; }
+function hasMetaPostMetric_(post) { return ['views', 'reach', 'reactions', 'comments', 'shares', 'saves', 'engagement'].some(key => post[key] !== null); }
+
 function metaGraphRequest_(path, token, params) {
-  const query = Object.keys(params || {}).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
-  const response = UrlFetchApp.fetch('https://graph.facebook.com/' + path + (query ? '?' + query : '') + '&access_token=' + encodeURIComponent(token), { muteHttpExceptions: true });
+  const query = Object.keys(params || {}).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+  query.push('access_token=' + encodeURIComponent(token));
+  const response = UrlFetchApp.fetch('https://graph.facebook.com/' + path + '?' + query.join('&'), { muteHttpExceptions: true });
   const body = JSON.parse(response.getContentText() || '{}');
   if (response.getResponseCode() < 200 || response.getResponseCode() >= 300 || body.error) throw new Error('Meta Graph API request failed: ' + (body.error && body.error.message ? body.error.message : response.getResponseCode()));
   return body;
@@ -102,41 +118,21 @@ function metaGraphRequest_(path, token, params) {
 
 function metaInsightsPublic_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
-  const sheet = spreadsheet.getSheetByName('META_DAILY_INSIGHTS');
-  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).getValues();
-  const reachByDay = {};
-  const posts = {};
-  rows.forEach(row => {
-    const platform = String(row[1] || '').toLowerCase();
-    const metric = String(row[3] || '').toLowerCase();
-    const value = Number(row[4]);
-    const date = formatDate_(row[0]);
-    const id = String(row[6] || '');
-    if (platform === 'instagram' && metric === 'reach' && isFinite(value) && date) reachByDay[date] = Math.max(Number(reachByDay[date] || 0), value);
-    if (platform === 'instagram' && ['followers', 'follower_count'].indexOf(metric) >= 0 && isFinite(value)) {
-      posts._instagramFollowers = { value: value };
-    }
-    if (id && isFinite(value) && ['post_media_view', 'views', 'post_impressions', 'reach', 'reactions', 'likes', 'comments', 'shares', 'saves', 'saved', 'post_engaged_users', 'engagement'].indexOf(metric) >= 0) {
-      const post = posts[id] || { sourceId: id, platform: platform, views: null, reach: null, reactions: null, comments: null, shares: null, saves: null, engagement: null, measuredAt: formatIso_(row[0]) };
-      post.platform = platform || post.platform;
-      if (metric === 'post_media_view' || metric === 'views' || metric === 'post_impressions') post.views = value;
-      if (metric === 'reach') post.reach = value;
-      if (metric === 'reactions' || metric === 'likes') post.reactions = value;
-      if (metric === 'comments') post.comments = value;
-      if (metric === 'shares') post.shares = value;
-      if (metric === 'saves' || metric === 'saved') post.saves = value;
-      if (metric === 'post_engaged_users' || metric === 'engagement') post.engagement = value;
-      posts[id] = post;
-    }
-  });
-  const postList = Object.keys(posts).filter(id => id !== '_instagramFollowers').map(id => posts[id]);
-  const rankingValue = post => post.views !== null ? post.views : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : 0;
+  const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
+  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
+  const unavailable = {};
+  const postList = rows.map(row => {
+    const post = { sourceId: String(row[0] || ''), platform: String(row[1] || 'facebook'), createdTime: formatIso_(row[2]), message: String(row[3] || ''), permalink: String(row[4] || ''), format: String(row[5] || 'post'), views: numericOrNull_(row[6]), reach: numericOrNull_(row[7]), reactions: numericOrNull_(row[8]), comments: numericOrNull_(row[9]), shares: numericOrNull_(row[10]), saves: numericOrNull_(row[11]), engagement: numericOrNull_(row[12]), syncedAt: formatIso_(row[13]) };
+    ['views', 'reach', 'reactions', 'comments', 'shares', 'saves', 'engagement'].forEach(key => { if (post[key] === null) unavailable[key] = true; });
+    return post;
+  }).filter(hasMetaPostMetric_);
+  const rankingValue = post => post.engagement !== null ? post.engagement : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : post.views !== null ? post.views : 0;
   const topPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a)).slice(0, 25);
-  const trend = Object.keys(reachByDay).sort().slice(-30).map(date => ({ date: date, value: reachByDay[date] }));
+  const sourceUpdatedAt = topPosts.reduce((latest, post) => post.syncedAt && post.syncedAt > latest ? post.syncedAt : latest, '');
   return {
-    sourceUpdatedAt: new Date().toISOString(),
-    instagram: { latestReach: trend.length ? trend[trend.length - 1].value : null, followers: posts._instagramFollowers ? posts._instagramFollowers.value : null, trend: trend, topPosts: [] },
+    sourceUpdatedAt: sourceUpdatedAt || null, unavailableMetrics: Object.keys(unavailable),
+    instagram: { latestReach: null, followers: null, trend: [], topPosts: [] },
     facebook: { followers: null, topPosts: topPosts }
   };
 }

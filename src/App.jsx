@@ -219,9 +219,9 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
 
         <section className="panel focus-panel performance-dashboard-panel">
           <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3>3 content ideas for today</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
-          <p className="settings-copy">Cadangan ini menggunakan data prestasi Meta yang diselaraskan dan boleh terus disemak dalam Content Studio.</p>
+          <p className="settings-copy">Cadangan ini hanya menggunakan data prestasi Meta yang diselaraskan dan boleh terus dibuka dalam Content Studio.</p>
           <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.description}</p><small><b>Format:</b> {idea.format} · <b>Hook:</b> {idea.hook}</small><small><b>Arah:</b> {idea.direction}</small></div><Icon name="chevron"/></button>)}</div>
-          <div className="guardrail-note"><Icon name="check"/><p><strong>{metaInsights?.sourceUpdatedAt ? 'Data Meta disahkan' : 'Menunggu data Meta'}</strong> {metaInsights?.sourceUpdatedAt ? 'Sumber: ' + (dashboardIdeas[0]?.source || 'Meta Insights') : 'Sambungkan Meta Insights untuk cadangan berdasarkan prestasi sebenar.'}</p></div>
+          <div className="guardrail-note"><Icon name="check"/><p><strong>{dashboardIdeas.length === 3 ? 'Data Meta disahkan' : 'Cadangan menunggu data Meta'}</strong> {dashboardIdeas.length === 3 ? 'Sumber: ' + dashboardIdeas[0].source : 'Sekurang-kurangnya tiga post-level insight yang disahkan diperlukan. Sistem tidak menggunakan fallback template.'}</p></div>
         </section>
       </div>
 
@@ -761,17 +761,13 @@ function performanceIdeasFromInsights(insights) {
   const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])].filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
   const metricValue = (post) => Number(post.engagement ?? post.reactions ?? post.views ?? post.reach ?? post.comments ?? 0)
   const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
-  const sourceLabel = (post) => post?.platform === 'instagram' ? 'Instagram' : 'Facebook'
-  const make = (post, title, format, objective, description, hook, direction, cta) => ({
-    title, format, objective, description, hook, direction, cta,
-    source: post ? `${sourceLabel(post)} · ${Math.round(metricValue(post)).toLocaleString()} prestasi` : 'Belum ada post-level insight',
-    post,
+  if (ranked.length < 3) return []
+  return ranked.slice(0, 3).map((post, index) => {
+    const topic = String(post.message || '').replace(/#[^\s]+/g, '').replace(/\s+/g, ' ').trim().split(' ').slice(0, 9).join(' ') || 'post BRUTTI berprestasi tinggi'
+    const value = Math.round(metricValue(post)).toLocaleString()
+    const metric = post.engagement !== null ? 'engagement' : post.reach !== null ? 'reach' : post.reactions !== null ? 'reactions' : 'views'
+    return { title: `Follow up: ${topic}`, format: post.format === 'video' ? 'Video pendek' : 'Facebook post', objective: 'Engagement', description: `Kembangkan topik dan format daripada post ranking #${index + 1}; bina sudut baharu tanpa menyalin caption asal.`, hook: `Berpandukan post #${index + 1}`, direction: `Gunakan topik sebenar: ${topic}.`, cta: 'Semak dan lengkapkan fakta sebelum siar.', source: `Facebook · ${value} ${metric}`, post }
   })
-  return [
-    make(ranked[0], 'Ulang semula sudut kandungan berprestasi tinggi', 'Video pendek + demonstrasi', 'Maksimumkan reach dan engagement', 'Tunjukkan satu projek atau produk Brutti dari masalah asal sampai hasil siap. Masukkan 3 shot: bahan, proses tangan dan hasil akhir dalam ruang sebenar.', 'Hook: “Nampak simple, tapi proses di belakang dia bukan biasa-biasa.”', 'Ceritakan apa yang dibuat, kenapa bahan itu dipilih dan satu detail yang pelanggan selalu tidak nampak.', 'Tanya: “Bahagian mana kamu mau tengok lebih dekat?”'),
-    make(ranked[1], 'Kembangkan cerita di sebalik projek Brutti', 'Carousel before / after', 'Tukar perhatian kepada kepercayaan', 'Buat 5 slaid: keadaan awal, cabaran ruang, lakaran atau bahan, proses pemasangan dan hasil akhir. Gunakan satu ayat pendek pada setiap slaid.', 'Hook: “Ini bukan sekadar tukar rupa ruang.”', 'Tekankan keputusan reka bentuk yang menyelesaikan keperluan sebenar, tanpa tambah dakwaan harga atau prestasi yang tiada sumber.', 'Tanya: “Kamu lebih suka before atau after?”'),
-    make(ranked[2], 'Jawab soalan pelanggan yang paling dekat dengan produk', 'Post pendidikan + CTA lembut', 'Galakkan komen dan pertanyaan', 'Pilih satu soalan lazim tentang saiz, penjagaan, bahan atau kegunaan. Jawab dalam 3 poin mudah dan sertakan visual close-up produk atau projek yang berkaitan.', 'Hook: “Sebelum pilih furniture, cuba semak 3 benda ini dulu.”', 'Akhiri dengan arahan untuk komen soalan mereka; jangan masukkan spesifikasi yang belum disahkan.', 'CTA: “Tulis soalan kamu di komen — kami jawab ikut maklumat yang disahkan.”'),
-  ]
 }
 
 function Analytics({ content, plans, productData, integrations, workspaceActive, toast }) {
