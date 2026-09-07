@@ -162,3 +162,11 @@ export async function deleteGooglePlan(id) {
 export async function syncNotionProducts() {
   return callMarketingApi('sync_notion_products')
 }
+
+export async function saveGoogleProductReference(reference) {
+  return callMarketingApi('save_product_reference', { reference })
+}
+
+export async function deleteGoogleProductReference(id) {
+  return callMarketingApi('delete_product_reference', { id: String(id) })
+}
