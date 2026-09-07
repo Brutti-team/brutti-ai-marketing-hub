@@ -10,6 +10,7 @@ import {
 } from './data'
 import {
   callMarketingApi,
+  loadPublicMetaInsights,
   clearWorkspaceKey,
   deleteGoogleContent,
   deleteGooglePlan,
@@ -755,8 +756,45 @@ function AITools({ onUsePrompt }) {
   )
 }
 
-function Analytics({ content, plans, productData, integrations }) {
-  const sources = [['Follower export','Facebook','12,001 records','Imported snapshot'],['Reaction export','Facebook','728 records','Imported snapshot'],['Media archive','Facebook','7,062 files','Reference count'],['Product source','Notion / Google',`${productData.length} loaded`,productData.length >= 88 ? 'Full product set' : 'Partial sync']]
+function performanceIdeasFromInsights(insights) {
+  const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])]
+    .filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
+  const metricValue = (post) => Number(post.engagement ?? post.reactions ?? post.views ?? post.reach ?? post.comments ?? 0)
+  const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
+  const sourceLabel = (post) => post?.platform === 'instagram' ? 'Instagram' : 'Facebook'
+  const base = ranked[0]
+  const second = ranked[1] || base
+  const third = ranked[2] || second || base
+  const make = (post, angle, format, objective) => ({
+    title: post ? `${angle} berdasarkan post ${String(post.sourceId || '').slice(-6)}` : angle,
+    source: post ? `${sourceLabel(post)} · ${Math.round(metricValue(post)).toLocaleString()} interaksi/hasil` : 'Tiada post-level insight lagi',
+    format, objective, post,
+  })
+  return [
+    make(base, 'Ulang semula sudut kandungan berprestasi tinggi', 'Video pendek + demonstrasi', 'Maksimumkan reach dan engagement'),
+    make(second, 'Kembangkan cerita di sebalik projek Brutti', 'Carousel before/after', 'Tukar perhatian kepada kepercayaan'),
+    make(third, 'Jawab soalan pelanggan yang paling dekat dengan produk', 'Post pendidikan + CTA lembut', 'Galakkan komen dan pertanyaan'),
+  ]
+}
+
+function Analytics({ content, plans, productData, integrations, workspaceActive, onUseIdea, toast }) {
+  const [metaInsights, setMetaInsights] = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [metaError, setMetaError] = useState('')
+  const ideas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
+  const syncInsights = useCallback(async () => {
+    setSyncing(true); setMetaError('')
+    try {
+      if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights')
+      const snapshot = await loadPublicMetaInsights()
+      setMetaInsights(snapshot)
+      toast('Insight Meta dikemas kini dan 3 idea baharu dijana.')
+    } catch (error) {
+      setMetaError(error.message)
+    } finally { setSyncing(false) }
+  }, [workspaceActive, integrations.meta, toast])
+  useEffect(() => { syncInsights() }, [syncInsights])
+  const sources = [['Follower export','Facebook','12,001 records','Imported snapshot'],['Reaction export','Facebook','728 records','Imported snapshot'],['Media archive','Facebook','7,062 files','Reference count'],['Product source','Notion / Google',`${productData.length} loaded`,productData.length >= 88 ? 'Full product set' : 'Partial sync'],['Meta Insights','Facebook / Instagram',metaInsights?.sourceUpdatedAt ? 'Synced snapshot' : 'Awaiting sync',metaInsights?.sourceUpdatedAt ? 'Verified source' : 'Sync required']]
   const stages = ['Draft','AI Generated','Review','Approved','Scheduled','Published']
   const maxCount = Math.max(1, ...stages.map((stage) => content.filter((item) => item.stage === stage).length))
   const scheduledPlans = plans.filter((plan) => plan.status === 'Scheduled').length
@@ -764,9 +802,10 @@ function Analytics({ content, plans, productData, integrations }) {
   const withAssets = content.filter((item) => item.driveFileId).length
   return (
     <div className="page">
-      <PageHeader eyebrow="VERIFIED ACTIVITY DATA" title="Analytics" description="Operational marketing analytics update from the workspace. Meta performance KPI stay excluded until a verified Insights source exists." actions={<span className={`status-chip ${integrations.meta ? 'connected' : 'pending'}`}><span/>{integrations.meta ? 'Meta publishing connected' : 'Meta KPI excluded'}</span>} />
-      <div className="analytics-notice"><Icon name="alert"/><div><strong>No fabricated performance KPI</strong><p>Reach, views, engagement rate, followers gained, enquiries and sales attribution stay blank until verified monthly or post-level exports are mapped.</p></div></div>
+      <PageHeader eyebrow="VERIFIED ACTIVITY DATA" title="Analytics" description="Analitik operasi berdasarkan data workspace yang disahkan. Insight Meta digunakan untuk mencadangkan idea baharu." actions={<><button className="button secondary small" onClick={syncInsights} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula Insight Meta'}</button><span className={`status-chip ${integrations.meta && metaInsights?.sourceUpdatedAt ? 'connected' : 'pending'}`}><span/>{integrations.meta && metaInsights?.sourceUpdatedAt ? 'Meta Insights connected' : 'Meta Insights pending'}</span></>} />
+      {metaError ? <div className="analytics-notice"><Icon name="alert"/><div><strong>Insight Meta belum dapat diselaraskan</strong><p>{metaError}</p></div></div> : null}
       <div className="stats-grid analytics-stats"><article className="stat-card"><div className="stat-icon file"><Icon name="file"/></div><div><span>Content records</span><strong>{content.length}</strong><small>{content.filter((item)=>item.stage==='Review').length} awaiting review</small></div></article><article className="stat-card"><div className="stat-icon calendar"><Icon name="calendar"/></div><div><span>Scheduled plans</span><strong>{scheduledPlans}</strong><small>{plans.length} total planner items</small></div></article><article className="stat-card"><div className="stat-icon image"><Icon name="image"/></div><div><span>Drafts with visual</span><strong>{withAssets}</strong><small>Drive assets attached to content</small></div></article><article className="stat-card"><div className="stat-icon check"><Icon name="check"/></div><div><span>Published records</span><strong>{published}</strong><small>Workspace publishing history</small></div></article></div>
+      <section className="panel performance-ideas-panel"><div className="panel-heading"><div><span className="eyebrow">PERFORMANCE-BASED CONTENT IDEAS</span><h3>3 idea baharu daripada prestasi Meta</h3></div><span className="verified-label"><Icon name="check"/>{metaInsights?.sourceUpdatedAt ? 'Berdasarkan snapshot disahkan' : 'Menunggu snapshot Meta'}</span></div><p className="settings-copy">Idea ini dijana secara automatik daripada post yang mempunyai views, reach, reaksi, komen atau engagement tertinggi. Ia bukan KPI rekaan.</p><div className="performance-ideas-grid">{ideas.map((idea, index) => <article className="performance-idea-card" key={`${idea.title}-${index}`}><span className="eyebrow">IDEA {String(index + 1).padStart(2, '0')}</span><h4>{idea.title}</h4><p>{idea.objective}</p><small>{idea.format} · {idea.source}</small><button className="button secondary small" onClick={() => onUseIdea(idea)}>Guna idea ini</button></article>)}</div></section>
       <div className="analytics-grid"><section className="panel activity-chart"><div className="panel-heading"><div><span className="eyebrow">CONTENT ACTIVITY</span><h3>Live workflow distribution</h3></div><span className="verified-label"><Icon name="check"/>Workspace records</span></div><div className="bar-chart">{stages.map((stage) => { const count = content.filter((item) => item.stage === stage).length; return <div key={stage}><span>{stage}</span><i><b style={{width:`${Math.round((count/maxCount)*100)}%`}}/></i><strong>{count}</strong></div> })}</div></section><section className="panel insight-card"><span className="eyebrow">RULE-BASED OBSERVATION</span><h3>{content.some((item)=>item.stage==='Review') ? 'Clear the review queue before adding too many new drafts.' : 'The review queue is clear.'}</h3><p>{integrations.notion ? 'Notion planner sync is configured for shared planning records.' : 'Notion backend sync is not configured yet; Google remains the current operational source.'}</p><div className="insight-source"><Icon name="file"/><span><strong>Next data upgrade</strong><small>Verified post URL + reach + views + engagements</small></span></div></section></div>
       <section className="panel source-table-panel"><div className="panel-heading"><div><span className="eyebrow">DATA SOURCES</span><h3>Available source snapshot</h3></div></div><div className="source-table"><div className="source-row header"><span>Source</span><span>Platform</span><span>Volume</span><span>Status</span></div>{sources.map((row) => <div className="source-row" key={row[0]}>{row.map((cell,index) => <span key={`${row[0]}-${index}`}>{index===3 ? <StatusPill>{cell}</StatusPill> : cell}</span>)}</div>)}</div></section>
     </div>
@@ -1037,6 +1076,7 @@ function App() {
   }
   const useProduct = (product) => { const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; '); setGenerator((form) => ({...form, product:product.name, title:`${product.name} – Product Highlight`, type:'Product Highlight', brief:details || form.brief})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
   const useAsset = (asset) => { setGenerator((form) => ({...form, driveFileId:asset.id || '', assetName:asset.name || '', driveLink:asset.url || ''})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${asset.name} attached to the next content draft.`) }
+  const usePerformanceIdea = (idea) => { setGenerator((form) => ({ ...form, title: idea.title, type: idea.format.includes('pendidikan') ? 'Educational' : 'Brand Awareness', brief: `${idea.objective}. Sumber prestasi: ${idea.source}. Format cadangan: ${idea.format}.` })); setPage('studio'); setOutput(''); window.scrollTo({ top:0, behavior:'smooth' }); toast('Idea dimuatkan ke Content Studio untuk disemak.'); }
   const syncProducts = async () => { setSyncingProducts(true); try { const result = await syncNotionProducts(); setProductData(result.products?.length ? result.products : productData); toast(`${result.products?.length || 0} verified products synced from Notion.`) } catch (error) { toast(error.message) } finally { setSyncingProducts(false) } }
   const usePrompt = (item) => { setGenerator((form) => ({...form, title:item.title, type:item.type.includes('Facebook') ? 'Brand Awareness' : form.type, brief:item.description})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${item.title} prompt loaded into Content Studio.`) }
   const resetWorkspace = () => { setContent(initialContent); setPlans(initialPlans); setProductData(products); toast('Local demo data restored.') }
@@ -1049,7 +1089,7 @@ function App() {
     products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
-    analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} />,
+    analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} workspaceActive={workspaceActive} onUseIdea={usePerformanceIdea} toast={toast} />,
     settings: <Settings toast={toast} resetWorkspace={resetWorkspace} workspaceActive={workspaceActive} integrations={integrations} onRefreshIntegrations={refreshIntegrations} onConnect={connectWorkspace} onDisconnect={disconnectWorkspace} />,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [page, content, plans, generator, output, workspaceActive, integrations, allProductData, syncingProducts])
