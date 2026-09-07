@@ -170,3 +170,13 @@ export async function saveGoogleProductReference(reference) {
 export async function deleteGoogleProductReference(id) {
   return callMarketingApi('delete_product_reference', { id: String(id) })
 }
+
+export async function loadPublicMetaInsights() {
+  if (!appsScriptUrl) throw new Error('Google Apps Script is not configured yet.')
+  const response = await fetch(`${appsScriptUrl}?view=meta-insights`, { method: 'GET', redirect: 'follow' })
+  const raw = await response.text()
+  let result
+  try { result = JSON.parse(raw) } catch { throw new Error('Meta Insights returned an invalid response.') }
+  if (!result?.ok) throw new Error(result?.error || 'Meta Insights snapshot is unavailable.')
+  return result.data || result
+}
