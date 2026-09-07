@@ -77,8 +77,9 @@ function syncMetaInsights() {
 function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
   const result = {};
   const metricNames = ['post_video_views', 'post_impressions_unique', 'post_saves', 'post_engaged_users'];
-  for (let start = 0; start < posts.length; start += 50) {
-    const batch = posts.slice(start, start + 50).map(post => ({
+  const batchSize = 10;
+  for (let start = 0; start < posts.length; start += batchSize) {
+    const batch = posts.slice(start, start + batchSize).map(post => ({
       method: 'GET',
       relative_url: version + '/' + encodeURIComponent(post.id) + '/insights?metric=' + encodeURIComponent(metricNames.join(','))
     }));
