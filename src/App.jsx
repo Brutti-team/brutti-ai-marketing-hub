@@ -174,16 +174,15 @@ function StatusPill({ children }) {
   return <span className={`status-pill ${stageClass(children)}`}>{children}</span>
 }
 
-function Dashboard({ content, plans, navigate, openContent, newContent, newPlan, workspaceActive, integrations, onUseIdea, toast }) {
+function Dashboard({ content, plans, navigate, openContent, newContent, workspaceActive, integrations, onUseIdea }) {
   const stageCounts = pipelineStages.map((stage) => ({ stage, count: content.filter((item) => item.stage === stage).length }))
   const today = localDateKey()
   const todayPlans = plans.filter((plan) => plan.date === today)
   const upcoming = [...plans].filter((plan) => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4)
-  const reviewItem = content.find((item) => item.stage === 'Review')
   const [metaInsights, setMetaInsights] = useState(null)
   const [syncingMeta, setSyncingMeta] = useState(false)
   const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
-  const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch (error) { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
+  const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
   useEffect(() => { syncDashboardMeta() }, [syncDashboardMeta])
   const nextPlan = todayPlans[0] || upcoming[0]
   const greeting = greetingForNow()
