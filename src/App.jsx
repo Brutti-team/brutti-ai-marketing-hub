@@ -174,12 +174,16 @@ function StatusPill({ children }) {
   return <span className={`status-pill ${stageClass(children)}`}>{children}</span>
 }
 
-function Dashboard({ content, plans, navigate, openContent, newContent, newPlan }) {
+function Dashboard({ content, plans, navigate, openContent, newContent, workspaceActive, integrations, onUseIdea }) {
   const stageCounts = pipelineStages.map((stage) => ({ stage, count: content.filter((item) => item.stage === stage).length }))
   const today = localDateKey()
   const todayPlans = plans.filter((plan) => plan.date === today)
   const upcoming = [...plans].filter((plan) => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4)
-  const reviewItem = content.find((item) => item.stage === 'Review')
+  const [metaInsights, setMetaInsights] = useState(null)
+  const [syncingMeta, setSyncingMeta] = useState(false)
+  const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
+  const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
+  useEffect(() => { syncDashboardMeta() }, [syncDashboardMeta])
   const nextPlan = todayPlans[0] || upcoming[0]
   const greeting = greetingForNow()
   const focusTitle = nextPlan
@@ -213,15 +217,12 @@ function Dashboard({ content, plans, navigate, openContent, newContent, newPlan 
           <div className="review-queue">{content.slice(0, 3).map((item) => <button key={item.id} onClick={() => openContent(item)}><span className="queue-channel">f</span><span><strong>{item.title}</strong><small>{item.product} · {item.updatedAt}</small></span><StatusPill>{item.stage}</StatusPill><Icon name="chevron"/></button>)}</div>
         </section>
 
-        <aside className="panel focus-panel">
-          <div className="panel-heading"><div><span className="eyebrow">TODAY & NEXT</span><h3>Next best actions</h3></div></div>
-          <div className="recommendation-list">
-            <button onClick={() => reviewItem ? openContent(reviewItem) : navigate('studio')}><span className="recommend-number">01</span><div><strong>{reviewItem ? `Review ${reviewItem.title}` : 'Create a verified draft'}</strong><p>{reviewItem ? 'One content item is waiting for human confirmation.' : 'There is no content waiting in Review right now.'}</p></div></button>
-            <button onClick={() => navigate('planner')}><span className="recommend-number">02</span><div><strong>{todayPlans.length ? `${todayPlans.length} item${todayPlans.length > 1 ? 's' : ''} planned today` : 'Today is open'}</strong><p>{todayPlans.length ? 'Check today’s order and status in Campaign Planner.' : 'Add a suitable content slot for today when you have a verified direction.'}</p></div></button>
-            <button onClick={newPlan}><span className="recommend-number">03</span><div><strong>Keep the next seven days ready</strong><p>Add or adjust the next content slot without leaving this workspace.</p></div></button>
-          </div>
-          <div className="guardrail-note"><Icon name="alert"/><p><strong>Accuracy guardrail</strong>No prices, promotions, delivery dates or performance KPI are generated without a verified source.</p></div>
-        </aside>
+        <section className="panel focus-panel performance-dashboard-panel">
+          <div className="panel-heading"><div><span className="eyebrow">PERFORMANCE-BASED CONTENT IDEAS</span><h3>3 idea baharu daripada prestasi Meta</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
+          <p className="settings-copy">Idea dijana daripada post yang mempunyai prestasi tertinggi berdasarkan data Meta yang disahkan.</p>
+          <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.format} · {idea.source}</p></div><Icon name="chevron"/></button>)}</div>
+          <div className="guardrail-note"><Icon name="check"/><p><strong>{metaInsights?.sourceUpdatedAt ? 'Snapshot Meta disahkan' : 'Menunggu snapshot Meta'}</strong>Idea boleh disemak dahulu dalam Content Studio sebelum disimpan atau dijadualkan.</p></div>
+        </section>
       </div>
 
       <section className="panel upcoming-panel">
@@ -1082,7 +1083,7 @@ function App() {
   const resetWorkspace = () => { setContent(initialContent); setPlans(initialPlans); setProductData(products); toast('Local demo data restored.') }
 
   const pages = useMemo(() => ({
-    dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} />,
+    dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} workspaceActive={workspaceActive} integrations={integrations} onUseIdea={usePerformanceIdea} toast={toast} />,
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
     brand: <BrandLibrary />,
