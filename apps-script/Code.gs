@@ -54,14 +54,14 @@ function syncMetaInsights() {
   const posts = fetchAllMetaPosts_(version, pageId, token);
   const syncedAt = new Date().toISOString();
   const records = posts.map(post => {
-    const metric = name => safeMetaPostMetric_(version, post.id, token, name, unavailable);
+    const metrics = safeMetaPostMetrics_(version, post.id, token, unavailable);
     const attachment = post.attachments && post.attachments.data && post.attachments.data[0];
     return {
       sourceId: String(post.id || ''), platform: 'facebook', createdTime: post.created_time || '', message: post.message || '', permalink: post.permalink_url || '',
       format: attachment ? (attachment.media_type || attachment.type || 'post') : 'post',
-      views: metric('post_video_views'), reach: metric('post_impressions_unique'),
+      views: metrics.post_video_views, reach: metrics.post_impressions_unique,
       reactions: metaCount_(post.reactions), comments: metaCount_(post.comments), shares: post.shares ? numericOrNull_(post.shares.count) : null,
-      saves: metric('post_saves'), engagement: metric('post_engaged_users'), syncedAt: syncedAt
+      saves: metrics.post_saves, engagement: metrics.post_engaged_users, syncedAt: syncedAt
     };
   }).filter(post => post.sourceId && hasMetaPostMetric_(post));
   const sheet = ensureMetaPostInsightsSheet_();
@@ -73,6 +73,21 @@ function syncMetaInsights() {
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
 }
 
+function safeMetaPostMetrics_(version, postId, token, unavailable) {
+  const names = ['post_video_views', 'post_impressions_unique', 'post_saves', 'post_engaged_users'];
+  const result = {};
+  try {
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: names.join(',') }).data || [];
+    data.forEach(item => {
+      const values = item.values || [];
+      const latest = values.length ? values[values.length - 1] : null;
+      result[item.name] = latest ? numericOrNull_(latest.value) : null;
+    });
+  } catch (error) { /* Keep unavailable metrics blank; never invent KPI. */ }
+  names.forEach(name => { if (result[name] === undefined || result[name] === null) { result[name] = null; unavailable[name] = true; } });
+  return result;
+}
+
 function fetchAllMetaPosts_(version, pageId, token) {
   const fields = 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares';
   const all = [];
@@ -80,7 +95,7 @@ function fetchAllMetaPosts_(version, pageId, token) {
   let params = { fields: fields, limit: '100' };
   let pages = 0;
   // Keep the historical window useful while avoiding thousands of per-post API calls.
-  while (path && pages < 5) {
+  while (path && pages < 2) {
     const response = metaGraphRequest_(path, token, params);
     all.push(...(response.data || []));
     const next = response.paging && response.paging.next;
