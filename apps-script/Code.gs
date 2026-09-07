@@ -51,10 +51,7 @@ function syncMetaInsights() {
   const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
   if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
   const unavailable = {};
-  const posts = metaGraphRequest_(version + '/' + encodeURIComponent(pageId) + '/published_posts', token, {
-    fields: 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares',
-    limit: '25'
-  }).data || [];
+  const posts = fetchAllMetaPosts_(version, pageId, token);
   const syncedAt = new Date().toISOString();
   const records = posts.map(post => {
     const metric = name => safeMetaPostMetric_(version, post.id, token, name, unavailable);
@@ -74,6 +71,30 @@ function syncMetaInsights() {
   ]));
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
+}
+
+function fetchAllMetaPosts_(version, pageId, token) {
+  const fields = 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares';
+  const all = [];
+  let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
+  let params = { fields: fields, limit: '100' };
+  let pages = 0;
+  while (path && pages < 20) {
+    const response = metaGraphRequest_(path, token, params);
+    all.push(...(response.data || []));
+    const next = response.paging && response.paging.next;
+    if (!next) break;
+    const parsed = next.match(/^https:\/\/graph\.facebook\.com\/(.+?)\?(.*)$/);
+    if (!parsed) break;
+    path = parsed[1];
+    params = {};
+    parsed[2].split('&').forEach(pair => {
+      const parts = pair.split('=');
+      if (parts[0] && parts[0] !== 'access_token') params[decodeURIComponent(parts[0])] = decodeURIComponent(parts.slice(1).join('='));
+    });
+    pages += 1;
+  }
+  return all;
 }
 
 // Run once from Apps Script after Script Properties are set. The trigger uses
