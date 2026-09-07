@@ -79,7 +79,8 @@ function fetchAllMetaPosts_(version, pageId, token) {
   let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
   let params = { fields: fields, limit: '100' };
   let pages = 0;
-  while (path && pages < 20) {
+  // Keep the historical window useful while avoiding thousands of per-post API calls.
+  while (path && pages < 5) {
     const response = metaGraphRequest_(path, token, params);
     all.push(...(response.data || []));
     const next = response.paging && response.paging.next;
