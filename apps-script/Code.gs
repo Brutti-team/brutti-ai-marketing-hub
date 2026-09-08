@@ -77,8 +77,13 @@ function syncMetaInsights() {
     };
   }).filter(post => post.sourceId && hasMetaPostMetric_(post));
   const sheet = ensureMetaPostInsightsSheet_();
-  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).clearContent();
-  if (records.length) sheet.getRange(2, 1, records.length, META_POST_INSIGHTS_HEADERS.length).setValues(records.map(post => [
+  const existingRows = sheet.getLastRow() > 1
+    ? sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues()
+    : [];
+  const existingById = {};
+  existingRows.forEach(row => { if (row[0]) existingById[String(row[0])] = true; });
+  const newRecords = records.filter(post => !existingById[post.sourceId]);
+  if (newRecords.length) sheet.getRange(sheet.getLastRow() + 1, 1, newRecords.length, META_POST_INSIGHTS_HEADERS.length).setValues(newRecords.map(post => [
     post.sourceId, post.platform, post.createdTime, post.message, post.permalink, post.format, post.views, post.reach, post.reactions, post.comments, post.shares, post.saves, post.engagement, post.syncedAt
   ]));
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
