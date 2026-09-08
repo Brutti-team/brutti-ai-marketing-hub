@@ -33,7 +33,14 @@ const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 
 const PRODUCT_REFERENCE_HEADERS = ['ID', 'Project / Kiosk Name', 'Reference Type', 'Location / Client', 'Notes / Posting Direction', 'Drive File ID', 'Drive URL', 'Image Name', 'Updated At', 'Source'];
 
 function doGet(e) {
-  if (e && e.parameter && e.parameter.view === 'meta-insights') return json_({ ok: true, data: metaInsightsPublic_() });
+  if (e && e.parameter && e.parameter.view === 'meta-insights') {
+    const payload = { ok: true, data: metaInsightsPublic_() };
+    if (e.parameter.callback) {
+      const callback = String(e.parameter.callback).replace(/[^a-zA-Z0-9_$.]/g, '');
+      return ContentService.createTextOutput(callback + '(' + JSON.stringify(payload) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    return json_(payload);
+  }
   return json_({
     ok: true,
     data: {
