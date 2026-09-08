@@ -76,6 +76,11 @@ function syncMetaInsights() {
       saves: metrics.post_saves, engagement: metrics.post_engaged_users, syncedAt: syncedAt
     };
   }).filter(post => post.sourceId && hasMetaPostMetric_(post));
+  const instagramUserId = properties.getProperty('META_INSTAGRAM_USER_ID');
+  if (instagramUserId) {
+    const instagramPosts = fetchInstagramPosts_(version, instagramUserId, token, unavailable);
+    instagramPosts.forEach(post => records.push(post));
+  }
   const sheet = ensureMetaPostInsightsSheet_();
   const existingRows = sheet.getLastRow() > 1
     ? sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues()
@@ -168,6 +173,38 @@ function fetchAllMetaPosts_(version, pageId, token, cursor) {
     pages += 1;
   }
   return { posts: all, nextCursor: path ? JSON.stringify({ path: path, params: params }) : '' };
+}
+
+function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
+  const fields = 'id,caption,media_type,permalink,timestamp,like_count,comments_count';
+  const response = metaGraphRequest_(version + '/' + encodeURIComponent(instagramUserId) + '/media', token, { fields: fields, limit: '25' });
+  return (response.data || []).map(post => {
+    let metrics = {};
+    try { metrics = safeInstagramMetrics_(version, post.id, token, unavailable); } catch (error) { unavailable.instagram = true; }
+    const reactions = numericOrNull_(post.like_count);
+    const comments = numericOrNull_(post.comments_count);
+    return {
+      sourceId: String(post.id || ''), platform: 'instagram', createdTime: post.timestamp || '', message: post.caption || '', permalink: post.permalink || '',
+      format: String(post.media_type || 'post').toLowerCase(), views: metrics.views, reach: metrics.reach, reactions: reactions, comments: comments,
+      shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement, syncedAt: new Date().toISOString()
+    };
+  }).filter(post => post.sourceId && hasMetaPostMetric_(post));
+}
+
+function safeInstagramMetrics_(version, mediaId, token, unavailable) {
+  const result = { views: null, reach: null, shares: null, saves: null, engagement: null };
+  try {
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(mediaId) + '/insights', token, { metric: 'impressions,reach,shares,saved,engagement,video_views' }).data || [];
+    data.forEach(item => {
+      const value = item.values && item.values.length ? numericOrNull_(item.values[item.values.length - 1].value) : null;
+      if (item.name === 'impressions' || item.name === 'video_views') result.views = value;
+      if (item.name === 'reach') result.reach = value;
+      if (item.name === 'shares') result.shares = value;
+      if (item.name === 'saved') result.saves = value;
+      if (item.name === 'engagement') result.engagement = value;
+    });
+  } catch (error) { unavailable.instagram = true; }
+  return result;
 }
 
 // Run once from Apps Script after Script Properties are set. The trigger uses
