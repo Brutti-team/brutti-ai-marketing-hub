@@ -136,7 +136,7 @@ function fetchAllMetaPosts_(version, pageId, token) {
   let params = { fields: fields, limit: '100' };
   let pages = 0;
   // Keep the historical window useful while avoiding thousands of per-post API calls.
-  while (path && pages < 2) {
+  while (path && pages < 20) {
     const response = metaGraphRequest_(path, token, params);
     all.push(...(response.data || []));
     const next = response.paging && response.paging.next;
