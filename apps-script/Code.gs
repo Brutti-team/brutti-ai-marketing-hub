@@ -58,7 +58,11 @@ function syncMetaInsights() {
   const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
   if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
   const unavailable = {};
-  const posts = fetchAllMetaPosts_(version, pageId, token);
+  const cursor = properties.getProperty('META_SYNC_CURSOR') || '';
+  const sync = fetchAllMetaPosts_(version, pageId, token, cursor);
+  const posts = sync.posts;
+  if (sync.nextCursor) properties.setProperty('META_SYNC_CURSOR', sync.nextCursor);
+  else properties.deleteProperty('META_SYNC_CURSOR');
   const metricMap = fetchMetaMetricsBatch_(version, posts, token, unavailable);
   const syncedAt = new Date().toISOString();
   const records = posts.map(post => {
@@ -129,18 +133,25 @@ function safeMetaPostMetrics_(version, postId, token, unavailable) {
   return result;
 }
 
-function fetchAllMetaPosts_(version, pageId, token) {
+function fetchAllMetaPosts_(version, pageId, token, cursor) {
   const fields = 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares';
   const all = [];
   let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
   let params = { fields: fields, limit: '100' };
+  if (cursor) {
+    try {
+      const saved = JSON.parse(cursor);
+      path = saved.path || path;
+      params = saved.params || params;
+    } catch (error) { /* Restart from the beginning if the checkpoint is invalid. */ }
+  }
   let pages = 0;
   // Keep the historical window useful while avoiding thousands of per-post API calls.
-  while (path && pages < 20) {
+  while (path && pages < 3) {
     const response = metaGraphRequest_(path, token, params);
     all.push(...(response.data || []));
     const next = response.paging && response.paging.next;
-    if (!next) break;
+    if (!next) { path = ''; break; }
     const parsed = next.match(/^https:\/\/graph\.facebook\.com\/(.+?)\?(.*)$/);
     if (!parsed) break;
     path = parsed[1];
@@ -151,7 +162,7 @@ function fetchAllMetaPosts_(version, pageId, token) {
     });
     pages += 1;
   }
-  return all;
+  return { posts: all, nextCursor: path ? JSON.stringify({ path: path, params: params }) : '' };
 }
 
 // Run once from Apps Script after Script Properties are set. The trigger uses
