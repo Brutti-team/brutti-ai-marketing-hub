@@ -1026,7 +1026,7 @@ function logEvent_(action, recordId, status, message) {
     const spreadsheetId = scriptProperties_().getProperty('PLANNER_SPREADSHEET_ID');
     if (!spreadsheetId) return;
     const sheet = ensureSheet_(SpreadsheetApp.openById(spreadsheetId), LOG_SHEET, LOG_HEADERS);
-    sheet.appendRow([new Date(), action, recordId, status, message, Session.getActiveUser().getEmail() || 'Workspace user', 'BRUTTI AI Marketing Hub']);
+    sheet.appendRow([new Date(), action, recordId, status, message, 'Workspace user', 'BRUTTI AI Marketing Hub']);
   } catch (ignored) {
     console.error(ignored);
   }
