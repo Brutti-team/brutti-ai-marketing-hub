@@ -763,12 +763,18 @@ function performanceIdeasFromInsights(insights) {
   const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
   if (!ranked.length) return []
   const angles = ['before/after atau transformasi ruang', 'soalan pilihan yang mengundang komen', 'tip praktikal yang boleh disimpan dan dikongsi']
+  // Rotate through the historical winners by calendar day so the daily panel
+  // does not repeat the same three posts every time it is refreshed.
+  const daySeed = Math.floor(Date.now() / 86400000)
+  const start = ranked.length > angles.length ? daySeed % ranked.length : 0
+  const selected = angles.map((_, index) => ranked[(start + index) % ranked.length])
   return angles.map((angle, index) => {
-    const post = ranked[index % ranked.length]
+    const post = selected[index]
     const topic = String(post.message || '').replace(/#[^\s]+/g, '').replace(/\s+/g, ' ').trim().split(' ').slice(0, 9).join(' ') || 'post BRUTTI berprestasi tinggi'
     const value = Math.round(metricValue(post)).toLocaleString()
     const metric = post.engagement !== null ? 'engagement' : post.reach !== null ? 'reach' : post.reactions !== null ? 'reactions' : 'views'
-    return { title: `Follow up: ${topic} — ${angle}`, format: post.format === 'video' ? 'Video pendek' : 'Facebook post', objective: 'Engagement', description: `Idea ini berpandukan post Meta ranking #${ranked.indexOf(post) + 1} yang menerima ${value} ${metric}; bina sudut baharu tanpa menyalin caption asal.`, hook: `Berpandukan pattern post #${ranked.indexOf(post) + 1}`, direction: `Gunakan topik sebenar: ${topic}. Fokus pada ${angle}.`, cta: 'Semak dan lengkapkan fakta sebelum siar.', source: `Facebook · ${value} ${metric}`, post }
+    const platform = String(post.platform || 'facebook').toLowerCase() === 'instagram' ? 'Instagram' : 'Facebook'
+    return { title: `Follow up: ${topic} — ${angle}`, format: post.format === 'video' ? 'Video pendek' : 'Facebook post', objective: 'Engagement', description: `Idea ini berpandukan post Meta ranking #${ranked.indexOf(post) + 1} yang menerima ${value} ${metric}; bina sudut baharu tanpa menyalin caption asal.`, hook: `Berpandukan pattern post #${ranked.indexOf(post) + 1}`, direction: `Gunakan topik sebenar: ${topic}. Fokus pada ${angle}.`, cta: 'Semak dan lengkapkan fakta sebelum siar.', source: `${platform} · ${value} ${metric}`, post }
   })
 }
 

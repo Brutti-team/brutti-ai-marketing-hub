@@ -259,11 +259,13 @@ function metaInsightsPublic_() {
     return post;
   }).filter(hasMetaPostMetric_);
   const rankingValue = post => post.engagement !== null ? post.engagement : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : post.views !== null ? post.views : 0;
-  const topPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a)).slice(0, 25);
+  const rankedPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a));
+  const topPosts = rankedPosts.filter(post => post.platform !== 'instagram').slice(0, 25);
+  const instagramTopPosts = rankedPosts.filter(post => post.platform === 'instagram').slice(0, 25);
   const sourceUpdatedAt = topPosts.reduce((latest, post) => post.syncedAt && post.syncedAt > latest ? post.syncedAt : latest, '');
   return {
     sourceUpdatedAt: sourceUpdatedAt || null, unavailableMetrics: Object.keys(unavailable),
-    instagram: { latestReach: null, followers: null, trend: [], topPosts: [] },
+    instagram: { latestReach: null, followers: null, trend: [], topPosts: instagramTopPosts },
     facebook: { followers: null, topPosts: topPosts }
   };
 }
