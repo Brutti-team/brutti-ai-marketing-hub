@@ -513,6 +513,7 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
   }
   const bilingualMode = form.language === 'BM + English'
   const conciseRequest = /(?:\b4\s*baris\b|\bempat\s*baris\b|pendek|ringkas|short caption)/i.test(form.brief)
+    || (form.brief.trim().length > 0 && form.brief.trim().length <= 180 && !/panjang|detail|long caption/i.test(form.brief))
   const singleTarget = mode === 'shorten' || conciseRequest ? (conciseRequest ? 4 : 7) : 9
   const singleMaxLines = conciseRequest ? 5 : 13
   const bm = buildLanguage('bm', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : singleMaxLines)
