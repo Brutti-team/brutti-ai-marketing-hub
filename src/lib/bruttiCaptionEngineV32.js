@@ -195,6 +195,8 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     const polishedFactLine = factLine
       .replace(/\bdalam bentuk\s+([A-Za-z]+)\s*size\b/gi, 'saiz $1')
       .replace(/\s*&\s*ada\s+(\d+)\s+storage\s+untuk\s+/gi, ', siap dengan $1 ruang storage untuk ')
+      .replace(/\b([A-Za-z]+)\s+Queen\s+size\s+dan\s+ada\s+(\d+)\s+storage\s+di\s+tepi\s+katil\b/gi, '$1 saiz Queen, dengan $2 ruang storage di tepi katil')
+      .replace(/\b([A-Za-z]+)\s+size\s+dan\s+ada\s+(\d+)\s+storage\b/gi, '$1 saiz, dengan $2 ruang storage')
       .replace(/\s{2,}/g, ' ')
     const language = form.language === 'English' ? 'en' : 'bm'
     const variationKey = [...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
