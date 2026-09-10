@@ -512,9 +512,11 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
     return [...body, selectCta(language)].slice(0, maxLines).join('\n')
   }
   const bilingualMode = form.language === 'BM + English'
-  const singleTarget = mode === 'shorten' ? 7 : 9
-  const bm = buildLanguage('bm', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : 13)
-  const en = buildLanguage('en', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : 13)
+  const conciseRequest = /(?:\b4\s*baris\b|\bempat\s*baris\b|pendek|ringkas|short caption)/i.test(form.brief)
+  const singleTarget = mode === 'shorten' || conciseRequest ? (conciseRequest ? 4 : 7) : 9
+  const singleMaxLines = conciseRequest ? 5 : 13
+  const bm = buildLanguage('bm', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : singleMaxLines)
+  const en = buildLanguage('en', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : singleMaxLines)
   const bilingual = `${bm}\n\n${en}`
   const draft = languageKey === 'en' ? en : form.language === 'BM + English' ? bilingual : bm
   const addHashtags = form.includeHashtags || mode === 'hashtags'
