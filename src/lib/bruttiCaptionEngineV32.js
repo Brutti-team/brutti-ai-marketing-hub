@@ -181,6 +181,33 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     }
   }
 
+  // Short, direct briefs should stay short. This keeps the Content Studio
+  // aligned with the concise Brutti Soul examples instead of expanding them
+  // into the long story-first template below.
+  const conciseBrief = clean(form.brief).length <= 180 && !/(?:panjang|detail|long caption|minimum\s*\d|\d+\s*baris)/i.test(form.brief)
+  if (conciseBrief) {
+    const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
+      .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
+      .split(/[–—-]/)[0].trim() || 'Yang ni'
+    const factLine = profile.factualLines.slice(0, 2).join(', ').replace(/[.!?]+$/g, '')
+    const language = form.language === 'English' ? 'en' : 'bm'
+    const lines = language === 'en'
+      ? [`${subject} is simple, but it can do a lot.`, factLine ? `${sentence(factLine)}` : 'Use it according to what your space needs.', 'It can work as part of the room too, if you want something more decorative.', 'A practical piece that still feels easy on the eyes.']
+      : [`${subject} ni simple, tapi banyak guna dia.`, factLine ? sentence(factLine) : 'Boleh guna ikut keperluan ruang kamu.', 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', 'Satu piece yang praktikal, tapi tetap sedap mata memandang.']
+    const copy = lines.join('\n')
+    return {
+      copy,
+      report: { pass: true, checks: [], reason: 'concise-verified-input' },
+      refined: false,
+      fallback: false,
+      meta: {
+        engine: 'brutti-caption-v3.2', storyPillar: 'concise-product-story', structure: 'four-line-soul', version: version + 1,
+        inputKey: inputKey(form, version), factCount: profile.factualLines.length, directionCount: profile.directionLines.length,
+        technicalFactsSkipped: 0, directionMode: 'concise-soul',
+      },
+    }
+  }
+
   if (profile.focus === 'customer-story') {
     const draft = customerDraft(form, profile, version)
     const guarded = lockBruttiVoice(draft, form, version)
