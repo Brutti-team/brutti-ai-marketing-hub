@@ -193,9 +193,18 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       .split(/[–—-]/)[0].trim() || 'Yang ni'
     const factLine = profile.factualLines.slice(0, 2).join(', ').replace(/[.!?]+$/g, '')
     const language = form.language === 'English' ? 'en' : 'bm'
+    const variationKey = [...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
     const lines = language === 'en'
-      ? [`${subject} is simple, but it can do a lot.`, factLine ? `${sentence(factLine)}` : 'Use it according to what your space needs.', 'It can work as part of the room too, if you want something more decorative.', 'A practical piece that still feels easy on the eyes.']
-      : [`${subject} ni simple, tapi banyak guna dia.`, factLine ? sentence(factLine) : 'Boleh guna ikut keperluan ruang kamu.', 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', 'Satu piece yang praktikal, tapi tetap sedap mata memandang.']
+      ? [
+          [`${subject} is simple, but it can do a lot.`, factLine ? sentence(factLine) : 'Use it according to what your space needs.', 'It can work as part of the room too, if you want something more decorative.', 'A practical piece that still feels easy on the eyes.'],
+          [`Meet ${subject} — made to fit into everyday spaces.`, factLine ? sentence(factLine) : 'Useful for the things you reach for every day.', 'Keep it simple, or let it become part of the room.', 'Small details, but a piece that earns its place.'],
+          [`${subject} brings function without making the space feel heavy.`, factLine ? sentence(factLine) : 'Built around the way the space is actually used.', 'It can stay practical while still looking right at home.', 'That balance is what makes a piece feel considered.'],
+        ][variationKey]
+      : [
+          [`${subject} ni simple, tapi banyak guna dia.`, factLine ? sentence(factLine) : 'Boleh guna ikut keperluan ruang kamu.', 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', 'Satu piece yang praktikal, tapi tetap sedap mata memandang.'],
+          [`${subject} ni jenis piece yang senang masuk dalam ruang.`, factLine ? sentence(factLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', 'Mau biar simple boleh, mau kasi nampak lebih hidup pun boleh.', 'Yang penting, fungsi dia tetap jalan dan ruang pun rasa ngam.'],
+          [`${subject} bukan sekadar nampak kemas — ada guna dia.`, factLine ? sentence(factLine) : 'Dibuat untuk benda yang memang kamu guna.', 'Bila fungsi dan rupa sama-sama kena, senang ruang rasa lebih teratur.', 'Simple, tapi ada sebab kenapa piece macam ni selalu dicari.'],
+        ][variationKey]
     const copy = lines.join('\n')
     return {
       copy,
