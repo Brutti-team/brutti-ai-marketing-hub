@@ -203,7 +203,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       : [
           [`${subject} ni simple, tapi banyak guna dia.`, factLine ? sentence(factLine) : 'Boleh guna ikut keperluan ruang kamu.', 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', 'Satu piece yang praktikal, tapi tetap sedap mata memandang.'],
           [`${subject} ni jenis piece yang senang masuk dalam ruang.`, factLine ? sentence(factLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', 'Mau biar simple boleh, mau kasi nampak lebih hidup pun boleh.', 'Yang penting, fungsi dia tetap jalan dan ruang pun rasa ngam.'],
-          [`${subject} bukan sekadar nampak kemas — ada guna dia.`, factLine ? sentence(factLine) : 'Dibuat untuk benda yang memang kamu guna.', 'Bila fungsi dan rupa sama-sama kena, senang ruang rasa lebih teratur.', 'Simple, tapi ada sebab kenapa piece macam ni selalu dicari.'],
+          [`${subject} bukan sekadar nampak kemas — ada guna dia.`, factLine ? sentence(factLine) : 'Dibuat untuk benda yang memang kamu guna.', 'Bila fungsi dan rupa sama-sama kena, senang ruang rasa lebih teratur.', 'Nampak biasa, tapi manfaat dia memang terasa bila sudah digunakan.'],
         ][variationKey]
     const copy = lines.join('\n')
     return {
