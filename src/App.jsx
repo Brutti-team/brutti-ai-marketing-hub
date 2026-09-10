@@ -488,7 +488,14 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
     const pieces = [selectOpener(language)]
     const productPool = productLines[language]
     if (productPool.length && mode !== 'shorten' && form.type === 'Product Highlight') pieces.push(productPool[(seed + variationOffset) % productPool.length])
-    const facts = splitVerifiedFacts(form.brief, language === 'en' ? 'English' : form.language).map((fact) => expandFactLine(fact, language))
+    const cleanBrief = form.brief
+      .replace(/CONTENT DIRECTION:\s*/gi, '')
+      .replace(/OBJECTIVE:\s*[^\n]+/gi, '')
+      .replace(/SOURCE PERFORMANCE:\s*[^\n]+/gi, '')
+      .replace(/FORMAT:\s*[^\n]+/gi, '')
+      .replace(/SOURCE CAPTION \([^)]*\):\s*/gi, '')
+      .replace(/VOICE LOCK:\s*[^\n]+/gi, '')
+    const facts = splitVerifiedFacts(cleanBrief, language === 'en' ? 'English' : form.language).map((fact) => expandFactLine(fact, language))
     pieces.push(...facts)
     const support = bruttiSupportLines[language][form.type] || bruttiSupportLines[language]['Brand Awareness']
     const general = bruttiGeneralLines[language]
