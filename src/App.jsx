@@ -498,11 +498,17 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
       .replace(/SOURCE CAPTION \([^)]*\):\s*/gi, '')
       .replace(/VOICE LOCK:\s*[^\n]+/gi, '')
     const facts = splitVerifiedFacts(cleanBrief, language === 'en' ? 'English' : form.language).map((fact) => expandFactLine(fact, language))
-    if (conciseRequest && language === 'bm') {
+    if (conciseRequest) {
       const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
         .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
         .split(/[–—-]/)[0].trim() || 'Yang ni'
       const factLine = facts.slice(0, 2).join(', ').replace(/\s+,/g, ',').replace(/\.$/, '')
+      if (language === 'en') return [
+        `${subject} is simple, but it can do a lot.`,
+        factLine ? `${sentenceCase(factLine)}.` : 'Use it according to what your space needs.',
+        'It can work as part of the room too, if you want something more decorative.',
+        'A practical piece that still feels easy on the eyes.',
+      ].slice(0, maxLines).join('\n')
       return [
         `${subject} ni simple, tapi banyak guna dia.`,
         factLine ? `${sentenceCase(factLine)}.` : 'Boleh guna ikut keperluan ruang kamu.',
