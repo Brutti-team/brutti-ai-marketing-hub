@@ -181,6 +181,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   const upcoming = [...plans].filter((plan) => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4)
   const [metaInsights, setMetaInsights] = useState(null)
   const [syncingMeta, setSyncingMeta] = useState(false)
+  const [selectedIdea, setSelectedIdea] = useState(null)
   const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
   const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
   useEffect(() => { syncDashboardMeta() }, [syncDashboardMeta])
@@ -220,10 +221,12 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
         <section className="panel focus-panel performance-dashboard-panel">
           <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3>3 content ideas for today</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
           <p className="settings-copy">Cadangan ini hanya menggunakan data prestasi Meta yang diselaraskan dan boleh terus dibuka dalam Content Studio.</p>
-          <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <button key={`${idea.title}-${index}`} onClick={() => onUseIdea(idea)}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div><strong>{idea.title}</strong><p>{idea.description}</p><small><b>Format:</b> {idea.format} · <b>Hook:</b> {idea.hook}</small><small><b>Arah:</b> {idea.direction}</small></div><Icon name="chevron"/></button>)}</div>
+          <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <article className="recommendation-item" key={`${idea.title}-${index}`}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div className="recommendation-item-copy"><strong>{idea.title}</strong><button className="text-button recommendation-view" onClick={() => setSelectedIdea(idea)}>View post <Icon name="chevron" size={14}/></button></div></article>)}</div>
           <div className="guardrail-note"><Icon name="check"/><p><strong>{dashboardIdeas.length === 3 ? 'Data Meta disahkan' : 'Cadangan menunggu data Meta'}</strong> {dashboardIdeas.length === 3 ? 'Sumber: ' + dashboardIdeas[0].source : 'Sambungkan Meta dan tunggu sekurang-kurangnya satu post-level insight sebenar. Sistem tidak menggunakan fallback template atau KPI rekaan.'}</p></div>
         </section>
       </div>
+
+      {selectedIdea ? <div className="idea-overlay" role="dialog" aria-modal="true" aria-label="Full recommendation"><div className="idea-dialog"><div className="idea-dialog-head"><div><span className="eyebrow">FULL POST DIRECTION</span><h3>{selectedIdea.title}</h3></div><button className="icon-button" onClick={() => setSelectedIdea(null)} aria-label="Close"><Icon name="close"/></button></div><p>{selectedIdea.description}</p><div className="idea-dialog-meta"><p><b>Format:</b> {selectedIdea.format}</p><p><b>Hook:</b> {selectedIdea.hook}</p><p><b>Arah:</b> {selectedIdea.direction}</p></div><div className="idea-dialog-actions"><button className="button secondary" onClick={() => setSelectedIdea(null)}>Close</button><button className="button primary" onClick={() => { onUseIdea(selectedIdea); setSelectedIdea(null) }}>Open in Content Studio <Icon name="arrow" size={15}/></button></div></div></div> : null}
 
       <section className="panel upcoming-panel">
         <div className="panel-heading"><div><span className="eyebrow">UPCOMING</span><h3>Next planned content</h3></div><button className="text-button" onClick={() => navigate('planner')}>Manage planner <Icon name="arrow" size={15}/></button></div>
