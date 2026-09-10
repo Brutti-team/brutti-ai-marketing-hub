@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brutti-hub-shell-v17'
+const CACHE_NAME = 'brutti-hub-shell-v18'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
