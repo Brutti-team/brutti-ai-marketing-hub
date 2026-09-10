@@ -484,6 +484,8 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
     bm: product ? [`Untuk kali ni, kami kasi spotlight sikit sama ${product}.`, `Nama dia ${product}, dan kali ni kita fokus pada fungsi yang sudah disahkan.`, `${product} masuk dalam pilihan kali ni berdasarkan detail yang team sudah confirm.`] : [],
     en: product ? [`This time, the focus is ${product}.`, `${product} is the product we are looking at in this post.`, `For this post, we are focusing on the verified details for ${product}.`] : [],
   }
+  const conciseRequest = /(?:\b4\s*baris\b|\bempat\s*baris\b|pendek|ringkas|short caption)/i.test(form.brief)
+    || (form.brief.trim().length > 0 && form.brief.trim().length <= 180 && !/panjang|detail|long caption/i.test(form.brief))
   const buildLanguage = (language, targetMin = 9, maxLines = 13) => {
     const pieces = [selectOpener(language)]
     const productPool = productLines[language]
@@ -496,6 +498,18 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
       .replace(/SOURCE CAPTION \([^)]*\):\s*/gi, '')
       .replace(/VOICE LOCK:\s*[^\n]+/gi, '')
     const facts = splitVerifiedFacts(cleanBrief, language === 'en' ? 'English' : form.language).map((fact) => expandFactLine(fact, language))
+    if (conciseRequest && language === 'bm') {
+      const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
+        .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
+        .split(/[–—-]/)[0].trim() || 'Yang ni'
+      const factLine = facts.slice(0, 2).join(', ').replace(/\s+,/g, ',').replace(/\.$/, '')
+      return [
+        `${subject} ni simple, tapi banyak guna dia.`,
+        factLine ? `${sentenceCase(factLine)}.` : 'Boleh guna ikut keperluan ruang kamu.',
+        'Kalau mau jadikan decoration pun ngam juga masuk ruang.',
+        'Satu piece yang praktikal, tapi tetap sedap mata memandang.',
+      ].slice(0, maxLines).join('\n')
+    }
     pieces.push(...facts)
     const support = bruttiSupportLines[language][form.type] || bruttiSupportLines[language]['Brand Awareness']
     const general = bruttiGeneralLines[language]
@@ -512,8 +526,6 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
     return [...body, selectCta(language)].slice(0, maxLines).join('\n')
   }
   const bilingualMode = form.language === 'BM + English'
-  const conciseRequest = /(?:\b4\s*baris\b|\bempat\s*baris\b|pendek|ringkas|short caption)/i.test(form.brief)
-    || (form.brief.trim().length > 0 && form.brief.trim().length <= 180 && !/panjang|detail|long caption/i.test(form.brief))
   const singleTarget = mode === 'shorten' || conciseRequest ? (conciseRequest ? 4 : 7) : 9
   const singleMaxLines = conciseRequest ? 5 : 13
   const bm = buildLanguage('bm', bilingualMode ? 6 : singleTarget, bilingualMode ? 6 : singleMaxLines)
