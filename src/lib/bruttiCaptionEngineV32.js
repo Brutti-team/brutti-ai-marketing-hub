@@ -184,7 +184,9 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
   // Short, direct briefs should stay short. This keeps the Content Studio
   // aligned with the concise Brutti Soul examples instead of expanding them
   // into the long story-first template below.
-  const conciseBrief = clean(form.brief).length <= 180 && !/(?:panjang|detail|long caption|minimum\s*\d|\d+\s*baris)/i.test(form.brief)
+  const conciseBrief = clean(form.brief).length <= 180
+    && !TECHNICAL_RE.test(form.brief)
+    && !/(?:panjang|detail|long caption|minimum\s*\d|\d+\s*baris)/i.test(form.brief)
   if (conciseBrief) {
     const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
