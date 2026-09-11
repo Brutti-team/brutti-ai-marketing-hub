@@ -227,5 +227,5 @@ export default function NotificationCenterEnhancer() {
       )
     : null
 
-  return <>{topbarPortal}{bannerPortal}</>
+  return <>{topbarPortal}</>
 }
