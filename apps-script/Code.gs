@@ -165,8 +165,8 @@ function fetchAllMetaPosts_(version, pageId, token, cursor) {
     } catch (error) { /* Restart from the beginning if the checkpoint is invalid. */ }
   }
   let pages = 0;
-  // Keep the historical window useful while avoiding thousands of per-post API calls.
-  while (path && pages < 3) {
+  // Walk several pages per sync; META_SYNC_CURSOR continues from the last page on the next run.
+  while (path && pages < 10) {
     const response = metaGraphRequest_(path, token, params);
     all.push(...(response.data || []));
     const next = response.paging && response.paging.next;
@@ -190,7 +190,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
   let path = version + '/' + encodeURIComponent(instagramUserId) + '/media';
   let params = { fields: fields, limit: '10' };
   let pages = 0;
-  while (path && pages < 3) {
+  while (path && pages < 10) {
     const response = metaGraphRequest_(path, token, params);
     posts.push(...(response.data || []));
     const next = response.paging && response.paging.next;
@@ -284,7 +284,8 @@ function metaInsightsPublic_() {
     const post = { sourceId: String(row[0] || ''), platform: String(row[1] || 'facebook'), createdTime: formatIso_(row[2]), message: String(row[3] || ''), permalink: String(row[4] || ''), format: String(row[5] || 'post'), views: numericOrNull_(row[6]), reach: numericOrNull_(row[7]), reactions: numericOrNull_(row[8]), comments: numericOrNull_(row[9]), shares: numericOrNull_(row[10]), saves: numericOrNull_(row[11]), engagement: numericOrNull_(row[12]), syncedAt: formatIso_(row[13]) };
     ['views', 'reach', 'reactions', 'comments', 'shares', 'saves', 'engagement'].forEach(key => { if (post[key] === null) unavailable[key] = true; });
     return post;
-  }).filter(hasMetaPostMetric_);
+  // Caption text remains useful for the style library even when Meta has no insight metrics for a post.
+  }).filter(post => hasMetaPostMetric_(post) || post.message);
   const rankingValue = post => post.engagement !== null ? post.engagement : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : post.views !== null ? post.views : 0;
   const rankedPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a));
   const topPosts = rankedPosts.filter(post => post.platform !== 'instagram').slice(0, 25);
