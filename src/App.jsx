@@ -165,7 +165,7 @@ function Topbar({ setOpen, workspaceActive }) {
 function PageHeader({ eyebrow, title, description, actions }) {
   return (
     <div className="page-header">
-      <div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
+      <div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1>{description ? <p className="system-copy-hidden">{description}</p> : null}</div>
       {actions ? <div className="page-actions">{actions}</div> : null}
     </div>
   )
@@ -603,11 +603,11 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <div className="form-section-head"><span>01</span><div><strong>Content direction</strong><p>Only use facts you can verify.</p></div></div>
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
         <label>Caption focus<select value={form.type} onChange={update('type')}><option value="Behind the Scenes">Storytelling / Behind the Scenes</option><option value="Product Highlight">Product Highlight</option><option value="Promotion">Promotional</option><option value="Customer Story">Customer Feedback</option></select></label>
-        <p className="field-help">Brutti Sabahan Casual ialah gaya asas. Pilihan ini hanya menentukan fokus cerita.</p>
-        <div className="style-library-status" role="status"><span className="status-dot"/><span>{styleLibraryLabel(styleProfile)}{styleProfile.count ? '. Generator guna corak ayat, panjang dan rasa bahasa sebagai rujukan.' : '. Sync Meta Insights di Analytics untuk tambah contoh caption sebenar.'}</span></div>
+        <p className="field-help system-copy-hidden">Brutti Sabahan Casual ialah gaya asas. Pilihan ini hanya menentukan fokus cerita.</p>
+        <div className="style-library-status system-copy-hidden" role="status"><span className="status-dot"/><span>{styleLibraryLabel(styleProfile)}{styleProfile.count ? '. Generator guna corak ayat, panjang dan rasa bahasa sebagai rujukan.' : '. Sync Meta Insights di Analytics untuk tambah contoh caption sebenar.'}</span></div>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label>
         <label>Verified facts + caption direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Masukkan fakta disahkan dan arahan gaya caption di sini."/></label>
-        <div className="direction-rules"><strong>Content Direction akan:</strong><span>Jangan salin ayat asal 100%.</span><span>Kekalkan nama, ukuran, jumlah dan fungsi.</span><span>Susun semula ayat ikut gaya Brutti Soul.</span></div>
+        <div className="direction-rules system-copy-hidden"><strong>Content Direction akan:</strong><span>Jangan salin ayat asal 100%.</span><span>Kekalkan nama, ukuran, jumlah dan fungsi.</span><span>Susun semula ayat ikut gaya Brutti Soul.</span></div>
         <label>Caption length<select value={form.length || 'short'} onChange={update('length')}><option value="short">4–5 baris</option><option value="full">Caption penuh</option></select></label>
         <div style={{ display: 'none' }} aria-hidden="true">{form.assetName ? <div className="selected-asset"><Icon name="image"/><span><strong>Selected visual</strong><small>{form.assetName}</small></span><button type="button" onClick={() => setForm((current) => ({...current, driveFileId:'', assetName:'', driveLink:''}))}>Remove</button></div> : null}<div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
           <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label></div>
