@@ -129,7 +129,7 @@ function referenceHook(subject, form, style, reference, variation) {
   return hooks[(variation + offset) % hooks.length]
 }
 
-function dynamicUseCase(subject, profile = {}, form = {}, variation = 0) {
+function dynamicUseCase(subject, profile = {}, variation = 0) {
   const text = profile.factualLines.join(' ')
   if (/extend|buka|luas|ramai/i.test(text)) return ['Boleh extend bila perlukan ruang untuk duduk ramai-ramai.', 'Bila ruang perlu berubah, piece ni boleh ikut keperluan.', 'Buka bila perlu, simpan kemas bila ruang mau digunakan seperti biasa.'][variation % 3]
   if (/storage|simpan|ruang letak/i.test(text)) return ['Storage dia kasi barang harian lebih senang disusun.', 'Ruang simpan di tepi bantu barang kecil tidak bersepah.', 'Ada tempat untuk simpan barang, jadi fungsi dia bukan setakat pada rupa.'][variation % 3]
@@ -257,9 +257,9 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [`${subject} brings function without making the space feel heavy.`, factLine ? sentence(factLine) : 'Built around the way the space is actually used.', 'It can stay practical while still looking right at home.', 'That balance is what makes a piece feel considered.'],
         ][variationKey]
       : [
-          [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', dynamicUseCase(subject, profile, form, 0), categoryAngle(form, style, reference, 0)],
-          [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, form, 1), categoryAngle(form, style, reference, 1)],
-          [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, form, 2), categoryAngle(form, style, reference, 2)],
+          [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', dynamicUseCase(subject, profile, 0), categoryAngle(form, style, reference, 0)],
+          [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, 1), categoryAngle(form, style, reference, 1)],
+          [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, 2), categoryAngle(form, style, reference, 2)],
         ][variationKey]
     const copy = lines.join('\n')
     return {
