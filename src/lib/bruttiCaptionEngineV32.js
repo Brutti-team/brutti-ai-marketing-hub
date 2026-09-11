@@ -22,6 +22,11 @@ function sentence(value = '') {
   return /[.!?…]$/.test(next) ? next : `${next}.`
 }
 
+function sentenceCase(value = '') {
+  const next = clean(value)
+  return next ? `${next.charAt(0).toUpperCase()}${next.slice(1)}` : ''
+}
+
 function rewriteVerifiedDetail(value = '') {
   return clean(value)
     .replace(/\s*&\s*/g, ' dan ')
@@ -145,7 +150,7 @@ function dynamicUseCase(subject, profile = {}, variation = 0) {
 
 function categoryAngle(form = {}, style = {}, reference = null, variation = 0) {
   const focus = String(form.type || '').toLowerCase()
-  if (focus.includes('behind')) return ['Ada kerja tangan dan keputusan kecil di belakang hasil yang nampak simple ni.', 'Bila nampak hasil akhir, jangan lupa ada proses sebelum dia sampai tahap ni.', 'Kami lebih suka cerita apa yang dibuat, bukan sekadar tunjuk barang siap.'][variation % 3]
+  if (focus.includes('behind')) return ['Hasil akhir dia nampak simple, tapi setiap detail tetap ada sebabnya.', 'Bila nampak hasil akhir, jangan lupa ada proses sebelum dia sampai tahap ni.', 'Kami lebih suka cerita apa yang dibuat, bukan sekadar tunjuk barang siap.'][variation % 3]
   if (focus.includes('customer')) return ['Direction dia datang dari cara ruang tu digunakan, bukan dari template yang sama untuk semua.', 'Bila keperluan sebenar jelas, senang team susun piece ikut situasi.', 'Lain ruang, lain cara guna — itu yang buat setiap project ada cerita sendiri.'][variation % 3]
   if (focus.includes('promotion')) return ['Kalau detail dia sesuai dengan keperluan kamu, boleh pertimbangkan sebagai salah satu pilihan.', 'Semak fungsi dan ukuran dulu supaya pilihan memang kena dengan ruang.', 'Tidak perlu ikut trend; pilih yang betul-betul akan digunakan.'][variation % 3]
   if (reference?.structure?.firstPerson || style.firstPerson) return ['Bagi kami, piece yang baik ialah yang terus terasa gunanya.', 'Kami suka hasil yang boleh bercakap melalui cara ia digunakan.', 'Yang penting bukan puji panjang — fungsi dia sendiri sudah cukup bercerita.'][variation % 3]
@@ -246,8 +251,8 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
       .split(/[–—-]/)[0].trim() || 'Yang ni'
-    const factLine = profile.factualLines.slice(0, 2).map((line) => line.replace(/[.!?]+$/g, '')).join(', ')
-    const polishedFactLine = rewriteVerifiedDetail(factLine)
+    const factLine = profile.factualLines.slice(0, 2).map((line) => sentenceCase(line.replace(/[.!?]+$/g, ''))).join('. ')
+    const polishedFactLine = sentenceCase(rewriteVerifiedDetail(factLine))
     const language = form.language === 'English' ? 'en' : 'bm'
     const variationKey = ([...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) + version) % 3
     const lines = language === 'en'

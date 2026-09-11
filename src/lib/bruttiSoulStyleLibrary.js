@@ -58,6 +58,24 @@ function overlap(left, right) {
   return [...a].filter((word) => b.has(word)).length / Math.max(1, Math.min(a.size, 12))
 }
 
+const SEMANTIC_GROUPS = [
+  ['kiosk', 'foldable', 'portable', 'mudah dibawa', 'event', 'setup', 'display'],
+  ['sidai', 'towel', 'sejadah', 'kain'],
+  ['storage', 'simpan', 'ruang letak', 'tepi katil'],
+  ['extend', 'buka', 'luas', 'ramai'],
+  ['decoration', 'hias', 'kemas', 'ruang'],
+]
+
+function semanticMatch(query, caption) {
+  const left = clean(query).toLowerCase()
+  const right = clean(caption).toLowerCase()
+  return SEMANTIC_GROUPS.reduce((score, group) => {
+    const queryHit = group.some((term) => left.includes(term))
+    const captionHit = group.some((term) => right.includes(term))
+    return score + (queryHit && captionHit ? 1 : 0)
+  }, 0)
+}
+
 function splitCaption(value = '') {
   return String(value || '')
     .split(/\n+|(?<=[.!?…])\s+/)
@@ -87,6 +105,8 @@ export function selectBruttiSoulReference(form = {}, brief = '') {
   const ranked = captions.map((item, index) => {
     const text = item.message.toLowerCase()
     let score = overlap(query, item.message) * 6
+    if (form.title && text.includes(String(form.title).toLowerCase())) score += 8
+    score += semanticMatch(query, item.message) * 3
     if (focus.includes('behind') && /proses|kerja|team|buat|hasil|craftsmanship|tangan/.test(text)) score += 2
     if (focus.includes('product') && /fungsi|guna|ruang|saiz|size|boleh|mudah/.test(text)) score += 2
     if (focus.includes('promotion') && /harga|promo|offer|diskaun|limited/.test(text)) score += 2
