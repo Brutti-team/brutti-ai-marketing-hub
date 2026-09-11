@@ -21,6 +21,21 @@ function sentence(value = '') {
   return /[.!?…]$/.test(next) ? next : `${next}.`
 }
 
+function rewriteVerifiedDetail(value = '') {
+  return clean(value)
+    .replace(/\s*&\s*/g, ' dan ')
+    .replace(/\bboleh guna untuk\s+/gi, 'boleh digunakan untuk ')
+    .replace(/\bsenang dibawa ke mana-mana\b/gi, 'mudah dibawa ikut keperluan')
+    .replace(/\bboleh dibuka menjadi luas bila perlu guna banyak ruang untuk\s+/gi, 'boleh dibuka bila perlukan ruang lebih untuk ')
+    .replace(/\bmau buat jadi decoration pun boleh\b/gi, 'kalau mau jadikan decoration pun ngam juga')
+    .replace(/\bjadi decoration pun ngam\b/gi, 'kalau mau jadikan decoration pun memang ngam')
+    .replace(/\bdalam bentuk\s+([A-Za-z]+)\s*size\b/gi, 'saiz $1')
+    .replace(/\b([A-Za-z]+)\s+Queen\s+size\s+dan\s+ada\s+(\d+)\s+storage\s+di\s+tepi\s+katil\b/gi, '$1 saiz Queen, dengan $2 ruang storage di tepi katil')
+    .replace(/\b([A-Za-z]+)\s+size\s+dan\s+ada\s+(\d+)\s+storage\b/gi, '$1 saiz, dengan $2 ruang storage')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 function normalizeShorthand(value = '') {
   return clean(value)
     .replace(/\bdgn\b/gi, 'dengan')
@@ -192,12 +207,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
       .split(/[–—-]/)[0].trim() || 'Yang ni'
     const factLine = profile.factualLines.slice(0, 2).join(', ').replace(/[.!?]+$/g, '')
-    const polishedFactLine = factLine
-      .replace(/\bdalam bentuk\s+([A-Za-z]+)\s*size\b/gi, 'saiz $1')
-      .replace(/\s*&\s*ada\s+(\d+)\s+storage\s+untuk\s+/gi, ', siap dengan $1 ruang storage untuk ')
-      .replace(/\b([A-Za-z]+)\s+Queen\s+size\s+dan\s+ada\s+(\d+)\s+storage\s+di\s+tepi\s+katil\b/gi, '$1 saiz Queen, dengan $2 ruang storage di tepi katil')
-      .replace(/\b([A-Za-z]+)\s+size\s+dan\s+ada\s+(\d+)\s+storage\b/gi, '$1 saiz, dengan $2 ruang storage')
-      .replace(/\s{2,}/g, ' ')
+    const polishedFactLine = rewriteVerifiedDetail(factLine)
     const language = form.language === 'English' ? 'en' : 'bm'
     const variationKey = [...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
     const lines = language === 'en'
