@@ -857,3 +857,5 @@ html[data-theme='dark'] .brutti-notification-count {
 .system-copy-hidden { display: none !important; }
 
 .analytics-stats .stat-card > div:last-child > span,.analytics-stats .stat-card > div:last-child > small { display:none !important; }
+
+.performance-dashboard-panel > .settings-copy { display: none !important; }
