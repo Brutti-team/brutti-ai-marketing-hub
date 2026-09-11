@@ -58,6 +58,27 @@ function overlap(left, right) {
   return [...a].filter((word) => b.has(word)).length / Math.max(1, Math.min(a.size, 12))
 }
 
+function splitCaption(value = '') {
+  return String(value || '')
+    .split(/\n+|(?<=[.!?…])\s+/)
+    .map(clean)
+    .filter(Boolean)
+}
+
+export function analyseBruttiSoulStructure(caption = '') {
+  const lines = splitCaption(caption)
+  const joined = lines.join(' ').toLowerCase()
+  return {
+    lineCount: lines.length,
+    firstPerson: /\b(kami|kita|saya|aku)\b/i.test(joined),
+    reflective: /\b(cerita|ingat|perjalanan|hasil kerja|proses|guna dia|penting)\b/i.test(joined),
+    practical: /\b(fungsi|guna|ruang|simpan|boleh|mudah|senang)\b/i.test(joined),
+    question: /\?/.test(joined),
+    dashHook: /[—–-]/.test(lines[0] || ''),
+    sequence: lines.map((line) => /\b(boleh|guna|fungsi|simpan|saiz|storage|mudah|senang)\b/i.test(line) ? 'fact-or-use' : /\b(kami|kita|bagi kami)\b/i.test(line) ? 'brand-reflection' : 'story').slice(0, 6),
+  }
+}
+
 export function selectBruttiSoulReference(form = {}, brief = '') {
   const captions = readCachedPosts()
   if (!captions.length) return null
@@ -72,7 +93,7 @@ export function selectBruttiSoulReference(form = {}, brief = '') {
     if (focus.includes('customer') && /client|customer|pelanggan|minta|order|datang/.test(text)) score += 2
     return { ...item, score: score - index * 0.0001 }
   }).sort((a, b) => b.score - a.score)[0]
-  return ranked || null
+  return ranked ? { ...ranked, structure: analyseBruttiSoulStructure(ranked.message) } : null
 }
 
 export function readBruttiSoulStyleProfile() {

@@ -125,24 +125,31 @@ function referenceHook(subject, form, style, reference, variation) {
       : focus.includes('promotion')
         ? [`Kalau sedang cari ${subject}, tengok dulu apa yang boleh dia bantu.`, `${subject} ni boleh jadi pilihan bila fungsi dan bajet sama-sama kena.`, `Yang ni mungkin sesuai kalau ruang kamu perlukan ${subject}.`]
         : [`${subject} ni bukan sekadar nampak kemas.`, `${subject} ni jenis piece yang terus nampak gunanya.`, `Yang ni nampak simple, tapi ada sebab kenapa ia dibuat.`]
-  const offset = reference?.message && style.firstPerson ? 1 : 0
+  const offset = reference?.structure?.dashHook ? 1 : reference?.structure?.firstPerson && style.firstPerson ? 1 : 0
   return hooks[(variation + offset) % hooks.length]
 }
 
-function referenceBridge(form, style, reference, variation) {
+function dynamicUseCase(subject, profile = {}, form = {}, variation = 0) {
+  const text = profile.factualLines.join(' ')
+  if (/extend|buka|luas|ramai/i.test(text)) return ['Boleh extend bila perlukan ruang untuk duduk ramai-ramai.', 'Bila ruang perlu berubah, piece ni boleh ikut keperluan.', 'Buka bila perlu, simpan kemas bila ruang mau digunakan seperti biasa.'][variation % 3]
+  if (/storage|simpan|ruang letak/i.test(text)) return ['Storage dia kasi barang harian lebih senang disusun.', 'Ruang simpan di tepi bantu barang kecil tidak bersepah.', 'Ada tempat untuk simpan barang, jadi fungsi dia bukan setakat pada rupa.'][variation % 3]
+  if (/sidai|towel|sejadah|kain/i.test(text)) return ['Boleh digunakan untuk sidai towel, sejadah dan kain-kain harian.', 'Untuk barang yang selalu digunakan, piece ni senang dicapai bila perlu.', 'Guna untuk barang harian pun boleh, jadikan sebahagian daripada ruang pun ngam.'][variation % 3]
+  if (/display|event|setup|indoor|outdoor|gula|jajan/i.test(text)) return ['Sesuai untuk display atau setup event ikut ruang yang diperlukan.', 'Boleh bergerak dari event indoor ke outdoor tanpa hilang fungsi dia.', 'Untuk display, barang jualan atau setup event — ikut apa yang ruang perlukan.'][variation % 3]
+  if (/decoration|hias|nampak|kemas/i.test(text)) return ['Mau guna untuk fungsi harian boleh, jadikan decoration pun ngam.', 'Rupa dia boleh ikut ruang tanpa mengganggu kegunaan utama.', 'Bila fungsi dan rupa sama-sama kena, ruang pun rasa lebih teratur.'][variation % 3]
+  return [
+    `Guna ${subject} ikut apa yang ruang kamu perlukan hari-hari.`,
+    `${subject} dibuat supaya senang masuk dalam rutin ruang kamu.`,
+    `Yang penting, fungsi ${subject} tetap jelas bila sudah digunakan.`,
+  ][variation % 3]
+}
+
+function categoryAngle(form = {}, style = {}, reference = null, variation = 0) {
   const focus = String(form.type || '').toLowerCase()
-  const bridges = focus.includes('behind')
-    ? ['Kami lagi suka bila hasil kerja boleh bercakap melalui fungsi dia.', 'Setiap keputusan kecil di belakangnya tetap ada tujuan.', 'Yang nampak simple di hujungnya biasanya datang dari proses yang teliti.']
-    : focus.includes('customer')
-      ? ['Bila detail penggunaan sudah jelas, team senang susun direction yang sesuai.', 'Idea asal tetap jadi rujukan sebelum masuk ke hasil akhir.', 'Lain ruang, lain keperluan — itu yang buat setiap piece ada cerita sendiri.']
-      : focus.includes('promotion')
-        ? ['Semak detail yang disahkan dulu supaya pilihan ikut keperluan sebenar.', 'Kalau sesuai dengan ruang kamu, boleh simpan sebagai salah satu pilihan.', 'Yang penting, fungsi dan kegunaan dia memang match dengan apa yang dicari.']
-        : [
-            style.practical ? 'Bila fungsi dan rupa sama-sama kena, ruang pun rasa lebih teratur.' : 'Bila masuk dengan ruang, piece ni senang jadi sebahagian daripada rutin harian.',
-            reference?.message?.includes('?') ? 'Cuba tengok macam mana ia boleh masuk dalam ruang kamu.' : 'Guna ikut apa yang ruang kamu perlukan hari-hari.',
-            style.reflective ? 'Bagi kami, hasil yang baik ialah yang terus terasa gunanya.' : 'Satu piece yang dibuat untuk digunakan, bukan sekadar dipandang.',
-          ]
-  return bridges[variation % bridges.length]
+  if (focus.includes('behind')) return ['Ada kerja tangan dan keputusan kecil di belakang hasil yang nampak simple ni.', 'Bila nampak hasil akhir, jangan lupa ada proses sebelum dia sampai tahap ni.', 'Kami lebih suka cerita apa yang dibuat, bukan sekadar tunjuk barang siap.'][variation % 3]
+  if (focus.includes('customer')) return ['Direction dia datang dari cara ruang tu digunakan, bukan dari template yang sama untuk semua.', 'Bila keperluan sebenar jelas, senang team susun piece ikut situasi.', 'Lain ruang, lain cara guna — itu yang buat setiap project ada cerita sendiri.'][variation % 3]
+  if (focus.includes('promotion')) return ['Kalau detail dia sesuai dengan keperluan kamu, boleh pertimbangkan sebagai salah satu pilihan.', 'Semak fungsi dan ukuran dulu supaya pilihan memang kena dengan ruang.', 'Tidak perlu ikut trend; pilih yang betul-betul akan digunakan.'][variation % 3]
+  if (reference?.structure?.firstPerson || style.firstPerson) return ['Bagi kami, piece yang baik ialah yang terus terasa gunanya.', 'Kami suka hasil yang boleh bercakap melalui cara ia digunakan.', 'Yang penting bukan puji panjang — fungsi dia sendiri sudah cukup bercerita.'][variation % 3]
+  return ['Satu piece yang dibuat untuk digunakan, bukan sekadar dipandang.', 'Benda yang praktikal biasanya paling lama tinggal dalam rutin harian.', 'Bila masuk dengan ruang, manfaat dia lebih senang nampak.'][variation % 3]
 }
 
 function customerSignals(profile = {}) {
@@ -250,9 +257,9 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [`${subject} brings function without making the space feel heavy.`, factLine ? sentence(factLine) : 'Built around the way the space is actually used.', 'It can stay practical while still looking right at home.', 'That balance is what makes a piece feel considered.'],
         ][variationKey]
       : [
-          [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', referenceBridge(form, style, reference, 0), 'Satu piece yang dibuat untuk digunakan, bukan sekadar dipandang.'],
-          [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', referenceBridge(form, style, reference, 1), 'Bila fungsi dan rupa sama-sama kena, ruang pun rasa lebih ngam.'],
-          [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', referenceBridge(form, style, reference, 2), 'Yang penting, manfaat dia terasa bila sudah masuk dalam rutin.'],
+          [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', dynamicUseCase(subject, profile, form, 0), categoryAngle(form, style, reference, 0)],
+          [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, form, 1), categoryAngle(form, style, reference, 1)],
+          [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, form, 2), categoryAngle(form, style, reference, 2)],
         ][variationKey]
     const copy = lines.join('\n')
     return {
@@ -263,7 +270,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       meta: {
         engine: 'brutti-caption-v3.2', storyPillar: 'concise-product-story', structure: 'four-line-soul', version: version + 1,
         inputKey: inputKey(form, version), factCount: profile.factualLines.length, directionCount: profile.directionLines.length,
-        technicalFactsSkipped: 0, directionMode: 'reference-mode', styleSource: style.source, styleReferenceCount: style.count, referenceUsed: Boolean(reference),
+        technicalFactsSkipped: 0, directionMode: 'reference-mode', styleSource: style.source, styleReferenceCount: style.count, referenceUsed: Boolean(reference), referenceStructure: reference?.structure?.sequence?.join('>') || 'rule-fallback',
       },
     }
   }
