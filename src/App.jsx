@@ -202,7 +202,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
         <div className="hero-content">
           <span className="hero-label"><Icon name="sparkles" size={15}/>DAILY FOCUS · {new Date().toLocaleDateString('en-MY', { weekday:'long' })}</span>
           <h2>{focusTitle}</h2>
-          <p>{focusCopy}</p>
+          <p className="system-copy-hidden">{focusCopy}</p>
           <div className="hero-buttons"><button className="button cream" onClick={newContent}>Start creating <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
         </div>
         <div className="hero-art" aria-hidden="true"><div className="art-grid"/><div className="art-card card-one"><span>01</span><strong>Verified input</strong></div><div className="art-card card-two"><span>02</span><strong>Assist draft</strong></div><div className="art-card card-three"><span>03</span><strong>Human review</strong></div><div className="art-orbit"/></div>
