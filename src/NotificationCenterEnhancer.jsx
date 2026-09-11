@@ -214,18 +214,5 @@ export default function NotificationCenterEnhancer() {
       )
     : null
 
-  const bannerPortal = bannerTarget && primaryAlert
-    ? createPortal(
-        <div className="brutti-priority-reminder" role="status">
-          <div>
-            <strong>Reminder · {primaryAlert.title}</strong>
-            <p>{primaryAlert.detail}</p>
-          </div>
-          <button type="button" onClick={() => handleSelect(primaryAlert)}>{primaryAlert.button}</button>
-        </div>,
-        bannerTarget,
-      )
-    : null
-
   return <>{topbarPortal}</>
 }
