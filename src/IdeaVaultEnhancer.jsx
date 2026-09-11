@@ -171,8 +171,10 @@ function mountVault(page) {
   eyebrow.className = 'idea-vault-eyebrow'
   eyebrow.textContent = 'Future content'
   const title = document.createElement('h2')
+  title.className = 'system-copy-hidden'
   title.textContent = 'Idea Vault'
   const description = document.createElement('p')
+  description.className = 'system-copy-hidden'
   description.textContent = 'Simpan idea yang belum ada tarikh. Ia tidak masuk Calendar sehingga kamu sendiri decide bila mahu guna.'
   headCopy.append(eyebrow, title, description)
   head.append(headCopy)

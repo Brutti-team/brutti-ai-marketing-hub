@@ -855,3 +855,5 @@ html[data-theme='dark'] .brutti-notification-count {
 
 /* Keep system guidance available to logic while keeping the customer-facing UI focused. */
 .system-copy-hidden { display: none !important; }
+
+.analytics-stats .stat-card > div:last-child > span,.analytics-stats .stat-card > div:last-child > small { display:none !important; }
