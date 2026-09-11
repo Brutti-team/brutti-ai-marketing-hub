@@ -138,8 +138,8 @@ function dynamicUseCase(subject, profile = {}, variation = 0) {
   const text = profile.factualLines.join(' ')
   if (/extend|buka|luas|ramai/i.test(text)) return ['Boleh extend bila perlukan ruang untuk duduk ramai-ramai.', 'Bila ruang perlu berubah, piece ni boleh ikut keperluan.', 'Buka bila perlu, simpan kemas bila ruang mau digunakan seperti biasa.'][variation % 3]
   if (/storage|simpan|ruang letak/i.test(text)) return ['Storage dia kasi barang harian lebih senang disusun.', 'Ruang simpan di tepi bantu barang kecil tidak bersepah.', 'Ada tempat untuk simpan barang, jadi fungsi dia bukan setakat pada rupa.'][variation % 3]
-  if (/sidai|towel|sejadah|kain/i.test(text)) return ['Boleh digunakan untuk sidai towel, sejadah dan kain-kain harian.', 'Untuk barang yang selalu digunakan, piece ni senang dicapai bila perlu.', 'Guna untuk barang harian pun boleh, jadikan sebahagian daripada ruang pun ngam.'][variation % 3]
-  if (/display|event|setup|indoor|outdoor|gula|jajan/i.test(text)) return ['Sesuai untuk display atau setup event ikut ruang yang diperlukan.', 'Boleh bergerak dari event indoor ke outdoor tanpa hilang fungsi dia.', 'Untuk display, barang jualan atau setup event — ikut apa yang ruang perlukan.'][variation % 3]
+  if (/sidai|towel|sejadah|kain/i.test(text)) return ['Barang harian pun senang dicapai bila perlu.', 'Untuk barang yang selalu digunakan, piece ni senang dicapai bila perlu.', 'Guna untuk barang harian pun boleh, jadikan sebahagian daripada ruang pun ngam.'][variation % 3]
+  if (/display|event|setup|indoor|outdoor|gula|jajan/i.test(text)) return ['Setup dia boleh ikut ruang yang kamu ada.', 'Boleh bergerak dari satu setup ke setup lain tanpa hilang fungsi dia.', 'Bila masuk dalam event, susunan barang pun lebih senang diatur.'][variation % 3]
   if (/decoration|hias|nampak|kemas/i.test(text)) return ['Mau guna untuk fungsi harian boleh, jadikan decoration pun ngam.', 'Rupa dia boleh ikut ruang tanpa mengganggu kegunaan utama.', 'Bila fungsi dan rupa sama-sama kena, ruang pun rasa lebih teratur.'][variation % 3]
   return [
     `Guna ${subject} ikut apa yang ruang kamu perlukan hari-hari.`,
