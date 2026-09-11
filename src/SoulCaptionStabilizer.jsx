@@ -37,15 +37,22 @@ function field(page, labelPrefix, selector) {
 }
 
 function readForm(page) {
+  const firstField = (prefixes, selector) => {
+    for (const prefix of prefixes) {
+      const value = field(page, prefix, selector)
+      if (value) return value
+    }
+    return null
+  }
   return {
     title: field(page, 'Content title', 'input')?.value || '',
     platform: field(page, 'Platform', 'select')?.value || 'Facebook',
-    type: field(page, 'Content type', 'select')?.value || 'Brand Awareness',
+    type: firstField(['Caption focus', 'Content type'], 'select')?.value || 'Brand Awareness',
     product: field(page, 'Product', 'select')?.value || 'General / No Product',
     language: field(page, 'Language', 'select')?.value || 'Bahasa Melayu',
     tone: field(page, 'Tone', 'select')?.value || 'Brutti Sabahan Casual',
     length: field(page, 'Caption length', 'select')?.value || 'short',
-    brief: field(page, 'Verified facts / direction', 'textarea')?.value || field(page, 'Verified facts', 'textarea')?.value || '',
+    brief: firstField(['Verified facts + caption direction', 'Verified facts / direction', 'Verified facts'], 'textarea')?.value || '',
   }
 }
 
