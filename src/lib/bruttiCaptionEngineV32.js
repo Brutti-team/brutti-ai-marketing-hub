@@ -121,6 +121,35 @@ function subjectFor(form = {}) {
   return clean(form.title) || 'project ni'
 }
 
+const IDEA_STOPWORDS = new Set('yang dan untuk dari dalam dengan bila kalau mau boleh pun ni dia ada kita kami kamu piece ruang fungsi hasil bukan tetap sudah lebih terus nampak'.split(' '))
+
+function ideaTokens(value = '') {
+  return new Set(clean(value).toLowerCase().split(/[^a-z0-9à-ÿ]+/i).filter((word) => word.length > 3 && !IDEA_STOPWORDS.has(word)))
+}
+
+function sameIdea(left, right) {
+  const a = ideaTokens(left); const b = ideaTokens(right)
+  if (!a.size || !b.size) return false
+  return [...a].filter((word) => b.has(word)).length / Math.min(a.size, b.size) >= 0.6
+}
+
+function guardRepeatedIdeas(lines = []) {
+  const alternatives = [
+    'Bila masuk ruang, manfaat dia lebih senang nampak.',
+    'Senang digunakan bila ruang betul-betul perlukan.',
+    'Benda yang dibuat dengan tujuan biasanya lebih lama tinggal.',
+  ]
+  const result = []
+  lines.forEach((line, index) => {
+    let next = clean(line)
+    if (index > 1 && result.some((previous) => sameIdea(previous, next))) {
+      next = alternatives.find((candidate) => !result.some((previous) => sameIdea(previous, candidate))) || next
+    }
+    result.push(next)
+  })
+  return result
+}
+
 function referenceHook(subject, form, style, reference, variation) {
   const focus = String(form.type || '').toLowerCase()
   const hooks = focus.includes('behind')
@@ -266,7 +295,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, 1), categoryAngle(form, style, reference, 1)],
           [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, 2), categoryAngle(form, style, reference, 2)],
         ][variationKey]
-    const copy = lines.join('\n')
+    const copy = guardRepeatedIdeas(lines).join('\n')
     return {
       copy,
       report: { pass: true, checks: [], reason: 'concise-verified-input' },
