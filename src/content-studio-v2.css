@@ -65,3 +65,25 @@
     grid-template-columns: 1fr;
   }
 }
+.style-library-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -2px 0 12px;
+  color: var(--muted, #7a857e);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.style-library-status .status-dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #b9c3bc;
+}
+
+.style-library-status:has(.status-dot) .status-dot {
+  background: #6f9b78;
+}

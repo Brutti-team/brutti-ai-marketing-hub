@@ -1,5 +1,6 @@
 import { buildBruttiCaptionV3 } from './bruttiCaptionEngineV3'
 import { lockBruttiVoice } from './bruttiVoiceQuality'
+import { readBruttiSoulStyleProfile } from './bruttiSoulStyleLibrary'
 
 const META_DIRECTION_RE = /buat caption|susun caption|gaya caption|style caption|tone|mulakan dengan|kemudian sambung|fokus(?:kan)?(?: pada| kepada)?|content direction|arah cerita|highlight|tekankan|tonjolkan|ceritakan|gunakan gaya|tulis dalam|jangan reka|jangan tambah|jangan masukkan|jangan hard sell|non-selling|objective|target audience|cta|minimum|maksimum|baris/i
 const TECHNICAL_RE = /\bmaterials?\b\s*:|\bmaterial\b|plywood|pinewood|solid wood|pallet|repurposed wood|metal|besi|kayu|mm\b|cm\b|inch|inches|\d+(?:\.\d+)?\s*[”"x×]\s*\d|thickness|ketebalan|dimension|dimensions|ukuran|vertical support|support poles?|frame size|specification|specifications|specs?\b/i
@@ -203,6 +204,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     && !TECHNICAL_RE.test(form.brief)
     && !/(?:panjang|detail|long caption|minimum\s*\d|\d+\s*baris)/i.test(form.brief)
   if (conciseBrief) {
+    const style = readBruttiSoulStyleProfile()
     const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
       .split(/[–—-]/)[0].trim() || 'Yang ni'
@@ -217,9 +219,9 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [`${subject} brings function without making the space feel heavy.`, factLine ? sentence(factLine) : 'Built around the way the space is actually used.', 'It can stay practical while still looking right at home.', 'That balance is what makes a piece feel considered.'],
         ][variationKey]
       : [
-          [`${subject} ni simple, tapi banyak guna dia.`, polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', 'Satu piece yang praktikal, tapi tetap sedap mata memandang.'],
-          [`${subject} ni jenis piece yang senang masuk dalam ruang.`, polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', 'Mau biar simple boleh, mau kasi nampak lebih hidup pun boleh.', 'Yang penting, fungsi dia tetap jalan dan ruang pun rasa ngam.'],
-          [`${subject} bukan sekadar nampak kemas — ada guna dia.`, polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', 'Bila fungsi dan rupa sama-sama kena, senang ruang rasa lebih teratur.', 'Nampak biasa, tapi manfaat dia memang terasa bila sudah digunakan.'],
+          [`${subject} ni simple, tapi banyak guna dia.`, polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', style.reflective ? 'Ada cerita dan kerja di belakang piece ni, bukan sekadar nampak siap.' : 'Kalau mau jadikan decoration pun ngam juga masuk ruang.', style.practical ? 'Yang penting, fungsi dia tetap jalan dan senang digunakan.' : 'Satu piece yang praktikal, tapi tetap sedap mata memandang.'],
+          [`${subject} ni jenis piece yang senang masuk dalam ruang.`, polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', style.casual ? 'Mau biar simple boleh, mau kasi ruang nampak lebih hidup pun boleh.' : 'Boleh disusun ikut cara ruang kamu digunakan.', 'Bila fungsi dan rupa sama-sama kena, senang ruang rasa ngam.'],
+          [`${subject} bukan sekadar nampak kemas — ada guna dia.`, polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', style.firstPerson ? 'Bagi kami, piece yang baik ialah yang terus terasa gunanya.' : 'Bila fungsi dia jelas, senang nampak kenapa piece ni dibuat.', 'Nampak biasa, tapi manfaat dia memang terasa bila sudah digunakan.'],
         ][variationKey]
     const copy = lines.join('\n')
     return {
@@ -230,7 +232,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       meta: {
         engine: 'brutti-caption-v3.2', storyPillar: 'concise-product-story', structure: 'four-line-soul', version: version + 1,
         inputKey: inputKey(form, version), factCount: profile.factualLines.length, directionCount: profile.directionLines.length,
-        technicalFactsSkipped: 0, directionMode: 'concise-soul',
+        technicalFactsSkipped: 0, directionMode: 'concise-soul', styleSource: style.source, styleReferenceCount: style.count,
       },
     }
   }

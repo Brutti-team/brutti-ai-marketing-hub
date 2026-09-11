@@ -178,5 +178,13 @@ export async function loadPublicMetaInsights() {
   let result
   try { result = JSON.parse(raw) } catch { throw new Error('Meta Insights returned an invalid response.') }
   if (!result?.ok) throw new Error(result?.error || 'Meta Insights snapshot is unavailable.')
-  return result.data || result
+  const data = result.data || result
+  try {
+    const now = new Date()
+    const cacheKey = `brutti-meta-daily-insights-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    window.localStorage.setItem(cacheKey, JSON.stringify({ data }))
+  } catch {
+    // Style learning is optional; the live snapshot remains usable.
+  }
+  return data
 }

@@ -25,6 +25,7 @@ import {
   setWorkspaceKey,
 } from './lib/googleWorkspace'
 import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
+import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 
 const navigation = [
@@ -578,6 +579,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
   const [rewriteMode, setRewriteMode] = useState('balanced')
   const [variation, setVariation] = useState(0)
   const [originalBrief, setOriginalBrief] = useState('')
+  const styleProfile = readBruttiSoulStyleProfile()
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const checks = getRuleChecks(output, form.brief, form.length)
   const rewrite = (mode, nextVariation = variation) => {
@@ -602,6 +604,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
         <label>Caption focus<select value={form.type} onChange={update('type')}><option value="Behind the Scenes">Storytelling / Behind the Scenes</option><option value="Product Highlight">Product Highlight</option><option value="Promotion">Promotional</option><option value="Customer Story">Customer Feedback</option></select></label>
         <p className="field-help">Brutti Sabahan Casual ialah gaya asas. Pilihan ini hanya menentukan fokus cerita.</p>
+        <div className="style-library-status" role="status"><span className="status-dot"/><span>{styleLibraryLabel(styleProfile)}{styleProfile.count ? '. Generator guna corak ayat, panjang dan rasa bahasa sebagai rujukan.' : '. Sync Meta Insights di Analytics untuk tambah contoh caption sebenar.'}</span></div>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label>
         <label>Verified facts + caption direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Masukkan fakta disahkan dan arahan gaya caption di sini."/></label>
         <div className="direction-rules"><strong>Content Direction akan:</strong><span>Jangan salin ayat asal 100%.</span><span>Kekalkan nama, ukuran, jumlah dan fungsi.</span><span>Susun semula ayat ikut gaya Brutti Soul.</span></div>

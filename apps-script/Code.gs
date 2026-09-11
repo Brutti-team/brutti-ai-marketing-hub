@@ -75,7 +75,7 @@ function syncMetaInsights() {
       reactions: metaCount_(post.reactions), comments: metaCount_(post.comments), shares: post.shares ? numericOrNull_(post.shares.count) : null,
       saves: metrics.post_saves, engagement: metrics.post_engaged_users, syncedAt: syncedAt
     };
-  }).filter(post => post.sourceId && hasMetaPostMetric_(post));
+  }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
   const instagramUserId = properties.getProperty('META_INSTAGRAM_USER_ID');
   if (instagramUserId) {
     const instagramPosts = fetchInstagramPosts_(version, instagramUserId, token, unavailable);
@@ -85,12 +85,20 @@ function syncMetaInsights() {
   const existingRows = sheet.getLastRow() > 1
     ? sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues()
     : [];
-  const existingById = {};
-  existingRows.forEach(row => { if (row[0]) existingById[String(row[0])] = true; });
-  const newRecords = records.filter(post => !existingById[post.sourceId]);
-  if (newRecords.length) sheet.getRange(sheet.getLastRow() + 1, 1, newRecords.length, META_POST_INSIGHTS_HEADERS.length).setValues(newRecords.map(post => [
-    post.sourceId, post.platform, post.createdTime, post.message, post.permalink, post.format, post.views, post.reach, post.reactions, post.comments, post.shares, post.saves, post.engagement, post.syncedAt
-  ]));
+  const rowById = {};
+  existingRows.forEach((row, index) => { if (row[0]) rowById[String(row[0])] = index + 2; });
+  const valuesFor = post => [
+    post.sourceId, post.platform, post.createdTime, post.message, post.permalink, post.format,
+    post.views, post.reach, post.reactions, post.comments, post.shares, post.saves,
+    post.engagement, post.syncedAt
+  ];
+  const newRecords = [];
+  records.forEach(post => {
+    const rowNumber = rowById[post.sourceId];
+    if (rowNumber) sheet.getRange(rowNumber, 1, 1, META_POST_INSIGHTS_HEADERS.length).setValues([valuesFor(post)]);
+    else newRecords.push(post);
+  });
+  if (newRecords.length) sheet.getRange(sheet.getLastRow() + 1, 1, newRecords.length, META_POST_INSIGHTS_HEADERS.length).setValues(newRecords.map(valuesFor));
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
 }
@@ -144,10 +152,11 @@ function safeMetaPostMetrics_(version, postId, token, unavailable) {
 }
 
 function fetchAllMetaPosts_(version, pageId, token, cursor) {
-  const fields = 'id,message,created_time,permalink_url,attachments{media_type,type},comments.limit(0).summary(true),reactions.limit(0).summary(true),shares';
+  // Keep each Graph API page deliberately small to avoid Meta's request-size limit.
+  const fields = 'id,message,created_time,permalink_url';
   const all = [];
   let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
-  let params = { fields: fields, limit: '100' };
+  let params = { fields: fields, limit: '10' };
   if (cursor) {
     try {
       const saved = JSON.parse(cursor);
@@ -177,8 +186,26 @@ function fetchAllMetaPosts_(version, pageId, token, cursor) {
 
 function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
   const fields = 'id,caption,media_type,permalink,timestamp,like_count,comments_count';
-  const response = metaGraphRequest_(version + '/' + encodeURIComponent(instagramUserId) + '/media', token, { fields: fields, limit: '25' });
-  return (response.data || []).map(post => {
+  const posts = [];
+  let path = version + '/' + encodeURIComponent(instagramUserId) + '/media';
+  let params = { fields: fields, limit: '10' };
+  let pages = 0;
+  while (path && pages < 3) {
+    const response = metaGraphRequest_(path, token, params);
+    posts.push(...(response.data || []));
+    const next = response.paging && response.paging.next;
+    if (!next) break;
+    const parsed = next.match(/^https:\/\/graph\.facebook\.com\/(.+?)\?(.*)$/);
+    if (!parsed) break;
+    path = parsed[1];
+    params = {};
+    parsed[2].split('&').forEach(pair => {
+      const parts = pair.split('=');
+      if (parts[0] && parts[0] !== 'access_token') params[decodeURIComponent(parts[0])] = decodeURIComponent(parts.slice(1).join('='));
+    });
+    pages += 1;
+  }
+  return posts.map(post => {
     let metrics = {};
     try { metrics = safeInstagramMetrics_(version, post.id, token, unavailable); } catch (error) { unavailable.instagram = true; }
     const reactions = numericOrNull_(post.like_count);
@@ -188,7 +215,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
       format: String(post.media_type || 'post').toLowerCase(), views: metrics.views, reach: metrics.reach, reactions: reactions, comments: comments,
       shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement, syncedAt: new Date().toISOString()
     };
-  }).filter(post => post.sourceId && hasMetaPostMetric_(post));
+  }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
 }
 
 function safeInstagramMetrics_(version, mediaId, token, unavailable) {
@@ -262,11 +289,35 @@ function metaInsightsPublic_() {
   const rankedPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a));
   const topPosts = rankedPosts.filter(post => post.platform !== 'instagram').slice(0, 25);
   const instagramTopPosts = rankedPosts.filter(post => post.platform === 'instagram').slice(0, 25);
-  const sourceUpdatedAt = topPosts.reduce((latest, post) => post.syncedAt && post.syncedAt > latest ? post.syncedAt : latest, '');
+  const sourceUpdatedAt = postList.reduce((latest, post) => post.syncedAt && post.syncedAt > latest ? post.syncedAt : latest, '');
+  const styleLibrary = rankedPosts.filter(post => post.message && post.message.trim()).map((post, index) => ({
+    rank: index + 1,
+    platform: post.platform,
+    format: post.format,
+    caption: post.message,
+    reactions: post.reactions,
+    engagement: post.engagement,
+    createdTime: post.createdTime,
+    permalink: post.permalink,
+    styleSignals: styleSignals_(post.message)
+  }));
   return {
     sourceUpdatedAt: sourceUpdatedAt || null, unavailableMetrics: Object.keys(unavailable),
     instagram: { latestReach: null, followers: null, trend: [], topPosts: instagramTopPosts },
-    facebook: { followers: null, topPosts: topPosts }
+    facebook: { followers: null, topPosts: topPosts },
+    styleLibrary: styleLibrary
+  };
+}
+
+function styleSignals_(message) {
+  const text = String(message || '').trim();
+  return {
+    lineCount: text ? text.split(/\n+/).filter(Boolean).length : 0,
+    question: /\?/.test(text),
+    firstPerson: /\b(kami|kita|saya|aku)\b/i.test(text),
+    sabahanCasual: /\b(bah|ba|kan|ndak|mau|kasi|bikin|macam|suda|pun)\b/i.test(text),
+    reflective: /\b(belajar|ingat|cerita|perjalanan|syukur|bangga|terharu|silap|salah)\b/i.test(text),
+    practical: /\b(tips?|cara|senang|boleh|guna|pilih|ruang|fungsi)\b/i.test(text)
   };
 }
 function doPost(e) {
