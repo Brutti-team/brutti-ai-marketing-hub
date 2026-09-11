@@ -138,7 +138,8 @@ function applyCaptionV32(variation = 0, attempt = 0) {
       panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
       panel.dataset.captionIntegrityGuard = 'verified-claims'
       panel.dataset.captionFinalPolish = 'single-pass'
-      panel.dataset.captionStyleMode = result.meta.directionMode === 'reference-mode' ? 'meta-reference' : 'soft-reference'
+      panel.dataset.captionStyleMode = 'soft-reference'
+      if (result.meta.directionMode === 'reference-mode') panel.dataset.captionStyleMode = 'meta-reference'
       panel.dataset.captionDirectionMode = result.meta.directionMode || 'story-first'
       panel.dataset.captionStyleReferenceCount = String(result.meta.styleReferenceCount || 0)
       panel.dataset.captionReferenceUsed = result.meta.referenceUsed ? 'true' : 'false'
