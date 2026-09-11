@@ -15,6 +15,15 @@ function clean(value = '') {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
+function preserveCaption(value = '') {
+  return String(value || '')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => clean(line))
+    .filter(Boolean)
+    .join('\n')
+}
+
 function readCachedPosts() {
   if (typeof window === 'undefined' || !window.localStorage) return []
   const posts = []
@@ -27,18 +36,47 @@ function readCachedPosts() {
       const library = Array.isArray(data?.styleLibrary) ? data.styleLibrary : []
       const fallback = [...(data?.facebook?.topPosts || []), ...(data?.instagram?.topPosts || [])]
       ;[...library, ...fallback].forEach((post) => {
-        const message = clean(post?.caption || post?.message)
-        if (message) posts.push(message)
+        const message = preserveCaption(post?.caption || post?.message)
+        if (message) posts.push({ message, platform: post?.platform || '' })
       })
     } catch {
       // A stale or partial cache should never block caption generation.
     }
   }
-  return [...new Set(posts)]
+  const unique = new Map()
+  posts.forEach((post) => { if (!unique.has(post.message)) unique.set(post.message, post) })
+  return [...unique.values()]
+}
+
+function words(value = '') {
+  return new Set(clean(value).toLowerCase().split(/[^a-z0-9à-ÿ]+/i).filter((word) => word.length > 2))
+}
+
+function overlap(left, right) {
+  const a = words(left); const b = words(right)
+  if (!a.size || !b.size) return 0
+  return [...a].filter((word) => b.has(word)).length / Math.max(1, Math.min(a.size, 12))
+}
+
+export function selectBruttiSoulReference(form = {}, brief = '') {
+  const captions = readCachedPosts()
+  if (!captions.length) return null
+  const query = `${form.title || ''} ${form.product || ''} ${brief || ''}`
+  const focus = String(form.type || '').toLowerCase()
+  const ranked = captions.map((item, index) => {
+    const text = item.message.toLowerCase()
+    let score = overlap(query, item.message) * 6
+    if (focus.includes('behind') && /proses|kerja|team|buat|hasil|craftsmanship|tangan/.test(text)) score += 2
+    if (focus.includes('product') && /fungsi|guna|ruang|saiz|size|boleh|mudah/.test(text)) score += 2
+    if (focus.includes('promotion') && /harga|promo|offer|diskaun|limited/.test(text)) score += 2
+    if (focus.includes('customer') && /client|customer|pelanggan|minta|order|datang/.test(text)) score += 2
+    return { ...item, score: score - index * 0.0001 }
+  }).sort((a, b) => b.score - a.score)[0]
+  return ranked || null
 }
 
 export function readBruttiSoulStyleProfile() {
-  const captions = readCachedPosts()
+  const captions = readCachedPosts().map((item) => item.message)
   if (!captions.length) return EMPTY_PROFILE
   const joined = captions.join(' ').toLowerCase()
   const lineCounts = captions.map((caption) => caption.split(/\n+/).filter(Boolean).length)

@@ -44,6 +44,7 @@ function readForm(page) {
     product: field(page, 'Product', 'select')?.value || 'General / No Product',
     language: field(page, 'Language', 'select')?.value || 'Bahasa Melayu',
     tone: field(page, 'Tone', 'select')?.value || 'Brutti Sabahan Casual',
+    length: field(page, 'Caption length', 'select')?.value || 'short',
     brief: field(page, 'Verified facts / direction', 'textarea')?.value || field(page, 'Verified facts', 'textarea')?.value || '',
   }
 }
@@ -130,8 +131,10 @@ function applyCaptionV32(variation = 0, attempt = 0) {
       panel.dataset.captionQualityFallback = result.fallback ? 'true' : 'false'
       panel.dataset.captionIntegrityGuard = 'verified-claims'
       panel.dataset.captionFinalPolish = 'single-pass'
-      panel.dataset.captionStyleMode = 'soft-reference'
+      panel.dataset.captionStyleMode = result.meta.directionMode === 'reference-mode' ? 'meta-reference' : 'soft-reference'
       panel.dataset.captionDirectionMode = result.meta.directionMode || 'story-first'
+      panel.dataset.captionStyleReferenceCount = String(result.meta.styleReferenceCount || 0)
+      panel.dataset.captionReferenceUsed = result.meta.referenceUsed ? 'true' : 'false'
       panel.dataset.captionTechnicalFactsSkipped = String(result.meta.technicalFactsSkipped || 0)
       panel.dataset.captionRegenerateMode = 'single-action'
     }
