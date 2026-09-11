@@ -201,6 +201,9 @@ textarea { resize: vertical; line-height: 1.6; }
 input::placeholder, textarea::placeholder { color: #aaa9a3; }
 input:focus, select:focus, textarea:focus { border-color: #98a69e; outline: 3px solid rgba(18,55,42,.06); }
 .generator-form > label, .generator-form > .two-fields { margin-bottom: 13px; }
+.field-help { margin: -7px 0 13px; color: #8e9b91; font-size: 11px; line-height: 1.45; }
+.direction-rules { display: grid; gap: 4px; margin: -5px 0 13px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--paper) 88%, var(--mint) 12%); color: #8e9b91; font-size: 11px; line-height: 1.4; }
+.direction-rules strong { color: var(--forest); font-size: 11px; }
 .two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .checkbox-row { flex-direction: row; align-items: center; gap: 8px; margin: 5px 0 15px !important; font-weight: 500; }
 .checkbox-row input { width: 15px; min-height: 15px; accent-color: var(--forest); }
