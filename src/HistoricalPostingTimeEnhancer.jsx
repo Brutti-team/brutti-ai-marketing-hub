@@ -188,13 +188,13 @@ function timingCardMarkup(timing) {
   return `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
-        <span style="display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;opacity:.72;margin-bottom:4px">Best time to post · ${timing.mode}</span>
+        <span class="system-copy-hidden" style="display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;opacity:.72;margin-bottom:4px">Best time to post · ${timing.mode}</span>
         <strong style="display:block;font-size:24px;line-height:1.1">${timing.time}</strong>
-        <span style="display:block;margin-top:4px;font-size:12px;opacity:.82">${when} · ${timingLabel} ${timing.window}</span>
+        <span class="system-copy-hidden" style="display:block;margin-top:4px;font-size:12px;opacity:.82">${when} · ${timingLabel} ${timing.window}</span>
       </div>
-      <span style="padding:6px 9px;border:1px solid currentColor;border-radius:999px;font-size:11px;opacity:.8">Confidence: ${timing.confidence}</span>
+      <span class="system-copy-hidden" style="padding:6px 9px;border:1px solid currentColor;border-radius:999px;font-size:11px;opacity:.8">Confidence: ${timing.confidence}</span>
     </div>
-    <small style="display:block;margin-top:9px;line-height:1.45;opacity:.68">Based on ${timing.reactions} historical reaction signals across ${timing.urls} Brutti-owned content URLs for ${timing.dayLabel}s. Recommendations are limited to Brutti office hours, 8:30 am–5:00 pm. Proxy only — not live Meta Insights.</small>
+    <small class="system-copy-hidden" style="display:block;margin-top:9px;line-height:1.45;opacity:.68">Based on ${timing.reactions} historical reaction signals across ${timing.urls} Brutti-owned content URLs for ${timing.dayLabel}s. Recommendations are limited to Brutti office hours, 8:30 am–5:00 pm. Proxy only — not live Meta Insights.</small>
   `
 }
 
@@ -236,7 +236,7 @@ function syncPlanModalTiming() {
     dateRow?.insertAdjacentElement('afterend', note)
   }
   const timingLabel = timing.fallback ? 'practical office-hours slot' : 'historical activity window'
-  const markup = `<strong>Recommended posting time: ${timing.time}</strong><br><span style="opacity:.7">${timing.dayLabel} ${timingLabel} ${timing.window} · limited to Brutti office hours 8:30 am–5:00 pm · ${timing.confidence} confidence · not live Meta Insights.</span>`
+  const markup = `<strong>Recommended posting time: ${timing.time}</strong><br><span class="system-copy-hidden" style="opacity:.7">${timing.dayLabel} ${timingLabel} ${timing.window} · limited to Brutti office hours 8:30 am–5:00 pm · ${timing.confidence} confidence · not live Meta Insights.</span>`
   setMarkup(note, markup)
 
   if (dateInput.dataset.smartTimingBound !== '1') {
