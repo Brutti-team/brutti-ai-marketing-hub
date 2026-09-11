@@ -551,7 +551,7 @@ function buildSmartDraft(form, mode = 'balanced', variation = 0) {
   return `${draft}${addHashtags ? `\n\n${hashtags}` : ''}`
 }
 
-function getRuleChecks(copy, verifiedFacts) {
+function getRuleChecks(copy, verifiedFacts, length = 'full') {
   const text = copy.toLowerCase()
   const facts = verifiedFacts.toLowerCase()
   const claimTerms = ['rm', '%', 'discount', 'diskaun', 'free delivery', 'penghantaran percuma', 'reach', 'views', 'followers', 'sold', 'stok terhad', 'limited stock', 'no. 1', 'terbaik']
@@ -566,7 +566,7 @@ function getRuleChecks(copy, verifiedFacts) {
     { label:'Verified facts supplied', pass:Boolean(verifiedFacts.trim()) },
     { label:'Brutti Facebook style aligned', pass:hypeFree },
     { label:'Repetition controlled', pass:repetitionControlled },
-    { label:'Caption length (7–13 lines)', pass:contentLines.length >= 7 && contentLines.length <= 13 },
+    { label:length === 'short' ? 'Caption length (4–5 lines)' : 'Caption length (7–13 lines)', pass:length === 'short' ? contentLines.length >= 4 && contentLines.length <= 5 : contentLines.length >= 7 && contentLines.length <= 13 },
     { label:'Natural Brutti CTA', pass:/hubungi|contact|mesej|message|bincang|speak with|whatsapp|roger|kasi tau|komen|share|simpan/i.test(copy) },
     { label:'Hashtags controlled (maximum 5)', pass:hashtags.length <= 5 },
     { label:'No unsupported price, promotion or KPI', pass:!unsupported },
@@ -579,7 +579,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
   const [variation, setVariation] = useState(0)
   const [originalBrief, setOriginalBrief] = useState('')
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
-  const checks = getRuleChecks(output, form.brief)
+  const checks = getRuleChecks(output, form.brief, form.length)
   const rewrite = (mode, nextVariation = variation) => {
     setRewriteMode(mode)
     setVariation(nextVariation)
@@ -1014,7 +1014,7 @@ function App() {
 
   const saveGeneratedDraft = async () => {
     if (!output) return
-    const checks = getRuleChecks(output, generator.brief)
+    const checks = getRuleChecks(output, generator.brief, generator.length)
     const passed = checks.filter((check) => !check.review).every((check) => check.pass)
     let item = { id:workspaceActive ? crypto.randomUUID() : Date.now(), title:generator.title, platform:generator.platform, type:generator.type, product:generator.product, language:generator.language, tone:generator.tone, aiReview:passed ? 'Rule Check Passed' : 'Human Review Required', stage:'Draft', updatedAt:formatTimestamp(), copy:output, driveFileId:generator.driveFileId || '', assetName:generator.assetName || '', driveLink:generator.driveLink || '' }
     try {
