@@ -600,7 +600,8 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
       <form className="generator-form" onSubmit={(event) => { event.preventDefault(); onGenerate() }}>
         <div className="form-section-head"><span>01</span><div><strong>Content direction</strong><p>Only use facts you can verify.</p></div></div>
         <label>Content title<input required value={form.title} onChange={update('title')} placeholder="e.g. KAANAGAN product highlight"/></label>
-        <label>Content type<select value={form.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option><option>Promotion</option></select></label>
+        <label>Caption focus<select value={form.type} onChange={update('type')}><option value="Behind the Scenes">Storytelling / Behind the Scenes</option><option value="Product Highlight">Product Highlight</option><option value="Promotion">Promotional</option><option value="Customer Story">Customer Feedback</option></select></label>
+        <p className="field-help">Brutti Sabahan Casual ialah gaya asas. Pilihan ini hanya menentukan fokus cerita.</p>
         <label>Product<select value={form.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label>
         <label>Verified facts / direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Write your rough sentence or add confirmed product details and campaign direction."/></label>
         <div style={{ display: 'none' }} aria-hidden="true">{form.assetName ? <div className="selected-asset"><Icon name="image"/><span><strong>Selected visual</strong><small>{form.assetName}</small></span><button type="button" onClick={() => setForm((current) => ({...current, driveFileId:'', assetName:'', driveLink:''}))}>Remove</button></div> : null}<div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
@@ -929,7 +930,7 @@ function App() {
   const [activePlan, setActivePlan] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimer = useRef(null)
-  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Brand Awareness', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
+  const [generator, setGenerator] = useState({ title:'', platform:'Facebook', type:'Behind the Scenes', product:'General / No Product', language:'Bahasa Melayu', tone:'Brutti Sabahan Casual', brief:'', includeHashtags:true, driveFileId:'', assetName:'', driveLink:'' })
   const [productData, setProductData] = useState(products)
   const [customProducts, setCustomProducts] = useStoredState('brutti-product-references-v1', [])
   const [sharedProductReferences, setSharedProductReferences] = useState([])
