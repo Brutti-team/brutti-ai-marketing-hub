@@ -16,8 +16,8 @@ function DriveRequiredPanel() {
       <div className="core7-drive-icon">G</div>
       <div>
         <span className="eyebrow">GOOGLE DRIVE REQUIRED</span>
-        <h3>Connect Drive to use approved visual assets.</h3>
-        <p>Asset cards stay hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real Brutti assets.</p>
+        <h3 className="system-copy-hidden">Connect Drive to use approved visual assets.</h3>
+        <p className="system-copy-hidden">Asset cards stay hidden while Drive is disconnected so reference names are not mistaken for usable files. Connect Google Drive from Settings to load real Brutti assets.</p>
       </div>
     </section>
   )
