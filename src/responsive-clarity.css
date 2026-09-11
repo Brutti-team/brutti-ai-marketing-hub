@@ -859,3 +859,11 @@ html[data-theme='dark'] .brutti-notification-count {
 .analytics-stats .stat-card > div:last-child > span,.analytics-stats .stat-card > div:last-child > small { display:none !important; }
 
 .performance-dashboard-panel > .settings-copy { display: none !important; }
+
+/* Refine oversized Dashboard typography on compact screens. */
+.hero-content h2 { font-size: clamp(24px, 5.8vw, 32px) !important; line-height: 1.12 !important; }
+.historical-posting-time strong { font-size: 20px !important; }
+@media (max-width: 640px) {
+  .hero-content h2 { font-size: clamp(22px, 7vw, 28px) !important; }
+  .historical-posting-time strong { font-size: 18px !important; }
+}
