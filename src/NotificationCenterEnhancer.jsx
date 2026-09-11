@@ -119,7 +119,7 @@ export default function NotificationCenterEnhancer() {
   const [readKeys, setReadKeys] = useState(() => readAlerts())
   const [open, setOpen] = useState(false)
   const [topbarTarget, setTopbarTarget] = useState(null)
-  const [bannerTarget, setBannerTarget] = useState(null)
+  const [_BANNER_TARGET, setBannerTarget] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -163,7 +163,7 @@ export default function NotificationCenterEnhancer() {
     return () => document.removeEventListener('click', close)
   }, [])
 
-  const primaryAlert = useMemo(() => alerts.find((alert) => alert.level === 'alert') || alerts[0] || null, [alerts])
+  const _PRIMARY_ALERT = useMemo(() => alerts.find((alert) => alert.level === 'alert') || alerts[0] || null, [alerts])
 
   const markRead = (alert) => {
     const next = new Set(readKeys)
