@@ -364,8 +364,10 @@ function mountControl(language) {
   eyebrow.className = 'eyebrow'
   eyebrow.textContent = language === 'bm' ? 'BAHASA APLIKASI' : 'APP LANGUAGE'
   const title = document.createElement('h3')
+  title.className = 'system-copy-hidden'
   title.textContent = language === 'bm' ? 'Bahasa Brutti AI' : 'Brutti AI language'
   const description = document.createElement('p')
+  description.className = 'system-copy-hidden'
   description.textContent = language === 'bm'
     ? 'Pilih satu bahasa untuk paparan Brutti AI. Nama produk dan kandungan yang anda tulis tidak akan diubah.'
     : 'Choose one display language for Brutti AI. Product names and content you write will not be changed.'
