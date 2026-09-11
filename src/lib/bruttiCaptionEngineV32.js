@@ -239,10 +239,10 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
       .split(/[–—-]/)[0].trim() || 'Yang ni'
-    const factLine = profile.factualLines.slice(0, 2).join(', ').replace(/[.!?]+$/g, '')
+    const factLine = profile.factualLines.slice(0, 2).map((line) => line.replace(/[.!?]+$/g, '')).join(', ')
     const polishedFactLine = rewriteVerifiedDetail(factLine)
     const language = form.language === 'English' ? 'en' : 'bm'
-    const variationKey = [...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
+    const variationKey = ([...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) + version) % 3
     const lines = language === 'en'
       ? [
           [`${subject} is simple, but it can do a lot.`, factLine ? sentence(factLine) : 'Use it according to what your space needs.', 'It can work as part of the room too, if you want something more decorative.', 'A practical piece that still feels easy on the eyes.'],
