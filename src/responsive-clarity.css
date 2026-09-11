@@ -852,3 +852,6 @@ html[data-theme='dark'] .brutti-notification-count {
   border-color: var(--ui-primary);
   background: var(--ui-primary-soft);
 }
+
+/* Keep system guidance available to logic while keeping the customer-facing UI focused. */
+.system-copy-hidden { display: none !important; }
