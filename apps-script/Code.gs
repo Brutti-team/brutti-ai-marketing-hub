@@ -4,7 +4,7 @@ const LOG_SHEET = 'Integration Log';
 const PRODUCT_SHEET = 'Product Library';
 const PRODUCT_REFERENCE_SHEET = 'Product References';
 const META_POST_INSIGHTS_SHEET = 'META_POST_INSIGHTS';
-const META_POST_INSIGHTS_HEADERS = ['Post ID', 'Platform', 'Created Time', 'Message', 'Permalink', 'Format', 'Views', 'Reach', 'Reactions', 'Comments', 'Shares', 'Saves', 'Engagement', 'Synced At'];
+const META_POST_INSIGHTS_HEADERS = ['Post ID', 'Platform', 'Created Time', 'Message', 'Permalink', 'Format', 'Views', 'Reach', 'Reactions', 'Comments', 'Shares', 'Saves', 'Engagement', 'Synced At', 'Image URL'];
 
 const BRUTTI_RESOURCE_IDS = {
   plannerSpreadsheet: '10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ',
@@ -29,7 +29,7 @@ const PLANNER_HEADERS = [
 ];
 
 const LOG_HEADERS = ['Timestamp', 'Action', 'Record ID', 'Status', 'Message', 'Actor', 'Source'];
-const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 'Dimensions', 'Colour', 'Status', 'Source'];
+const PRODUCT_HEADERS = ['ID', 'Product Name', 'Category', 'Price', 'Material', 'Dimensions', 'Colour', 'Status', 'Source', 'Image URL', 'Image Source', 'Photo Confirmed'];
 const PRODUCT_REFERENCE_HEADERS = ['ID', 'Project / Kiosk Name', 'Reference Type', 'Location / Client', 'Notes / Posting Direction', 'Drive File ID', 'Drive URL', 'Image Name', 'Updated At', 'Source'];
 
 function doGet(e) {
@@ -71,6 +71,7 @@ function syncMetaInsights() {
     return {
       sourceId: String(post.id || ''), platform: 'facebook', createdTime: post.created_time || '', message: post.message || '', permalink: post.permalink_url || '',
       format: attachment ? (attachment.media_type || attachment.type || 'post') : 'post',
+      imageUrl: attachment && attachment.media && attachment.media.image ? (attachment.media.image.src || '') : (attachment && attachment.url ? attachment.url : ''),
       views: metrics.post_video_views, reach: metrics.post_impressions_unique,
       reactions: metaCount_(post.reactions), comments: metaCount_(post.comments), shares: post.shares ? numericOrNull_(post.shares.count) : null,
       saves: metrics.post_saves, engagement: metrics.post_engaged_users, syncedAt: syncedAt
@@ -90,7 +91,7 @@ function syncMetaInsights() {
   const valuesFor = post => [
     post.sourceId, post.platform, post.createdTime, post.message, post.permalink, post.format,
     post.views, post.reach, post.reactions, post.comments, post.shares, post.saves,
-    post.engagement, post.syncedAt
+    post.engagement, post.syncedAt, post.imageUrl || ''
   ];
   const newRecords = [];
   records.forEach(post => {
@@ -153,7 +154,7 @@ function safeMetaPostMetrics_(version, postId, token, unavailable) {
 
 function fetchAllMetaPosts_(version, pageId, token, cursor) {
   // Keep each Graph API page deliberately small to avoid Meta's request-size limit.
-  const fields = 'id,message,created_time,permalink_url';
+  const fields = 'id,message,created_time,permalink_url,attachments{media_type,type,media,url}';
   const all = [];
   let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
   let params = { fields: fields, limit: '10' };
@@ -185,7 +186,7 @@ function fetchAllMetaPosts_(version, pageId, token, cursor) {
 }
 
 function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
-  const fields = 'id,caption,media_type,permalink,timestamp,like_count,comments_count';
+  const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count';
   const posts = [];
   let path = version + '/' + encodeURIComponent(instagramUserId) + '/media';
   let params = { fields: fields, limit: '10' };
@@ -212,7 +213,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
     const comments = numericOrNull_(post.comments_count);
     return {
       sourceId: String(post.id || ''), platform: 'instagram', createdTime: post.timestamp || '', message: post.caption || '', permalink: post.permalink || '',
-      format: String(post.media_type || 'post').toLowerCase(), views: metrics.views, reach: metrics.reach, reactions: reactions, comments: comments,
+      format: String(post.media_type || 'post').toLowerCase(), imageUrl: post.media_url || post.thumbnail_url || '', views: metrics.views, reach: metrics.reach, reactions: reactions, comments: comments,
       shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement, syncedAt: new Date().toISOString()
     };
   }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
@@ -281,7 +282,7 @@ function metaInsightsPublic_() {
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
   const unavailable = {};
   const postList = rows.map(row => {
-    const post = { sourceId: String(row[0] || ''), platform: String(row[1] || 'facebook'), createdTime: formatIso_(row[2]), message: String(row[3] || ''), permalink: String(row[4] || ''), format: String(row[5] || 'post'), views: numericOrNull_(row[6]), reach: numericOrNull_(row[7]), reactions: numericOrNull_(row[8]), comments: numericOrNull_(row[9]), shares: numericOrNull_(row[10]), saves: numericOrNull_(row[11]), engagement: numericOrNull_(row[12]), syncedAt: formatIso_(row[13]) };
+    const post = { sourceId: String(row[0] || ''), platform: String(row[1] || 'facebook'), createdTime: formatIso_(row[2]), message: String(row[3] || ''), permalink: String(row[4] || ''), format: String(row[5] || 'post'), views: numericOrNull_(row[6]), reach: numericOrNull_(row[7]), reactions: numericOrNull_(row[8]), comments: numericOrNull_(row[9]), shares: numericOrNull_(row[10]), saves: numericOrNull_(row[11]), engagement: numericOrNull_(row[12]), syncedAt: formatIso_(row[13]), imageUrl: String(row[14] || '') };
     ['views', 'reach', 'reactions', 'comments', 'shares', 'saves', 'engagement'].forEach(key => { if (post[key] === null) unavailable[key] = true; });
     return post;
   // Caption text remains useful for the style library even when Meta has no insight metrics for a post.
@@ -340,6 +341,8 @@ function doPost(e) {
       list_drive_assets: listDriveAssets_,
       sync_notion_products: syncNotionProducts_,
       save_product_reference: () => saveProductReference_(payload.reference),
+      suggest_product_image_matches: suggestProductImageMatches_,
+      confirm_product_image_match: () => confirmProductImageMatch_(payload.productId, payload.postId),
       delete_product_reference: () => deleteProductReference_(payload.id),
       sync_notion_planner: syncNotionPlanner_,
       sync_meta_insights: syncMetaInsights,
@@ -748,13 +751,13 @@ function contentFromValues_(row) {
 
 function productRows_(sheet) {
   if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, PRODUCT_HEADERS.length).getValues()
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, Math.max(PRODUCT_HEADERS.length, sheet.getLastColumn())).getValues()
     .filter(row => row[1])
     .map(row => ({
       id: String(row[0] || ''), name: String(row[1] || ''), category: String(row[2] || ''),
       price: String(row[3] || ''), material: String(row[4] || ''), dimensions: String(row[5] || ''),
       colour: String(row[6] || ''), status: String(row[7] || ''), sourceStatus: String(row[8] || 'Verified source'),
-      photoConfirmed: false
+      imageUrl: String(row[9] || ''), imageSource: String(row[10] || ''), photoConfirmed: String(row[11] || '').toLowerCase() === 'true' || Boolean(row[9])
     }));
 }
 
@@ -763,6 +766,36 @@ function productReferenceRows_(sheet) {
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, PRODUCT_REFERENCE_HEADERS.length).getValues()
     .filter(row => row[0] && row[1])
     .map(productReferenceFromValues_);
+}
+
+function suggestProductImageMatches_() {
+  const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_SHEET, PRODUCT_HEADERS);
+  const products = productRows_(sheet).filter(product => !product.imageUrl);
+  const posts = (metaInsightsPublic_().facebook.topPosts || []).concat(metaInsightsPublic_().instagram.topPosts || []).filter(post => post.imageUrl);
+  const tokens = value => String(value || '').toLowerCase().replace(/[^a-z0-9\u00c0-\uFFFF]+/g, ' ').split(/\s+/).filter(token => token.length > 2);
+  return { suggestions: products.map(product => {
+    const productTokens = tokens(product.name);
+    const ranked = posts.map(post => {
+      const text = tokens(post.message);
+      const overlap = productTokens.filter(token => text.indexOf(token) >= 0).length;
+      return { postId: post.sourceId, platform: post.platform, createdTime: post.createdTime, caption: post.message, imageUrl: post.imageUrl, permalink: post.permalink, score: productTokens.length ? Math.round((overlap / productTokens.length) * 100) : 0 };
+    }).sort((a, b) => b.score - a.score).slice(0, 3);
+    return { productId: product.id, productName: product.name, candidates: ranked };
+  }) };
+}
+
+function confirmProductImageMatch_(productId, postId) {
+  const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_SHEET, PRODUCT_HEADERS);
+  const rowNumber = findRow_(sheet, 1, String(productId));
+  if (!rowNumber) throw new Error('Product record was not found.');
+  const posts = (metaInsightsPublic_().facebook.topPosts || []).concat(metaInsightsPublic_().instagram.topPosts || []);
+  const post = posts.find(item => String(item.sourceId) === String(postId));
+  if (!post || !post.imageUrl) throw new Error('Meta image is not available for this post.');
+  const current = sheet.getRange(rowNumber, 1, 1, Math.max(PRODUCT_HEADERS.length, sheet.getLastColumn())).getValues()[0];
+  current[9] = post.imageUrl; current[10] = 'Meta API · manual confirmation'; current[11] = true;
+  sheet.getRange(rowNumber, 1, 1, Math.max(PRODUCT_HEADERS.length, current.length)).setValues([current]);
+  logEvent_('confirm_product_image_match', String(productId), 'Success', String(postId));
+  return { productId: String(productId), imageUrl: post.imageUrl, imageSource: current[10], photoConfirmed: true };
 }
 
 function productReferenceFromValues_(row) {
@@ -1155,3 +1188,4 @@ function formatIso_(value) {
 function json_(value) {
   return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
 }
+
