@@ -171,6 +171,14 @@ export async function deleteGoogleProductReference(id) {
   return callMarketingApi('delete_product_reference', { id: String(id) })
 }
 
+export async function suggestProductImageMatches() {
+  return callMarketingApi('suggest_product_image_matches')
+}
+
+export async function confirmProductImageMatch(productId, postId) {
+  return callMarketingApi('confirm_product_image_match', { productId: String(productId), postId: String(postId) })
+}
+
 export async function loadPublicMetaInsights() {
   if (!appsScriptUrl) throw new Error('Google Apps Script is not configured yet.')
   const response = await fetch(`${appsScriptUrl}?view=meta-insights`, { method: 'GET', redirect: 'follow' })
@@ -188,3 +196,4 @@ export async function loadPublicMetaInsights() {
   }
   return data
 }
+
