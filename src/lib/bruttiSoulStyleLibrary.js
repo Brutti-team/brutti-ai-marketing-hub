@@ -52,6 +52,13 @@ function words(value = '') {
   return new Set(clean(value).toLowerCase().split(/[^a-z0-9à-ÿ]+/i).filter((word) => word.length > 2))
 }
 
+const REFERENCE_STOPWORDS = new Set('general no product product highlight storytelling behind the scenes promotional customer feedback custom untuk dengan yang dari dan ini itu ni dia kami kamu ruang piece fungsi hasil bukan terus nampak'.split(' '))
+
+function productTerms(form = {}) {
+  return [...words(`${form.title || ''} ${form.product || ''}`)]
+    .filter((word) => !REFERENCE_STOPWORDS.has(word))
+}
+
 function overlap(left, right) {
   const a = words(left); const b = words(right)
   if (!a.size || !b.size) return 0
@@ -102,10 +109,14 @@ export function selectBruttiSoulReference(form = {}, brief = '') {
   if (!captions.length) return null
   const query = `${form.title || ''} ${form.product || ''} ${brief || ''}`
   const focus = String(form.type || '').toLowerCase()
+  const terms = productTerms(form)
   const ranked = captions.map((item, index) => {
     const text = item.message.toLowerCase()
     let score = overlap(query, item.message) * 6
     if (form.title && text.includes(String(form.title).toLowerCase())) score += 8
+    const exactProductHits = terms.filter((term) => text.includes(term)).length
+    score += exactProductHits * 4
+    if (terms.length >= 2 && exactProductHits >= 2) score += 5
     score += semanticMatch(query, item.message) * 3
     if (focus.includes('behind') && /proses|kerja|team|buat|hasil|craftsmanship|tangan/.test(text)) score += 2
     if (focus.includes('product') && /fungsi|guna|ruang|saiz|size|boleh|mudah/.test(text)) score += 2

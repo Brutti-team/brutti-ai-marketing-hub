@@ -167,8 +167,10 @@ function dynamicUseCase(subject, profile = {}, variation = 0) {
   const text = profile.factualLines.join(' ')
   if (/extend|buka|luas|ramai/i.test(text)) return ['Boleh extend bila perlukan ruang untuk duduk ramai-ramai.', 'Bila ruang perlu berubah, piece ni boleh ikut keperluan.', 'Buka bila perlu, simpan kemas bila ruang mau digunakan seperti biasa.'][variation % 3]
   if (/storage|simpan|ruang letak/i.test(text)) return ['Storage dia kasi barang harian lebih senang disusun.', 'Ruang simpan di tepi bantu barang kecil tidak bersepah.', 'Ada tempat untuk simpan barang, jadi fungsi dia bukan setakat pada rupa.'][variation % 3]
-  if (/sidai|towel|sejadah|kain/i.test(text)) return ['Barang harian pun senang dicapai bila perlu.', 'Untuk barang yang selalu digunakan, piece ni senang dicapai bila perlu.', 'Guna untuk barang harian pun boleh, jadikan sebahagian daripada ruang pun ngam.'][variation % 3]
+  if (/sidai|towel|sejadah|kain/i.test(text)) return ['Towel dan sejadah senang dicapai bila perlu.', 'Bila barang harian ada tempat sendiri, ruang pun lebih senang dijaga.', 'Guna untuk sidai barang boleh, jadikan sebahagian daripada ruang pun ngam.'][variation % 3]
+  if (/foldable|lipat|mudah dibawa|portable|kiosk/i.test(text)) return ['Bila perlu setup, kiosk ni boleh dibawa dan digunakan ikut ruang.', 'Foldable macam ni senang ikut berubahnya setup event atau ruang.', 'Simpan bila tidak digunakan, buka bila ruang perlukan fungsi dia.'][variation % 3]
   if (/display|event|setup|indoor|outdoor|gula|jajan/i.test(text)) return ['Setup dia boleh ikut ruang yang kamu ada.', 'Boleh bergerak dari satu setup ke setup lain tanpa hilang fungsi dia.', 'Bila masuk dalam event, susunan barang pun lebih senang diatur.'][variation % 3]
+  if (/panel|dinding|islam|islamic|decoration|hias|nampak|kemas/i.test(text)) return ['Panel ni bantu ruang nampak lebih tersusun tanpa hilang fungsi utama.', 'Bila detail dinding sudah kena, ruang terus rasa lebih lengkap.', 'Rupa dia jadi sebahagian daripada ruang, bukan hiasan yang berdiri sendiri.'][variation % 3]
   if (/decoration|hias|nampak|kemas/i.test(text)) return ['Mau guna untuk fungsi harian boleh, jadikan decoration pun ngam.', 'Rupa dia boleh ikut ruang tanpa mengganggu kegunaan utama.', 'Bila fungsi dan rupa sama-sama kena, ruang pun rasa lebih teratur.'][variation % 3]
   return [
     `Guna ${subject} ikut apa yang ruang kamu perlukan hari-hari.`,
@@ -182,8 +184,40 @@ function categoryAngle(form = {}, style = {}, reference = null, variation = 0) {
   if (focus.includes('behind')) return ['Hasil akhir dia nampak simple, tapi setiap detail tetap ada sebabnya.', 'Bila nampak hasil akhir, jangan lupa ada proses sebelum dia sampai tahap ni.', 'Kami lebih suka cerita apa yang dibuat, bukan sekadar tunjuk barang siap.'][variation % 3]
   if (focus.includes('customer')) return ['Direction dia datang dari cara ruang tu digunakan, bukan dari template yang sama untuk semua.', 'Bila keperluan sebenar jelas, senang team susun piece ikut situasi.', 'Lain ruang, lain cara guna — itu yang buat setiap project ada cerita sendiri.'][variation % 3]
   if (focus.includes('promotion')) return ['Kalau detail dia sesuai dengan keperluan kamu, boleh pertimbangkan sebagai salah satu pilihan.', 'Semak fungsi dan ukuran dulu supaya pilihan memang kena dengan ruang.', 'Tidak perlu ikut trend; pilih yang betul-betul akan digunakan.'][variation % 3]
-  if (reference?.structure?.firstPerson || style.firstPerson) return ['Bagi kami, piece yang baik ialah yang terus terasa gunanya.', 'Kami suka hasil yang boleh bercakap melalui cara ia digunakan.', 'Yang penting bukan puji panjang — fungsi dia sendiri sudah cukup bercerita.'][variation % 3]
+  const referenceSequence = reference?.structure?.sequence || []
+  if (referenceSequence.includes('brand-reflection') || style.firstPerson) {
+    const facts = String(form.brief || '').toLowerCase()
+    if (/foldable|kiosk|event|setup/.test(facts)) return ['Untuk setup yang selalu berubah, fungsi macam ni memang senang terasa.', 'Bila satu piece boleh ikut ruang dan keadaan, kerja setup pun lebih lancar.', 'Kiosk yang boleh digunakan semula biasanya lebih berguna daripada yang sekadar nampak siap.'][variation % 3]
+    if (/sidai|towel|sejadah|kain/.test(facts)) return ['Barang yang selalu digunakan memang patut senang dicapai.', 'Bila fungsi harian jelas, tidak perlu ayat panjang untuk faham nilainya.', 'Piece macam ni senang tinggal dalam rutin sebab kegunaan dia memang nyata.'][variation % 3]
+    if (/panel|dinding|islam|islamic/.test(facts)) return ['Bila rupa dan fungsi sama-sama kena, ruang pun rasa lebih teratur.', 'Detail pada dinding boleh ubah rasa ruang tanpa perlu berlebihan.', 'Panel yang dibuat ikut ruang akan lebih senang menyatu dengan suasana rumah.'][variation % 3]
+    return ['Kami suka hasil yang boleh bercakap melalui cara ia digunakan.', 'Yang penting bukan puji panjang — fungsi dia sendiri sudah cukup bercerita.', 'Bila masuk dalam situasi sebenar, manfaat dia lebih senang nampak.'][variation % 3]
+  }
   return ['Satu piece yang dibuat untuk digunakan, bukan sekadar dipandang.', 'Benda yang praktikal biasanya paling lama tinggal dalam rutin harian.', 'Bila masuk dengan ruang, manfaat dia lebih senang nampak.'][variation % 3]
+}
+
+function applyReferenceSequence(lines = [], reference = null, variation = 0) {
+  const sequence = reference?.structure?.sequence || []
+  if (!sequence.length) return lines
+  const roleIndexes = {
+    story: [0],
+    'fact-or-use': [1, 2],
+    'brand-reflection': [3],
+  }
+  const ordered = []
+  const used = new Set()
+  sequence.forEach((role) => {
+    const candidates = roleIndexes[role] || []
+    const index = candidates.find((candidate) => !used.has(candidate))
+    if (index === undefined || !lines[index]) return
+    used.add(index)
+    ordered.push(lines[index])
+  })
+  const remaining = lines.filter((_, index) => !used.has(index))
+  if (variation === 1 && ordered.length > 2) {
+    const first = ordered.shift()
+    ordered.splice(Math.min(1, ordered.length), 0, first)
+  }
+  return [...ordered, ...remaining].slice(0, lines.length)
 }
 
 function customerSignals(profile = {}) {
@@ -295,7 +329,8 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, 1), categoryAngle(form, style, reference, 1)],
           [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, 2), categoryAngle(form, style, reference, 2)],
         ][variationKey]
-    const copy = guardRepeatedIdeas(lines).join('\n')
+    const structuredLines = applyReferenceSequence(lines, reference, variationKey)
+    const copy = guardRepeatedIdeas(structuredLines).join('\n')
     return {
       copy,
       report: { pass: true, checks: [], reason: 'concise-verified-input' },
