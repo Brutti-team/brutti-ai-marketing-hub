@@ -31,6 +31,7 @@ function rewriteVerifiedDetail(value = '') {
   return clean(value)
     .replace(/\s*&\s*/g, ' dan ')
     .replace(/\bboleh guna untuk\s+/gi, 'boleh digunakan untuk ')
+    .replace(/\bboleh digunakan untuk jadi\s+/gi, 'boleh digunakan sebagai ')
     .replace(/\bsenang dibawa ke mana-mana\b/gi, 'mudah dibawa ikut keperluan')
     .replace(/\bboleh dibuka menjadi luas bila perlu guna banyak ruang untuk\s+/gi, 'boleh dibuka bila perlukan ruang lebih untuk ')
     .replace(/\bmau buat jadi decoration pun boleh\b/gi, 'kalau mau jadikan decoration pun ngam juga')
@@ -188,7 +189,7 @@ function categoryAngle(form = {}, style = {}, reference = null, variation = 0) {
   if (referenceSequence.includes('brand-reflection') || style.firstPerson) {
     const facts = String(form.brief || '').toLowerCase()
     if (/foldable|kiosk/.test(facts)) return ['Untuk setup yang selalu berubah, fungsi macam ni memang senang terasa.', 'Bila satu piece boleh ikut ruang dan keadaan, kerja setup pun lebih lancar.', 'Kiosk yang boleh digunakan semula biasanya lebih berguna daripada yang sekadar nampak siap.'][variation % 3]
-    if (/event|setup|birthday|gula-gula|jajan/.test(facts)) return ['Bila masuk event, fungsi dia terus nampak melalui cara ruang tu digunakan.', 'Setup boleh berubah ikut tempat dan keperluan tanpa hilang kegunaan utama.', 'Untuk event dan birthday party, detail kecil macam ni yang kasi susunan lebih senang.'][variation % 3]
+    if (/event|setup|birthday|gula-gula|jajan/.test(facts)) return ['Bila digunakan dalam event, fungsi dia terus nampak melalui cara ruang tu digunakan.', 'Setup boleh berubah ikut tempat dan keperluan tanpa hilang kegunaan utama.', 'Untuk event dan birthday party, detail kecil macam ni yang kasi susunan lebih senang.'][variation % 3]
     if (/sidai|towel|sejadah|kain/.test(facts)) return ['Barang yang selalu digunakan memang patut senang dicapai.', 'Bila fungsi harian jelas, tidak perlu ayat panjang untuk faham nilainya.', 'Piece macam ni senang tinggal dalam rutin sebab kegunaan dia memang nyata.'][variation % 3]
     if (/panel|dinding|islam|islamic/.test(facts)) return ['Bila rupa dan fungsi sama-sama kena, ruang pun rasa lebih teratur.', 'Detail pada dinding boleh ubah rasa ruang tanpa perlu berlebihan.', 'Panel yang dibuat ikut ruang akan lebih senang menyatu dengan suasana rumah.'][variation % 3]
     return ['Kami suka hasil yang boleh bercakap melalui cara ia digunakan.', 'Yang penting bukan puji panjang — fungsi dia sendiri sudah cukup bercerita.', 'Bila masuk dalam situasi sebenar, manfaat dia lebih senang nampak.'][variation % 3]
