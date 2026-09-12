@@ -25,6 +25,14 @@ export const products = productNames.map((name, index) => ({
   category: categories[index % categories.length],
   photoConfirmed: index < 10,
   sourceStatus: 'Verified name',
+  imageDataUrl: {
+    'AHTAM XL Shelving Rack': `${import.meta.env.BASE_URL}catalog-products/AHTAM-XL.jpg`,
+    'AHTAM M Shelving Rack': `${import.meta.env.BASE_URL}catalog-products/AHTAM-M.jpg`,
+    'BESPOKE RACK': `${import.meta.env.BASE_URL}catalog-products/BESPOKE-RACK.jpg`,
+    'BESPOKE RACK – Open Concept Modular Closet': `${import.meta.env.BASE_URL}catalog-products/BESPOKE-RACK.jpg`,
+    'ADUDU': `${import.meta.env.BASE_URL}catalog-products/ADUDU.jpg`,
+    'AGATANG Display Rack': `${import.meta.env.BASE_URL}catalog-products/AGATANG.jpg`,
+  }[name] || '',
 }))
 
 export const initialContent = [
@@ -139,3 +147,4 @@ export const verifiedSnapshot = [
   { label: 'Product source records', value: '88', note: '16 named previews currently embedded', icon: 'box' },
   { label: 'Marketing requests', value: '7', note: 'Verified embedded request records', icon: 'file' },
 ]
+
