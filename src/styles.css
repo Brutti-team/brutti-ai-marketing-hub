@@ -161,6 +161,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .idea-dialog h3 { margin: 7px 0 0; font-size: 22px; line-height: 1.25; }
 .idea-dialog > p { margin: 22px 0 0; color: var(--muted); line-height: 1.65; }
 .idea-dialog-meta { margin-top: 18px; padding: 15px; border-radius: 12px; background: var(--soft); }
+.image-match-panel { margin: 20px 0; }
+.image-match-panel .panel-heading { align-items: flex-start; }
+.image-suggestion-list { display: grid; gap: 10px; margin-top: 16px; }
+.image-suggestion-list article { display: grid; grid-template-columns: 1fr 72px auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.image-suggestion-list article > div { display: grid; gap: 4px; }
+.image-suggestion-list small { color: var(--muted); }
+.image-suggestion-list img { width: 72px; height: 56px; object-fit: cover; border-radius: 8px; background: var(--soft); }
+@media (max-width: 680px) { .image-suggestion-list article { grid-template-columns: 1fr 58px; } .image-suggestion-list article .button { grid-column: 1 / -1; } }
 .idea-dialog-meta p { margin: 7px 0; line-height: 1.5; }
 .idea-dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
 .recommendation-list button:first-child { border-top: 0; }
@@ -568,3 +576,4 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .app-language-control p { max-width:650px; margin:0; color:var(--muted); font-size:11px; line-height:1.55; }
 .app-language-control select { flex:0 0 210px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:inherit; font:inherit; }
 @media (max-width:650px) { .app-language-control { align-items:stretch; flex-direction:column; } .app-language-control select { flex-basis:auto; width:100%; } }
+
