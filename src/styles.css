@@ -49,13 +49,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .nav-link:hover { color: #fff; background: rgba(255,255,255,.06); }
 .nav-link.active { color: #fff; background: rgba(255,255,255,.105); box-shadow: inset 3px 0 0 var(--terracotta); }
 .nav-link.active svg { color: #efd4c7; opacity: 1; }
-.catalog-visual-panel { margin-bottom: 20px; }
-.catalog-visual-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.catalog-visual-grid article { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-.catalog-visual-grid img { display: block; width: 100%; aspect-ratio: 0.57; object-fit: cover; background: #d8d4c9; }
-.catalog-visual-grid article > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 11px; }
-.catalog-visual-grid strong { font-size: 11px; line-height: 1.25; }
-.catalog-visual-grid .text-button { white-space: nowrap; font-size: 10px; }
 .sidebar-bottom { margin-top: auto; padding: 16px 6px 2px; }
 .system-card { border: 1px solid var(--line-dark); border-radius: 12px; padding: 13px; background: rgba(255,255,255,.035); }
 .system-card-head { display: flex; align-items: center; gap: 8px; }
@@ -508,7 +501,6 @@ footer span:first-child { color: #646a66; font-weight: 700; }
   .brand-grid, .settings-grid { grid-template-columns: 1fr; }
   .colour-grid { grid-template-columns: repeat(3,1fr); }
   .product-grid, .asset-grid { grid-template-columns: repeat(2,1fr); }
-  .catalog-visual-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .prompt-grid { grid-template-columns: repeat(2,1fr); }
   .ai-banner { align-items: flex-start; }
 }
@@ -534,7 +526,6 @@ footer span:first-child { color: #646a66; font-weight: 700; }
   .generator-output { min-height: 500px; }
   .output-actions { flex-wrap: wrap; }
   .library-toolbar { align-items: stretch; flex-direction: column; }
-  .catalog-visual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .library-toolbar > select, .search-box { width: 100%; }
   .planner-summary { align-items: flex-start; flex-direction: column; gap: 11px; padding-block: 13px; }
   .week-calendar { grid-template-columns: repeat(2,1fr); }
