@@ -611,7 +611,7 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
         <label>Verified facts + caption direction<textarea required rows="5" value={form.brief} onChange={update('brief')} placeholder="Masukkan fakta disahkan dan arahan gaya caption di sini."/></label>
         <div className="direction-rules system-copy-hidden"><strong>Content Direction akan:</strong><span>Jangan salin ayat asal 100%.</span><span>Kekalkan nama, ukuran, jumlah dan fungsi.</span><span>Susun semula ayat ikut gaya Brutti Soul.</span></div>
         <label>Caption length<select value={form.length || 'short'} onChange={update('length')}><option value="short">4–5 baris</option><option value="full">Caption penuh</option></select></label>
-        <div style={{ display: 'none' }} aria-hidden="true">{form.assetName ? <div className="selected-asset"><Icon name="image"/><span><strong>Selected visual</strong><small>{form.assetName}</small></span><button type="button" onClick={() => setForm((current) => ({...current, driveFileId:'', assetName:'', driveLink:''}))}>Remove</button></div> : null}<div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
+        <div>{form.assetName ? <div className="selected-asset"><Icon name="image"/><span><strong>Selected visual</strong><small>{form.assetName}</small></span><button type="button" onClick={() => setForm((current) => ({...current, driveFileId:'', assetName:'', driveLink:''}))}>Remove</button></div> : null}<div className="brief-polish-row"><button type="button" onClick={polishBrief}><Icon name="sparkles" size={14}/>Asah ayat ikut gaya Brutti</button>{originalBrief ? <button type="button" className="undo" onClick={() => { setForm((current) => ({...current, brief:originalBrief})); setOriginalBrief(''); toast('Original wording restored.') }}>Undo</button> : null}<span>Susunan ayat dikemas, gaya Sabah dan maksud asal dikekalkan.</span></div>
           <label className="checkbox-row"><input type="checkbox" checked={form.includeHashtags} onChange={(event) => setForm((current) => ({ ...current, includeHashtags: event.target.checked }))}/><span>Include relevant hashtags</span></label></div>
         <button className="button primary wide" type="submit"><Icon name="sparkles"/>Generate free structured draft</button>
       </form>
@@ -1125,7 +1125,24 @@ function App() {
       toast('Content deleted.')
     } catch (error) { toast(error.message) }
   }
-  const useProduct = (product) => { const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; '); setGenerator((form) => ({...form, product:product.name, title:`${product.name} – Product Highlight`, type:'Product Highlight', brief:details || form.brief})); setPage('studio'); setOutput(''); window.scrollTo({top:0}) }
+  const useProduct = (product) => {
+    const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; ')
+    const visualUrl = product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
+    const visualName = visualUrl ? `${product.name} · Product Library visual` : ''
+    setGenerator((form) => ({
+      ...form,
+      product: product.name,
+      title: `${product.name} – Product Highlight`,
+      type: 'Product Highlight',
+      brief: details || form.brief,
+      assetName: visualName || form.assetName,
+      driveLink: visualUrl || form.driveLink,
+    }))
+    setPage('studio')
+    setOutput('')
+    window.scrollTo({top:0})
+    toast(visualUrl ? `${product.name} dan visual Product Library sudah disambungkan.` : `${product.name} sudah dipilih untuk draft.`)
+  }
   const useAsset = (asset) => { setGenerator((form) => ({...form, driveFileId:asset.id || '', assetName:asset.name || '', driveLink:asset.url || ''})); setPage('studio'); setOutput(''); window.scrollTo({top:0}); toast(`${asset.name} attached to the next content draft.`) }
   const usePerformanceIdea = (idea) => { const sourceCaption = String(idea.post?.message || '').trim(); const sourceBrief = [`CONTENT DIRECTION: ${idea.direction}`, `OBJECTIVE: ${idea.objective}`, `SOURCE PERFORMANCE: ${idea.source}`, `FORMAT: ${idea.format}`, sourceCaption ? `SOURCE CAPTION (preserve verified facts, improve wording; do not invent details): ${sourceCaption}` : 'SOURCE CAPTION: No caption returned; use only the verified direction above.', 'VOICE LOCK: Brutti Soul — natural Sabah Malay, warm, human, lightly conversational, never generic or over-selling.']; setGenerator((form) => ({ ...form, title: idea.title, type: idea.format.includes('pendidikan') ? 'Educational' : 'Brand Awareness', tone: 'Brutti Sabahan Casual', brief: sourceBrief.join('\n') })); setPage('studio'); setOutput(''); window.scrollTo({ top:0, behavior:'smooth' }); toast('Idea + caption asal dimuatkan ke Content Studio untuk diolah ikut Brutti Soul.'); }
   const syncProducts = async () => { setSyncingProducts(true); try { const result = await syncNotionProducts(); setProductData(result.products?.length ? result.products : productData); toast(`${result.products?.length || 0} verified products synced from Notion.`) } catch (error) { toast(error.message) } finally { setSyncingProducts(false) } }
