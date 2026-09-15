@@ -307,6 +307,9 @@ function metaInsightsPublic_() {
     sourceUpdatedAt: sourceUpdatedAt || null, unavailableMetrics: Object.keys(unavailable),
     instagram: { latestReach: null, followers: null, trend: [], topPosts: instagramTopPosts },
     facebook: { followers: null, topPosts: topPosts },
+    // Keep the complete synced post set private to the Apps Script response
+    // but available to server-side matching; the UI still receives top posts.
+    allPosts: rankedPosts,
     styleLibrary: styleLibrary
   };
 }
@@ -770,17 +773,23 @@ function productReferenceRows_(sheet) {
 
 function suggestProductImageMatches_() {
   const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_SHEET, PRODUCT_HEADERS);
-  const products = productRows_(sheet).filter(product => !product.imageUrl);
-  const posts = (metaInsightsPublic_().facebook.topPosts || []).concat(metaInsightsPublic_().instagram.topPosts || []).filter(post => post.imageUrl);
+  const snapshot = metaInsightsPublic_();
+  // A catalog/Notion image should not prevent Meta from finding a better
+  // real-post reference. Only skip products already confirmed from Meta.
+  const products = productRows_(sheet).filter(product => !/^meta api/i.test(product.imageSource || ''));
+  const posts = (snapshot.allPosts || (snapshot.facebook.topPosts || []).concat(snapshot.instagram.topPosts || [])).filter(post => post.imageUrl && post.message);
   const tokens = value => String(value || '').toLowerCase().replace(/[^a-z0-9\u00c0-\uFFFF]+/g, ' ').split(/\s+/).filter(token => token.length > 2);
   return { suggestions: products.map(product => {
     const productTokens = tokens(product.name);
     const ranked = posts.map(post => {
       const text = tokens(post.message);
       const overlap = productTokens.filter(token => text.indexOf(token) >= 0).length;
-      return { postId: post.sourceId, platform: post.platform, createdTime: post.createdTime, caption: post.message, imageUrl: post.imageUrl, permalink: post.permalink, score: productTokens.length ? Math.round((overlap / productTokens.length) * 100) : 0 };
+      const exactName = String(post.message || '').toLowerCase().indexOf(String(product.name || '').toLowerCase()) >= 0;
+      const score = productTokens.length ? Math.round((overlap / productTokens.length) * 100) : 0;
+      return { postId: post.sourceId, platform: post.platform, createdTime: post.createdTime, caption: post.message, imageUrl: post.imageUrl, permalink: post.permalink, score: exactName ? Math.max(score, 95) : score };
     }).sort((a, b) => b.score - a.score).slice(0, 3);
-    return { productId: product.id, productName: product.name, candidates: ranked };
+    const confident = ranked.filter(candidate => candidate.score > 0);
+    return { productId: product.id, productName: product.name, candidates: confident };
   }) };
 }
 
