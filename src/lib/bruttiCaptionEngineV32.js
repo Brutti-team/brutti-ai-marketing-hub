@@ -122,6 +122,21 @@ function subjectFor(form = {}) {
   return clean(form.title) || 'project ni'
 }
 
+function removeStaleSubjectFacts(form = {}, facts = []) {
+  const subject = `${form.title || ''} ${form.product || ''}`.toLowerCase()
+  let conflicts = []
+  if (/graduat|memento|kenangan|sijil/.test(subject)) {
+    conflicts = [/extend|duduk ramai|ruang lebih luas/i, /kiosk|gula-gula|jajan/i, /sidai|towel|sejadah/i]
+  } else if (/candywall/.test(subject)) {
+    conflicts = [/graduat|memento|sijil|sejadah|towel/i, /wardrobe|storage di tepi katil/i]
+  } else if (/eunoia kiosk/.test(subject)) {
+    conflicts = [/graduat|memento|sijil|towel|sejadah/i]
+  }
+  if (!conflicts.length) return { facts, removed: [] }
+  const removed = facts.filter((fact) => conflicts.some((pattern) => pattern.test(fact)))
+  return { facts: facts.filter((fact) => !conflicts.some((pattern) => pattern.test(fact))), removed }
+}
+
 const IDEA_STOPWORDS = new Set('yang dan untuk dari dalam dengan bila kalau mau boleh pun ni dia ada kita kami kamu piece ruang fungsi hasil bukan tetap sudah lebih terus nampak'.split(' '))
 
 function ideaTokens(value = '') {
@@ -297,6 +312,8 @@ function inputKey(form = {}, variation = 0) {
 export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
   const version = Math.max(0, Math.min(2, Number(variation) || 0))
   const profile = parseDirectionAwareBrief(form.brief || '', form)
+  const staleFactCheck = removeStaleSubjectFacts(form, profile.factualLines)
+  const safeProfile = { ...profile, factualLines: staleFactCheck.facts, narrativeFacts: staleFactCheck.facts.filter((line) => !TECHNICAL_RE.test(line)), technicalFacts: staleFactCheck.facts.filter((line) => TECHNICAL_RE.test(line)) }
 
   if (!clean(form.title) || !profile.factualLines.length) {
     return {
@@ -315,11 +332,11 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     && !/(?:panjang|detail|long caption|minimum\s*\d|\d+\s*baris)/i.test(form.brief)
   if (conciseBrief) {
     const style = readBruttiSoulStyleProfile()
-    const reference = selectBruttiSoulReference(form, form.brief)
+    const reference = selectBruttiSoulReference(form, safeProfile.factualLines.join('\n'))
     const subject = (form.product && form.product !== 'General / No Product' ? form.product : form.title)
       .replace(/^(behind the scene|behind the scenes|product highlight)\s*/i, '')
       .split(/[–—-]/)[0].trim() || 'Yang ni'
-    const factLine = profile.factualLines.slice(0, 2).map((line) => sentenceCase(line.replace(/[.!?]+$/g, ''))).join('. ')
+    const factLine = safeProfile.factualLines.slice(0, 2).map((line) => sentenceCase(line.replace(/[.!?]+$/g, ''))).join('. ')
     const polishedFactLine = sentenceCase(rewriteVerifiedDetail(factLine))
     const language = form.language === 'English' ? 'en' : 'bm'
     const variationKey = ([...`${subject}${factLine}`].reduce((sum, char) => sum + char.charCodeAt(0), 0) + version) % 3
@@ -330,9 +347,9 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
           [`${subject} brings function without making the space feel heavy.`, factLine ? sentence(factLine) : 'Built around the way the space is actually used.', 'It can stay practical while still looking right at home.', 'That balance is what makes a piece feel considered.'],
         ][variationKey]
       : [
-          [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', dynamicUseCase(subject, profile, 0), categoryAngle(form, style, reference, 0)],
-          [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, profile, 1), categoryAngle(form, style, reference, 1)],
-          [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, profile, 2), categoryAngle(form, style, reference, 2)],
+            [referenceHook(subject, form, style, reference, 0), polishedFactLine ? sentence(polishedFactLine) : 'Boleh guna ikut keperluan ruang kamu.', dynamicUseCase(subject, safeProfile, 0), categoryAngle(form, style, reference, 0)],
+            [referenceHook(subject, form, style, reference, 1), polishedFactLine ? sentence(polishedFactLine) : 'Guna ikut apa yang kamu perlukan hari-hari.', dynamicUseCase(subject, safeProfile, 1), categoryAngle(form, style, reference, 1)],
+            [referenceHook(subject, form, style, reference, 2), polishedFactLine ? sentence(polishedFactLine) : 'Dibuat untuk benda yang memang kamu guna.', dynamicUseCase(subject, safeProfile, 2), categoryAngle(form, style, reference, 2)],
         ][variationKey]
     const structuredLines = applyReferenceSequence(lines, reference, variationKey)
     const copy = guardRepeatedIdeas(structuredLines).join('\n')
@@ -343,14 +360,14 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
       fallback: false,
       meta: {
         engine: 'brutti-caption-v3.2', storyPillar: 'concise-product-story', structure: 'four-line-soul', version: version + 1,
-        inputKey: inputKey(form, version), factCount: profile.factualLines.length, directionCount: profile.directionLines.length,
-        technicalFactsSkipped: 0, directionMode: 'reference-mode', styleSource: style.source, styleReferenceCount: style.count, referenceUsed: Boolean(reference), referenceStructure: reference?.structure?.sequence?.join('>') || 'rule-fallback',
+        inputKey: inputKey(form, version), factCount: safeProfile.factualLines.length, directionCount: profile.directionLines.length,
+        staleFactsRemoved: staleFactCheck.removed.length, directionMode: 'reference-mode', styleSource: style.source, styleReferenceCount: style.count, referenceUsed: Boolean(reference), referenceStructure: reference?.structure?.sequence?.join('>') || 'rule-fallback',
       },
     }
   }
 
   if (profile.focus === 'customer-story') {
-    const draft = customerDraft(form, profile, version)
+    const draft = customerDraft(form, safeProfile, version)
     const guarded = lockBruttiVoice(draft, form, version)
     return {
       ...guarded,
@@ -360,7 +377,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
         structure: ['trust-led', 'idea-led', 'collaboration-led'][version],
         version: version + 1,
         inputKey: inputKey(form, version),
-        factCount: profile.factualLines.length,
+        factCount: safeProfile.factualLines.length,
         directionCount: profile.directionLines.length,
         technicalFactsSkipped: profile.explicitTechnicalFocus ? 0 : profile.technicalFacts.length,
         directionMode: 'story-first',
@@ -368,7 +385,7 @@ export function buildBruttiCaptionV32(form = {}, variation = 0, options = {}) {
     }
   }
 
-  const preparedForm = prepareBaseForm(form, profile)
+  const preparedForm = prepareBaseForm(form, safeProfile)
   const base = buildBruttiCaptionV3(preparedForm, version, options)
   return {
     ...base,
