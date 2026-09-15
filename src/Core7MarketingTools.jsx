@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-const hiddenNavigation = new Set(['Brand Library', 'AI Tools'])
+// Keep the AI prompt library reachable on every viewport. The language layer
+// can rename the item to “Alat AI” after this enhancer runs, so hiding by the
+// English label created a desktop/mobile mismatch.
+const hiddenNavigation = new Set(['Brand Library'])
 const hiddenSettingsRows = new Set(['Free AI Assist Mode', 'Meta / Facebook'])
 
 const staticSettingLabels = new Map([
