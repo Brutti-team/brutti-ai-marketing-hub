@@ -42,6 +42,30 @@ const navigation = [
   { id: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
+const catalogVisualByProduct = {
+  'AHTAM XL Shelving Rack': 'AHTAM-XL-catalog.jpg',
+  'AHTAM M Shelving Rack': 'AHTAM-M-catalog.jpg',
+  'GANTUNG Open Concept Cloth Rack': 'GANTUNG-catalog.jpg',
+  'BESPOKE RACK': 'BESPOKE-RACK-catalog.jpg',
+  'BESPOKE RACK – Open Concept Modular Closet': 'BESPOKE-RACK-catalog.jpg',
+  ADUDU: 'ADUDU-catalog.jpg',
+  'AGATANG Display Rack': 'AGATANG-catalog.jpg',
+  'PALANGKO Pastry Rack': 'PALANGKO-catalog.jpg',
+  'PUSMA Display Rack': 'PUSMA-catalog.jpg',
+  'POPO TV Console': 'POPO-catalog.jpg',
+  'SULOB Bespoke Shoe Rack': 'SULOB-catalog.jpg',
+  'TOMODON Shawl/Sampin Organizer': 'TOMODON-catalog.jpg',
+  'KAANAGAN Open Concept Wardrobe': 'KAANAGAN-catalog.jpg',
+  'KAANAGAN Open Concept Wardrobe with Drawers': 'KAANAGAN-DRAWERS-catalog.jpg',
+  'KOTAK Modular Storage': 'KOTAK-catalog.jpg',
+  'SUSUN Display Shelf': 'SUSUN-catalog.jpg',
+}
+
+const catalogVisualFor = (name = '') => {
+  const file = catalogVisualByProduct[name]
+  return file ? `${import.meta.env.BASE_URL}catalog-products/${file}` : ''
+}
+
 const stageClass = (value = '') => value.toLowerCase().replaceAll(' ', '-').replaceAll('/', '-')
 
 function useStoredState(key, fallback) {
@@ -777,7 +801,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
       {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions"><span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : 'Connect Google Workspace to save a shared team reference.'}</span><div><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : reference.id ? 'Save changes' : 'Save reference'}</button></div></div></form></section> : null}
       <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar untuk produk tanpa foto</h3><p className="settings-copy">Meta API ambil gambar post sahaja. Sahkan secara manual sebelum gambar disimpan ke Product Library.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{imageSuggestions.length ? <div className="image-suggestion-list">{imageSuggestions.filter((item) => !productData.find((product) => product.id === item.productId)?.photoConfirmed).map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · padanan ${candidate.score}%` : 'Tiada cadangan yakin'}</small></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : <span className="settings-copy">Tiada padanan sesuai.</span>}</article>})}</div> : <p className="settings-copy">Tekan “Cari padanan Meta” untuk melihat cadangan bagi produk yang masih tiada gambar.</p>}</section>
       <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
-      <div className="product-grid">{visible.map((product,index) => { const image = confirmedImages[product.id] || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}>{image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div className="furniture-shape"><span/><span/><span/></div>}<span className="photo-status">{image ? 'Photo confirmed' : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
+      <div className="product-grid">{visible.map((product,index) => { const image = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name}><div className={`product-visual visual-${index % 5}`}>{image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : <div className="furniture-shape"><span/><span/><span/></div>}<span className="photo-status">{image ? (catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed') : product.sourceStatus || 'Verified source'}</span></div><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
     </div>
   )
@@ -1127,7 +1151,7 @@ function App() {
   }
   const useProduct = (product) => {
     const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; ')
-    const visualUrl = product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
+    const visualUrl = catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
     const visualName = visualUrl ? `${product.name} · Product Library visual` : ''
     setGenerator((form) => ({
       ...form,
