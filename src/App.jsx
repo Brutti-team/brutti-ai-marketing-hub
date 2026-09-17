@@ -236,6 +236,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
       ? `${dailyFocusIdea.source}. ${dailyFocusIdea.direction}`
     : 'Choose a verified product, customer need or BRUTTI story, then generate a draft and send it through human review.'
   const focusAction = nextPlan || !dailyFocusIdea ? newContent : () => onUseIdea(dailyFocusIdea)
+  const focusSuggestedTime = dailyFocusIdea?.post?.measuredAt ? new Date(dailyFocusIdea.post.measuredAt).toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit' }) : '12:00 pm'
   return (
     <div className="page dashboard-page">
       <PageHeader eyebrow="MARKETING CONTROL CENTRE" title={`${greeting}, Michelle.`} description="Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with Assist</button>} />
@@ -243,9 +244,10 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
       <section className="hero-panel">
         <div className="hero-content">
           <span className="hero-label"><Icon name="sparkles" size={15}/>DAILY FOCUS · {new Date().toLocaleDateString('en-MY', { weekday:'long' })}</span>
-          <h2>{focusTitle}</h2>
+          <h2 className="hero-focus-compact">Daily suggestion ready</h2>
+          <p className="hero-focus-preview">{focusTitle}</p>
           <p className="system-copy-hidden">{focusCopy}</p>
-          <div className="hero-buttons"><button className="button cream" onClick={focusAction}>{dailyFocusIdea && !nextPlan ? 'Open recommendation' : 'Start creating'} <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
+          <div className="hero-buttons"><button className="button cream" onClick={() => dailyFocusIdea && !nextPlan ? setSelectedIdea(dailyFocusIdea) : focusAction()}>{dailyFocusIdea && !nextPlan ? 'View topic & time' : 'Start creating'} <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
         </div>
         <div className="hero-art" aria-hidden="true"><div className="art-grid"/><div className="art-card card-one"><span>01</span><strong>Verified input</strong></div><div className="art-card card-two"><span>02</span><strong>Assist draft</strong></div><div className="art-card card-three"><span>03</span><strong>Human review</strong></div><div className="art-orbit"/></div>
       </section>
@@ -269,7 +271,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
         </section>
       </div>
 
-      {selectedIdea ? <div className="idea-overlay" role="dialog" aria-modal="true" aria-label="Full recommendation"><div className="idea-dialog"><div className="idea-dialog-head"><div><span className="eyebrow">FULL POST DIRECTION</span><h3>{selectedIdea.title}</h3></div><button className="icon-button" onClick={() => setSelectedIdea(null)} aria-label="Close"><Icon name="close"/></button></div><p className="system-copy-hidden">{selectedIdea.description}</p><div className="idea-dialog-meta"><p><b>Tarikh posting:</b> {selectedIdea.post?.measuredAt ? new Date(selectedIdea.post.measuredAt).toLocaleString('ms-MY') : 'Tarikh tidak tersedia'}</p><p><b>Platform:</b> {selectedIdea.post?.platform === 'instagram' ? 'Instagram' : 'Facebook'}</p><p><b>Caption penuh:</b></p><p className="idea-caption-full">{selectedIdea.post?.caption || selectedIdea.post?.message || 'Caption penuh belum dipulangkan oleh Meta untuk post ini.'}</p></div><div className="idea-dialog-actions"><button className="button secondary" onClick={() => setSelectedIdea(null)}>Close</button><button className="button primary" onClick={() => { onUseIdea(selectedIdea); setSelectedIdea(null) }}>Open in Content Studio <Icon name="arrow" size={15}/></button></div></div></div> : null}
+      {selectedIdea ? <div className="idea-overlay" role="dialog" aria-modal="true" aria-label="Full recommendation"><div className="idea-dialog"><div className="idea-dialog-head"><div><span className="eyebrow">FULL POST DIRECTION</span><h3>{selectedIdea.title}</h3></div><button className="icon-button" onClick={() => setSelectedIdea(null)} aria-label="Close"><Icon name="close"/></button></div><p className="system-copy-hidden">{selectedIdea.description}</p><div className="idea-dialog-meta"><p><b>Cadangan jam posting:</b> {selectedIdea.post?.measuredAt ? new Date(selectedIdea.post.measuredAt).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' }) : focusSuggestedTime}</p><p><b>Tarikh rujukan:</b> {selectedIdea.post?.measuredAt ? new Date(selectedIdea.post.measuredAt).toLocaleDateString('ms-MY') : 'Tarikh tidak tersedia'}</p><p><b>Platform:</b> {selectedIdea.post?.platform === 'instagram' ? 'Instagram' : 'Facebook'}</p><p><b>Caption penuh:</b></p><p className="idea-caption-full">{selectedIdea.post?.caption || selectedIdea.post?.message || 'Caption penuh belum dipulangkan oleh Meta untuk post ini.'}</p></div><div className="idea-dialog-actions"><button className="button secondary" onClick={() => setSelectedIdea(null)}>Close</button><button className="button primary" onClick={() => { onUseIdea(selectedIdea); setSelectedIdea(null) }}>Open in Content Studio <Icon name="arrow" size={15}/></button></div></div></div> : null}
 
       <section className="panel upcoming-panel">
         <div className="panel-heading"><div><span className="eyebrow">UPCOMING</span><h3>Next planned content</h3></div><button className="text-button" onClick={() => navigate('planner')}>Manage planner <Icon name="arrow" size={15}/></button></div>
