@@ -220,16 +220,22 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   const [syncingMeta, setSyncingMeta] = useState(false)
   const [selectedIdea, setSelectedIdea] = useState(null)
   const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
+  const dailyFocusIdea = dashboardIdeas[0]
   const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
   useEffect(() => { syncDashboardMeta() }, [syncDashboardMeta])
   const nextPlan = todayPlans[0] || upcoming[0]
   const greeting = greetingForNow()
   const focusTitle = nextPlan
     ? `${nextPlan.title} is ${nextPlan.date === today ? 'on today’s plan' : 'the next planned content'}.`
+    : dailyFocusIdea
+      ? dailyFocusIdea.title
     : 'Today is open — build one useful Facebook story from verified facts.'
   const focusCopy = nextPlan
     ? `${nextPlan.type} · ${nextPlan.product || 'General / No Product'} · ${nextPlan.status}. Open the planner or start a matching draft when the source details are ready.`
+    : dailyFocusIdea
+      ? `${dailyFocusIdea.source}. ${dailyFocusIdea.direction}`
     : 'Choose a verified product, customer need or BRUTTI story, then generate a draft and send it through human review.'
+  const focusAction = nextPlan || !dailyFocusIdea ? newContent : () => onUseIdea(dailyFocusIdea)
   return (
     <div className="page dashboard-page">
       <PageHeader eyebrow="MARKETING CONTROL CENTRE" title={`${greeting}, Michelle.`} description="Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with Assist</button>} />
@@ -239,7 +245,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
           <span className="hero-label"><Icon name="sparkles" size={15}/>DAILY FOCUS · {new Date().toLocaleDateString('en-MY', { weekday:'long' })}</span>
           <h2>{focusTitle}</h2>
           <p className="system-copy-hidden">{focusCopy}</p>
-          <div className="hero-buttons"><button className="button cream" onClick={newContent}>Start creating <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
+          <div className="hero-buttons"><button className="button cream" onClick={focusAction}>{dailyFocusIdea && !nextPlan ? 'Open recommendation' : 'Start creating'} <Icon name="arrow"/></button><button className="button ghost-light" onClick={() => navigate('planner')}>Open planner</button></div>
         </div>
         <div className="hero-art" aria-hidden="true"><div className="art-grid"/><div className="art-card card-one"><span>01</span><strong>Verified input</strong></div><div className="art-card card-two"><span>02</span><strong>Assist draft</strong></div><div className="art-card card-three"><span>03</span><strong>Human review</strong></div><div className="art-orbit"/></div>
       </section>
@@ -851,7 +857,7 @@ function performanceIdeasFromInsights(insights) {
   const angles = ['before/after atau transformasi ruang', 'soalan pilihan yang mengundang komen', 'tip praktikal yang boleh disimpan dan dikongsi']
   // Rotate through the historical winners by calendar day so the daily panel
   // does not repeat the same three posts every time it is refreshed.
-  const daySeed = Math.floor(Date.now() / 86400000)
+  const daySeed = Number(localDateKey().replace(/-/g, ''))
   const start = ranked.length > angles.length ? daySeed % ranked.length : 0
   const selected = angles.map((_, index) => ranked[(start + index) % ranked.length])
   return angles.map((angle, index) => {
