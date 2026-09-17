@@ -44,7 +44,7 @@ function normalisePosts(data) {
     item.interactions = engagement ?? ([reactions, comments, shares, saves].some((value) => value !== null) ? [reactions, comments, shares, saves].reduce((total, value) => total + (value || 0), 0) : null)
     if ([item.views, item.reach, item.viewers, item.interactions].some((value) => value !== null)) unique.set(sourceId, item)
   })
-  return [...unique.values()].sort((a, b) => (b.interactions ?? -1) - (a.interactions ?? -1) || new Date(b.createdTime || 0) - new Date(a.createdTime || 0))
+  return [...unique.values()].sort((a, b) => new Date(a.createdTime || 0) - new Date(b.createdTime || 0) || (b.interactions ?? -1) - (a.interactions ?? -1))
 }
 
 function PostDetail({ post, onClose }) {
