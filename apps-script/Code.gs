@@ -59,7 +59,14 @@ function syncMetaInsights() {
   if (!pageId || !token) throw new Error('Set META_PAGE_ID and META_PAGE_ACCESS_TOKEN in Apps Script Properties first.');
   const unavailable = {};
   const cursor = properties.getProperty('META_SYNC_CURSOR') || '';
-  const sync = fetchAllMetaPosts_(version, pageId, token, cursor);
+  let sync;
+  try {
+    sync = fetchAllMetaPosts_(version, pageId, token, cursor);
+  } catch (error) {
+    const message = String(error && error.message || 'Meta sync failed.').replace(/access_token=[^&\s]+/gi, 'access_token=[hidden]').substring(0, 240);
+    saveMetaTokenHealth_({ status: /expired|invalid|token|session|oauth|permission|210/i.test(message) ? 'expired_or_invalid' : 'error', checkedAt: new Date().toISOString(), pageId: pageId, message: message });
+    throw error;
+  }
   const posts = sync.posts;
   if (sync.nextCursor) properties.setProperty('META_SYNC_CURSOR', sync.nextCursor);
   else properties.deleteProperty('META_SYNC_CURSOR');
@@ -101,7 +108,32 @@ function syncMetaInsights() {
   });
   if (newRecords.length) sheet.getRange(sheet.getLastRow() + 1, 1, newRecords.length, META_POST_INSIGHTS_HEADERS.length).setValues(newRecords.map(valuesFor));
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
+  saveMetaTokenHealth_({ status: 'valid', checkedAt: syncedAt, pageId: pageId, message: 'Token accepted by Meta Graph API.' });
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
+}
+
+function checkMetaTokenHealth() {
+  const properties = scriptProperties_();
+  const pageId = properties.getProperty('META_PAGE_ID');
+  const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
+  const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
+  if (!pageId || !token) {
+    const result = { status: 'not_configured', checkedAt: new Date().toISOString(), pageId: pageId || '', message: 'META_PAGE_ID or META_PAGE_ACCESS_TOKEN is missing.' };
+    saveMetaTokenHealth_(result); return result;
+  }
+  try {
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(pageId), token, { fields: 'id,name' });
+    const result = { status: 'valid', checkedAt: new Date().toISOString(), pageId: String(data.id || pageId), pageName: String(data.name || ''), message: 'Token accepted by Meta Graph API.' };
+    saveMetaTokenHealth_(result); return result;
+  } catch (error) {
+    const message = String(error && error.message || 'Meta token check failed.').replace(/access_token=[^&\s]+/gi, 'access_token=[hidden]').substring(0, 240);
+    const result = { status: /expired|invalid|token|session|oauth|permission|210/i.test(message) ? 'expired_or_invalid' : 'error', checkedAt: new Date().toISOString(), pageId: pageId, message: message };
+    saveMetaTokenHealth_(result); return result;
+  }
+}
+
+function saveMetaTokenHealth_(result) {
+  scriptProperties_().setProperty('META_TOKEN_HEALTH', JSON.stringify({ status: String(result.status || 'unknown'), checkedAt: String(result.checkedAt || new Date().toISOString()), pageId: String(result.pageId || ''), pageName: String(result.pageName || ''), message: String(result.message || '') }));
 }
 
 function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
@@ -238,10 +270,14 @@ function safeInstagramMetrics_(version, mediaId, token, unavailable) {
 // Run once from Apps Script after Script Properties are set. The trigger uses
 // the project's configured timezone and keeps Meta requests off GitHub Pages.
 function installDailyMetaInsightsSync() {
+  installScheduledMetaSync();
+}
+
+function installScheduledMetaSync() {
   ScriptApp.getProjectTriggers().forEach(trigger => {
-    if (trigger.getHandlerFunction() === 'syncMetaInsights') ScriptApp.deleteTrigger(trigger);
+    if (['syncMetaInsights', 'checkMetaTokenHealth'].indexOf(trigger.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(trigger);
   });
-  ScriptApp.newTrigger('syncMetaInsights').timeBased().everyDays(1).atHour(7).create();
+  ScriptApp.newTrigger('syncMetaInsights').timeBased().everyHours(6).create();
 }
 
 function ensureMetaPostInsightsSheet_() {
@@ -278,7 +314,8 @@ function metaGraphRequest_(path, token, params) {
 function metaInsightsPublic_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
   const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
-  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
+  const tokenHealth = readMetaTokenHealth_();
+  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, syncedPostCount: 0, tokenHealth: tokenHealth, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
   const unavailable = {};
   const postList = rows.map(row => {
@@ -304,7 +341,7 @@ function metaInsightsPublic_() {
     styleSignals: styleSignals_(post.message)
   }));
   return {
-    sourceUpdatedAt: sourceUpdatedAt || null, unavailableMetrics: Object.keys(unavailable),
+    sourceUpdatedAt: sourceUpdatedAt || null, syncedPostCount: rankedPosts.length, tokenHealth: tokenHealth, unavailableMetrics: Object.keys(unavailable),
     instagram: { latestReach: null, followers: null, trend: [], topPosts: instagramTopPosts },
     facebook: { followers: null, topPosts: topPosts },
     // Keep the complete synced post set private to the Apps Script response
@@ -349,6 +386,7 @@ function doPost(e) {
       delete_product_reference: () => deleteProductReference_(payload.id),
       sync_notion_planner: syncNotionPlanner_,
       sync_meta_insights: syncMetaInsights,
+      check_meta_token_health: checkMetaTokenHealth,
       publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); }
     };
     if (!handlers[action]) throw new Error('Unsupported action: ' + action);
@@ -769,6 +807,15 @@ function productReferenceRows_(sheet) {
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, PRODUCT_REFERENCE_HEADERS.length).getValues()
     .filter(row => row[0] && row[1])
     .map(productReferenceFromValues_);
+}
+
+function readMetaTokenHealth_() {
+  try {
+    const raw = scriptProperties_().getProperty('META_TOKEN_HEALTH');
+    return raw ? JSON.parse(raw) : { status: 'not_checked', checkedAt: null, pageId: '', pageName: '', message: 'Token health has not been checked yet.' };
+  } catch (error) {
+    return { status: 'not_checked', checkedAt: null, pageId: '', pageName: '', message: 'Token health has not been checked yet.' };
+  }
 }
 
 function suggestProductImageMatches_() {
