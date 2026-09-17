@@ -190,9 +190,11 @@ export async function loadPublicMetaInsights() {
   try {
     const now = new Date()
     const cacheKey = `brutti-meta-daily-insights-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    window.localStorage.setItem(cacheKey, JSON.stringify({ data }))
+    const compact = { sourceUpdatedAt: data.sourceUpdatedAt || null, syncedPostCount: data.syncedPostCount || 0, tokenHealth: data.tokenHealth || null, facebook: { topPosts: (data.facebook?.topPosts || []).slice(0, 8) }, instagram: { topPosts: (data.instagram?.topPosts || []).slice(0, 8) }, styleLibrary: (data.styleLibrary || []).slice(0, 20) }
+    Object.keys(window.localStorage).filter((key) => key.startsWith('brutti-meta-daily-insights-') && key !== cacheKey).forEach((key) => window.localStorage.removeItem(key))
+    window.localStorage.setItem(cacheKey, JSON.stringify({ data: compact }))
   } catch {
-    // Style learning is optional; the live snapshot remains usable.
+    // Browser quota is optional; the live snapshot remains usable.
   }
   return data
 }
