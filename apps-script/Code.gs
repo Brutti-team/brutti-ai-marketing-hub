@@ -280,6 +280,17 @@ function installScheduledMetaSync() {
   ScriptApp.newTrigger('syncMetaInsights').timeBased().everyHours(6).create();
 }
 
+// Pull older Meta posts in safe batches. Run this after replacing the Page
+// token; repeat until cursorRemaining is false. Each run stays below Apps
+// Script execution limits and reuses META_SYNC_CURSOR between runs.
+function backfillMetaInsights() {
+  const properties = scriptProperties_();
+  const before = properties.getProperty('META_SYNC_CURSOR') || '';
+  const result = syncMetaInsights();
+  const after = properties.getProperty('META_SYNC_CURSOR') || '';
+  return { postsSyncedThisRun: result.posts || 0, syncedAt: result.syncedAt, cursorRemaining: Boolean(after), startedWithCursor: Boolean(before), message: after ? 'Run again to continue older posts.' : 'Historical backfill reached the oldest available post.' };
+}
+
 function ensureMetaPostInsightsSheet_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
   const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET) || spreadsheet.insertSheet(META_POST_INSIGHTS_SHEET);
