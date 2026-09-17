@@ -337,8 +337,8 @@ function metaInsightsPublic_() {
   }).filter(post => hasMetaPostMetric_(post) || post.message);
   const rankingValue = post => post.engagement !== null ? post.engagement : post.reach !== null ? post.reach : post.reactions !== null ? post.reactions : post.views !== null ? post.views : 0;
   const rankedPosts = postList.sort((a, b) => rankingValue(b) - rankingValue(a));
-  const topPosts = rankedPosts.filter(post => post.platform !== 'instagram').slice(0, 25);
-  const instagramTopPosts = rankedPosts.filter(post => post.platform === 'instagram').slice(0, 25);
+  const topPosts = rankedPosts.filter(post => post.platform !== 'instagram');
+  const instagramTopPosts = rankedPosts.filter(post => post.platform === 'instagram');
   const sourceUpdatedAt = postList.reduce((latest, post) => post.syncedAt && post.syncedAt > latest ? post.syncedAt : latest, '');
   const styleLibrary = rankedPosts.filter(post => post.message && post.message.trim()).map((post, index) => ({
     rank: index + 1,
