@@ -105,6 +105,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .hero-content p { max-width: 650px; color: rgba(255,255,255,.63); font-size: 12px; line-height: 1.7; margin: 0; }
 .hero-content h2.hero-focus-compact { margin-bottom: 8px; font-size: clamp(24px,2.4vw,32px); }
 .hero-focus-preview { max-width: 650px; margin: 0; color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dashboard-page .hero-panel { min-height: 0; display: block; }
+.dashboard-page .hero-art { display: none; }
+.dashboard-page .hero-content { padding: 16px 22px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.dashboard-page .hero-content h2, .dashboard-page .hero-focus-preview { display: none; }
+.dashboard-page .hero-buttons { margin-top: 0; }
+.dashboard-page .historical-posting-time { display: none !important; }
 .hero-buttons { margin-top: 27px; display: flex; gap: 10px; flex-wrap: wrap; }
 .hero-art { position: relative; min-height: 310px; overflow: hidden; background: linear-gradient(140deg, rgba(255,255,255,.02), rgba(201,111,74,.08)); }
 .art-grid { position: absolute; inset: 0; opacity: .12; background-image: linear-gradient(rgba(255,255,255,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.25) 1px,transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(to right,transparent,black); }
