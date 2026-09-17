@@ -167,6 +167,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .image-suggestion-list article { display: grid; grid-template-columns: 1fr 72px auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
 .image-suggestion-list article > div { display: grid; gap: 4px; }
 .image-suggestion-list small { color: var(--muted); }
+.meta-sync-summary { margin-top: 16px; padding: 20px; }
+.meta-sync-grid { display: grid; grid-template-columns: 1.35fr .7fr 1fr 1fr; gap: 10px; margin-top: 16px; }
+.meta-sync-grid article { min-width: 0; padding: 13px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+.meta-sync-grid article > span { display: block; color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .06em; }
+.meta-sync-grid article strong { display: block; margin-top: 7px; color: var(--forest); font-size: 14px; }
+.meta-sync-grid article small { display: block; margin-top: 5px; color: var(--muted); font-size: 8px; }
+.meta-sync-grid .platform-status.ok { border-color: #cfe2d4; background: #edf5ef; }
+.meta-sync-grid .platform-status.pending { border-color: #edd9cb; background: #fbf0e8; }
+.meta-sync-grid .platform-status.pending strong { color: #8d5c3e; }
+.confidence-badge { display: inline-flex; width: max-content; margin-top: 5px; padding: 4px 7px; border-radius: 999px; font-size: 7px; font-weight: 700; }
+.confidence-badge.strong { color: #37644f; background: #eaf2ec; }
+.confidence-badge.review { color: #8d5c3e; background: #fbefe6; }
+.confidence-badge.weak { color: #96504a; background: #f9ecea; }
+@media (max-width: 760px) { .meta-sync-grid { grid-template-columns: 1fr 1fr; } }
 .image-suggestion-list img { width: 72px; height: 56px; object-fit: cover; border-radius: 8px; background: var(--soft); }
 @media (max-width: 680px) { .image-suggestion-list article { grid-template-columns: 1fr 58px; } .image-suggestion-list article .button { grid-column: 1 / -1; } }
 .idea-dialog-meta p { margin: 7px 0; line-height: 1.5; }
