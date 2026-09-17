@@ -111,6 +111,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .dashboard-page .hero-content h2, .dashboard-page .hero-focus-preview { display: none; }
 .dashboard-page .hero-buttons { margin-top: 0; }
 .dashboard-page .historical-posting-time { display: none !important; }
+.dashboard-page .pipeline-panel { display: none; }
+.dashboard-page .dashboard-grid { display: block; }
 .hero-buttons { margin-top: 27px; display: flex; gap: 10px; flex-wrap: wrap; }
 .hero-art { position: relative; min-height: 310px; overflow: hidden; background: linear-gradient(140deg, rgba(255,255,255,.02), rgba(201,111,74,.08)); }
 .art-grid { position: absolute; inset: 0; opacity: .12; background-image: linear-gradient(rgba(255,255,255,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.25) 1px,transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(to right,transparent,black); }
