@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 const endpoint = import.meta.env.VITE_APPS_SCRIPT_URL
-const CACHE_PREFIX = 'brutti-meta-daily-insights-'
+const CACHE_PREFIX = 'brutti-meta-daily-insights-v2-'
 
 function findAnalyticsHost() { return [...document.querySelectorAll('.page')].find((page) => page.querySelector('.page-header h1')?.textContent?.trim() === 'Analytics') || null }
 function localDateKey() { const now = new Date(); return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-') }
