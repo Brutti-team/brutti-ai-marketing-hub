@@ -14,6 +14,7 @@ function formatDate(value) {
   if (Number.isNaN(date.getTime())) return String(value)
   return new Intl.DateTimeFormat('en-MY', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kuala_Lumpur' }).format(date)
 }
+function dayKey(value) { if (!value) return ''; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value).slice(0, 10); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }).format(date) }
 function contentType(value) {
   const format = String(value || 'post').toLowerCase()
   if (format.includes('carousel') || format.includes('album')) return 'Carousel'
@@ -45,6 +46,14 @@ function normalisePosts(data) {
     if ([item.views, item.reach, item.viewers, item.interactions].some((value) => value !== null)) unique.set(sourceId, item)
   })
   return [...unique.values()].sort((a, b) => new Date(b.createdTime || 0) - new Date(a.createdTime || 0))
+}
+
+function MetaPeriodChart({ posts }) {
+  const periodPosts = posts.filter((post) => { const key = dayKey(post.createdTime); return key >= '2026-08-17' && key <= '2026-09-17' })
+  const metrics = [['Reach', 'reach'], ['Views', 'views'], ['Viewers', 'viewers'], ['Interactions', 'interactions'], ['Likes', 'reactions'], ['Comments', 'comments'], ['Shares', 'shares'], ['Saves', 'saves']]
+  const totals = metrics.map(([label, key]) => { const facebook = periodPosts.filter((post) => post.platform !== 'instagram').reduce((sum, post) => sum + (post[key] || 0), 0); const instagram = periodPosts.filter((post) => post.platform === 'instagram').reduce((sum, post) => sum + (post[key] || 0), 0); return { label, facebook, instagram, total: facebook + instagram } })
+  const max = Math.max(...totals.map((item) => item.total), 1)
+  return <section className="meta-period-chart" aria-label="Meta content performance from 17 August to 17 September"><div className="panel-heading"><div><span className="eyebrow">CONTENT PERFORMANCE</span><h3>Facebook + Instagram · 17 Aug–17 Sep 2026</h3></div><span className="verified-label">{periodPosts.length} posts with verified data</span></div><div className="meta-chart-legend"><span><i className="meta-chart-dot facebook"/>Facebook</span><span><i className="meta-chart-dot instagram"/>Instagram</span></div>{periodPosts.length ? <div className="meta-metric-chart">{totals.map((item) => <div className="meta-metric-row" key={item.label}><strong>{item.label}</strong><div className="meta-metric-track"><i className="facebook" style={{ width: `${(item.facebook / max) * 100}%` }}/><i className="instagram" style={{ width: `${(item.instagram / max) * 100}%` }}/></div><span>{display(item.total)}</span></div>)}</div> : <p className="settings-copy">Tiada data Meta yang disahkan untuk tempoh ini.</p>}<small className="meta-chart-note">Likes dipaparkan sebagai Reactions daripada Meta. Metrik yang Meta tidak pulangkan kekal kosong dan tidak dianggarkan.</small></section>
 }
 
 function PostDetail({ post, onClose }) {
@@ -85,6 +94,6 @@ export default function MetaInsightsEnhancer() {
   return <>{createPortal(<section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
     <div className="panel-heading"><div><span className="eyebrow">LIVE META INSIGHTS</span><h3>Recent post performance</h3></div><span className="verified-label system-copy-hidden">{state.cached ? 'Daily sheet snapshot' : 'Read-only Meta data'}</span></div>
     {state.loading ? <p className="settings-copy">Loading verified Meta metrics…</p> : null}{state.error ? <p className="settings-copy">{state.error} Sistem tidak menganggarkan nombor.</p> : null}
-    {posts.length ? <div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{posts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div> : null}
+    {posts.length ? <><MetaPeriodChart posts={posts}/><div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{posts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div></> : null}
   </section>, host)}{selectedPost ? <PostDetail post={selectedPost} onClose={() => setSelectedPost(null)}/> : null}</>
 }
