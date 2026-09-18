@@ -57,7 +57,7 @@ function PostDetail({ post, onClose }) {
   return createPortal(<div className="meta-post-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="meta-post-drawer" role="dialog" aria-modal="true" aria-labelledby="meta-post-heading">
       <div className="meta-drawer-head"><div><span className="eyebrow">POST DETAILS</span><h3 id="meta-post-heading">{formatDate(post.createdTime)}</h3><p>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'} · {post.type}</p></div><button type="button" className="meta-drawer-close" onClick={onClose} aria-label="Close post details">×</button></div>
-      <div className="meta-post-thumbnail">{post.thumbnail ? <img src={post.thumbnail} alt="Post thumbnail"/> : <div><span>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><small>Thumbnail not available from Meta</small></div>}</div>
+      <div className="meta-post-thumbnail">{post.thumbnail ? <img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/> : <div><span>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><small>Thumbnail not available from Meta</small></div>}</div>
       <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{String(post.message || '').trim() || 'No caption'}</p></section>
       <section className="meta-detail-section"><span className="eyebrow">ALL METRICS</span><div className="meta-detail-metrics">{metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{display(value)}</strong></div>)}</div></section>
       <section className="meta-detail-section"><span className="eyebrow">AI PERFORMANCE SUMMARY</span><p>{performanceSummary(post)}</p></section>
@@ -69,6 +69,7 @@ function PostDetail({ post, onClose }) {
 
 export default function MetaInsightsEnhancer() {
   const [host, setHost] = useState(null); const [selectedPost, setSelectedPost] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(10)
   const [state, setState] = useState({ loading: true, data: null, error: '', cached: false })
   useEffect(() => { const syncHost = () => setHost(findAnalyticsHost()); syncHost(); const observer = new MutationObserver(syncHost); observer.observe(document.body, { childList: true, subtree: true }); return () => observer.disconnect() }, [])
   useEffect(() => {
@@ -81,10 +82,12 @@ export default function MetaInsightsEnhancer() {
     return () => { active = false }
   }, [host])
   const posts = useMemo(() => normalisePosts(state.data), [state.data])
+  useEffect(() => { setVisibleCount(10) }, [state.data])
+  const visiblePosts = posts.slice(0, visibleCount)
   if (!host) return null
   return <>{createPortal(<section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
     <div className="panel-heading"><div><span className="eyebrow">LIVE META INSIGHTS</span><h3>Recent post performance</h3></div><span className="verified-label system-copy-hidden">{state.cached ? 'Daily sheet snapshot' : 'Read-only Meta data'}</span></div>
     {state.loading ? <p className="settings-copy">Loading verified Meta metrics…</p> : null}{state.error ? <p className="settings-copy">{state.error} Sistem tidak menganggarkan nombor.</p> : null}
-    {posts.length ? <div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{posts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div> : null}
+    {posts.length ? <><div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{visiblePosts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div>{visibleCount < posts.length ? <div className="meta-load-more"><span>Showing {visiblePosts.length} of {posts.length} posts</span><button type="button" className="button secondary" onClick={() => setVisibleCount((count) => Math.min(count + 10, posts.length))}>Muat lagi</button></div> : <p className="meta-list-count">All {posts.length} posts loaded</p>}</> : null}
   </section>, host)}{selectedPost ? <PostDetail post={selectedPost} onClose={() => setSelectedPost(null)}/> : null}</>
 }
