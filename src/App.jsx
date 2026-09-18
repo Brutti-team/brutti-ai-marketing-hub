@@ -36,8 +36,6 @@ const navigation = [
   { id: 'planner', label: 'Campaign Planner', icon: 'calendar' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
   { id: 'products', label: 'Product Library', icon: 'box' },
-  { id: 'assets', label: 'Asset Library', icon: 'image' },
-  { id: 'ai-tools', label: 'AI Tools', icon: 'wand' },
   { id: 'analytics', label: 'Analytics', icon: 'chart' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
 ]
@@ -165,7 +163,6 @@ const mobileNavigation = [
   { id: 'dashboard', label: 'Home', icon: 'dashboard' },
   { id: 'studio', label: 'Content', icon: 'sparkles' },
   { id: 'planner', label: 'Planner', icon: 'calendar' },
-  { id: 'assets', label: 'Assets', icon: 'image' },
 ]
 
 function MobileBottomNavigation({ page, setPage, openMore }) {
