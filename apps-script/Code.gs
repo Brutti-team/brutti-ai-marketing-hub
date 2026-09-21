@@ -52,6 +52,9 @@ function doGet(e) {
 }
 
 function syncMetaInsights() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) throw new Error('Meta sync already running; skipped overlapping request.');
+  try {
   const properties = scriptProperties_();
   const pageId = properties.getProperty('META_PAGE_ID');
   const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
@@ -110,6 +113,9 @@ function syncMetaInsights() {
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
   saveMetaTokenHealth_({ status: 'valid', checkedAt: syncedAt, pageId: pageId, message: 'Token accepted by Meta Graph API.' });
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function checkMetaTokenHealth() {
@@ -159,15 +165,15 @@ function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
         const status = response.getResponseCode();
         body = JSON.parse(response.getContentText() || '[]');
         if (status >= 200 && status < 300 && Array.isArray(body)) fetched = true;
-        else if (attempt < 2) Utilities.sleep(800 * Math.pow(2, attempt));
+        else if (attempt < 2) Utilities.sleep(1500 * Math.pow(2, attempt));
       } catch (error) {
-        if (attempt < 2) Utilities.sleep(800 * Math.pow(2, attempt));
+        if (attempt < 2) Utilities.sleep(1500 * Math.pow(2, attempt));
       }
     }
     // A throttled metrics request must not discard the post snapshot. Keep
     // metrics blank and let the next scheduled run retry them.
     if (!fetched) batch.forEach(() => metricNames.forEach(name => { unavailable[name] = true; }));
-    if (start + batchSize < posts.length) Utilities.sleep(350);
+    if (start + batchSize < posts.length) Utilities.sleep(1000);
     batch.forEach((request, index) => {
       const post = posts[start + index];
       const item = body[index] || {};
