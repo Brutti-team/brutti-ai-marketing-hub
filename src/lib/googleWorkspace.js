@@ -1,5 +1,6 @@
 const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL
 const workspaceKeyName = 'brutti-google-workspace-key'
+const rememberedWorkspaceKeyName = 'brutti-google-workspace-key-remembered'
 const contentDirectionKey = 'brutti-content-direction-v1'
 
 let verifiedWorkspaceKey = ''
@@ -8,25 +9,28 @@ let verificationPromise = null
 export const googleConfigured = Boolean(appsScriptUrl)
 
 export function hasWorkspaceKey() {
-  return Boolean(window.sessionStorage.getItem(workspaceKeyName))
+  return Boolean(window.sessionStorage.getItem(workspaceKeyName) || window.localStorage.getItem(rememberedWorkspaceKeyName))
 }
 
-export function setWorkspaceKey(key) {
+export function setWorkspaceKey(key, rememberDevice = false) {
   const cleanKey = key.trim()
   if (!cleanKey) throw new Error('Enter the BRUTTI workspace key.')
   window.sessionStorage.setItem(workspaceKeyName, cleanKey)
+  if (rememberDevice) window.localStorage.setItem(rememberedWorkspaceKeyName, cleanKey)
+  else window.localStorage.removeItem(rememberedWorkspaceKeyName)
   verifiedWorkspaceKey = ''
   verificationPromise = null
 }
 
 export function clearWorkspaceKey() {
   window.sessionStorage.removeItem(workspaceKeyName)
+  window.localStorage.removeItem(rememberedWorkspaceKeyName)
   verifiedWorkspaceKey = ''
   verificationPromise = null
 }
 
 function getWorkspaceKey() {
-  return window.sessionStorage.getItem(workspaceKeyName) || ''
+  return window.sessionStorage.getItem(workspaceKeyName) || window.localStorage.getItem(rememberedWorkspaceKeyName) || ''
 }
 
 function isWorkspaceAuthError(message = '') {

@@ -22,6 +22,9 @@ function contentType(value) {
   if (format.includes('photo') || format.includes('image')) return 'Photo'
   return 'Post'
 }
+function captionText(post) {
+  return String(post?.message || post?.caption || post?.text || '').trim()
+}
 function performanceSummary(post) {
   if (post.interactions === null && post.views === null && post.reach === null) return 'Meta belum menyediakan data yang cukup untuk menilai post ini.'
   if ((post.interactions || 0) >= 25) return 'Post ini menunjukkan interaction yang kuat berbanding post lain dalam snapshot semasa.'
@@ -40,7 +43,7 @@ function normalisePosts(data) {
   raw.forEach((post, index) => {
     const sourceId = String(post?.sourceId || `${post?.platform || 'post'}-${index}`)
     const reactions = metric(post?.reactions); const comments = metric(post?.comments); const shares = metric(post?.shares); const saves = metric(post?.saves); const engagement = metric(post?.engagement)
-    const item = { ...post, key: sourceId, sourceId, platform: String(post?.platform || 'facebook').toLowerCase(), type: contentType(post?.format), views: metric(post?.views), reach: metric(post?.reach), viewers: metric(post?.viewers), reactions, comments, shares, saves, engagement }
+    const item = { ...post, key: sourceId, sourceId, platform: String(post?.platform || 'facebook').toLowerCase(), type: contentType(post?.format), message: captionText(post), views: metric(post?.views), reach: metric(post?.reach), viewers: metric(post?.viewers), reactions, comments, shares, saves, engagement }
     item.interactions = engagement ?? ([reactions, comments, shares, saves].some((value) => value !== null) ? [reactions, comments, shares, saves].reduce((total, value) => total + (value || 0), 0) : null)
     if ([item.views, item.reach, item.viewers, item.interactions].some((value) => value !== null)) unique.set(sourceId, item)
   })
@@ -57,12 +60,12 @@ function PostDetail({ post, onClose }) {
   return createPortal(<div className="meta-post-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="meta-post-drawer" role="dialog" aria-modal="true" aria-labelledby="meta-post-heading">
       <div className="meta-drawer-head"><div><span className="eyebrow">POST DETAILS</span><h3 id="meta-post-heading">{formatDate(post.createdTime)}</h3><p>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'} · {post.type}</p></div><button type="button" className="meta-drawer-close" onClick={onClose} aria-label="Close post details">×</button></div>
-      <div className="meta-post-thumbnail">{post.thumbnail ? <img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/> : <div><span>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><small>Thumbnail not available from Meta</small>{String(post.message || '').trim() ? <p className="meta-missing-visual-caption">{String(post.message).trim()}</p> : <p className="meta-missing-visual-caption">Full caption tidak dipulangkan oleh Meta untuk post ini.</p>}</div>}</div>
-      <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{String(post.message || '').trim() || 'No caption'}</p></section>
+      <div className="meta-post-thumbnail">{post.thumbnail ? <img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/> : <div><span>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><small>Thumbnail not available from Meta. Caption is shown below when Meta provides it.</small></div>}</div>
+      <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{captionText(post) || 'Full caption was not returned by Meta for this post.'}</p></section>
       <section className="meta-detail-section"><span className="eyebrow">ALL METRICS</span><div className="meta-detail-metrics">{metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{display(value)}</strong></div>)}</div></section>
       <section className="meta-detail-section"><span className="eyebrow">AI PERFORMANCE SUMMARY</span><p>{performanceSummary(post)}</p></section>
       <section className="meta-detail-section recommendation"><span className="eyebrow">NEXT RECOMMENDATION</span><p>{recommendation(post)}</p></section>
-      {post.permalink ? <a className="button primary meta-post-link" href={post.permalink} target="_blank" rel="noreferrer">Open original post</a> : <p className="settings-copy">Original post link not available from Meta.</p>}
+      {(post.permalink || post.permalinkUrl) ? <a className="button primary meta-post-link" href={post.permalink || post.permalinkUrl} target="_blank" rel="noreferrer">Open original post</a> : <p className="settings-copy">Original post link not available from Meta.</p>}
     </aside>
   </div>, document.body)
 }

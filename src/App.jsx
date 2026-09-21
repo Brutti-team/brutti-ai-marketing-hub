@@ -905,6 +905,7 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
 
 function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefreshIntegrations, onConnect, onDisconnect }) {
   const [accessKey, setAccessKey] = useState('')
+  const [rememberDevice, setRememberDevice] = useState(false)
   const [connecting, setConnecting] = useState(false)
   const connections = [
     { name:'Google Sheets', detail:'Content Library, Daily Planner and Integration Log', status:integrations.sheets ? 'Connected' : 'Not connected', icon:'file' },
@@ -917,7 +918,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
     event.preventDefault()
     setConnecting(true)
     try {
-      await onConnect(accessKey)
+      await onConnect(accessKey, rememberDevice)
       setAccessKey('')
     } catch (error) {
       toast(error.message)
@@ -930,7 +931,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
       <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="Connect the internal Google backend without exposing API keys in GitHub or the browser." />
       <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3 className="system-copy-hidden">{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
-        {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
+        {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Remember this device</label><small className="settings-copy">Use this only on your own device. The workspace key will stay saved here until you disconnect.</small><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
       </section>
       <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3 className="system-copy-hidden">Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p className="system-copy-hidden">{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' || connection.status === 'Ready' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
       <div className="settings-grid">
@@ -1035,8 +1036,8 @@ function App() {
     return () => { mounted = false }
   }, [setContent, setPlans, toast])
 
-  const connectWorkspace = async (accessKey) => {
-    setWorkspaceKey(accessKey)
+  const connectWorkspace = async (accessKey, rememberDevice = false) => {
+    setWorkspaceKey(accessKey, rememberDevice)
     try {
       const [status, workspace] = await Promise.all([callMarketingApi('integration_status'), loadWorkspace()])
       setIntegrations(status)
