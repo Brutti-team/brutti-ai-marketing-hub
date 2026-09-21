@@ -56,15 +56,14 @@ function PostDetail({ post, onClose }) {
     document.addEventListener('keydown', close); document.body.classList.add('meta-drawer-open')
     return () => { document.removeEventListener('keydown', close); document.body.classList.remove('meta-drawer-open') }
   }, [onClose])
+  const caption = captionText(post)
   const metrics = [['Views', post.views], ['Reach', post.reach], ['Viewers', post.viewers], ['Interactions', post.interactions], ['Reactions', post.reactions], ['Comments', post.comments], ['Shares', post.shares], ['Saves', post.saves]]
   return createPortal(<div className="meta-post-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="meta-post-drawer" role="dialog" aria-modal="true" aria-labelledby="meta-post-heading">
       <div className="meta-drawer-head"><div><span className="eyebrow">POST DETAILS</span><h3 id="meta-post-heading">{formatDate(post.createdTime)}</h3><p>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'} · {post.type}</p></div><button type="button" className="meta-drawer-close" onClick={onClose} aria-label="Close post details">×</button></div>
-      <div className="meta-post-thumbnail">{post.thumbnail ? <img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/> : <div><span>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><small>Thumbnail not available from Meta. Caption is shown below when Meta provides it.</small></div>}</div>
-      <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{captionText(post) || 'Full caption was not returned by Meta for this post.'}</p></section>
+      {post.thumbnail ? <div className="meta-post-thumbnail"><img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/></div> : null}
+      {caption ? <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{caption}</p></section> : null}
       <section className="meta-detail-section"><span className="eyebrow">ALL METRICS</span><div className="meta-detail-metrics">{metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{display(value)}</strong></div>)}</div></section>
-      <section className="meta-detail-section"><span className="eyebrow">AI PERFORMANCE SUMMARY</span><p>{performanceSummary(post)}</p></section>
-      <section className="meta-detail-section recommendation"><span className="eyebrow">NEXT RECOMMENDATION</span><p>{recommendation(post)}</p></section>
       {(post.permalink || post.permalinkUrl) ? <a className="button primary meta-post-link" href={post.permalink || post.permalinkUrl} target="_blank" rel="noreferrer">Open original post</a> : <p className="settings-copy">Original post link not available from Meta.</p>}
     </aside>
   </div>, document.body)
