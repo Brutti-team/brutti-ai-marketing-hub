@@ -839,7 +839,11 @@ function AITools({ onUsePrompt }) {
 function performanceIdeasFromInsights(insights) {
   const posts = [...(insights?.facebook?.topPosts || []), ...(insights?.instagram?.topPosts || [])].filter((post) => post && (post.views !== null || post.reach !== null || post.reactions !== null || post.comments !== null || post.engagement !== null))
   const metricValue = (post) => Number(post.engagement ?? post.reactions ?? post.views ?? post.reach ?? post.comments ?? 0)
-  const ranked = [...posts].sort((a, b) => metricValue(b) - metricValue(a))
+  // Prefer posts with a real caption when ranking recommendations. Meta can
+  // return high-engagement media rows without message text; using those first
+  // produces the unhelpful generic "post BRUTTI" label.
+  const captioned = posts.filter((post) => String(post.message || post.caption || '').trim())
+  const ranked = [...(captioned.length >= 3 ? captioned : posts)].sort((a, b) => metricValue(b) - metricValue(a))
   if (!ranked.length) return []
   const angles = ['before/after atau transformasi ruang', 'soalan pilihan yang mengundang komen', 'tip praktikal yang boleh disimpan dan dikongsi']
   // Rotate through the historical winners by calendar day so the daily panel
