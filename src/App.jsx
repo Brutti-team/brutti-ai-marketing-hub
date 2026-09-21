@@ -216,8 +216,21 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   const [syncingMeta, setSyncingMeta] = useState(false)
   const [selectedIdea, setSelectedIdea] = useState(null)
   const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
-  const syncDashboardMeta = useCallback(async () => { setSyncingMeta(true); try { if (workspaceActive && integrations.meta) await callMarketingApi('sync_meta_insights'); setMetaInsights(await loadPublicMetaInsights()) } catch { /* Dashboard remains usable when Meta is unavailable. */ } finally { setSyncingMeta(false) } }, [workspaceActive, integrations.meta])
-  useEffect(() => { syncDashboardMeta() }, [syncDashboardMeta])
+  const syncDashboardMeta = useCallback(async (force = false) => {
+    setSyncingMeta(true)
+    try {
+      const snapshot = await loadPublicMetaInsights()
+      setMetaInsights(snapshot)
+      const lastSync = snapshot?.sourceUpdatedAt ? new Date(snapshot.sourceUpdatedAt).getTime() : 0
+      const stale = !lastSync || (Date.now() - lastSync) > (6 * 60 * 60 * 1000)
+      if ((force || stale) && workspaceActive && integrations.meta) {
+        await callMarketingApi('sync_meta_insights')
+        setMetaInsights(await loadPublicMetaInsights())
+      }
+    } catch { /* Dashboard remains usable when Meta is unavailable. */ }
+    finally { setSyncingMeta(false) }
+  }, [workspaceActive, integrations.meta])
+  useEffect(() => { syncDashboardMeta(false) }, [syncDashboardMeta])
   const greeting = greetingForNow()
   return (
     <div className="page dashboard-page">
@@ -235,7 +248,7 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
         </section>
 
         <section className="panel focus-panel performance-dashboard-panel">
-          <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3 className="system-copy-hidden">3 content ideas for today</h3></div><button className="text-button" onClick={syncDashboardMeta} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
+          <div className="panel-heading"><div><span className="eyebrow">TODAY'S RECOMMENDATION</span><h3 className="system-copy-hidden">3 content ideas for today</h3></div><button className="text-button" onClick={() => syncDashboardMeta(true)} disabled={syncingMeta}>{syncingMeta ? 'Menyelaras…' : 'Muat semula'} <Icon name="arrow" size={15}/></button></div>
           <p className="settings-copy">Cadangan ini hanya menggunakan data prestasi Meta yang diselaraskan dan boleh terus dibuka dalam Content Studio.</p>
           <div className="recommendation-list">{dashboardIdeas.map((idea, index) => <article className="recommendation-item" key={`${idea.title}-${index}`}><span className="recommend-number">{String(index + 1).padStart(2, '0')}</span><div className="recommendation-item-copy"><strong>{idea.title}</strong><button className="text-button recommendation-view" onClick={() => setSelectedIdea(idea)}>View post <Icon name="chevron" size={14}/></button></div></article>)}</div>
           <div className="guardrail-note"><Icon name="check"/><p><strong>{dashboardIdeas.length === 3 ? 'Data Meta disahkan' : 'Cadangan menunggu data Meta'}</strong> {dashboardIdeas.length === 3 ? 'Sumber: ' + dashboardIdeas[0].source : 'Sambungkan Meta dan tunggu sekurang-kurangnya satu post-level insight sebenar. Sistem tidak menggunakan fallback template atau KPI rekaan.'}<br/><small>Sync terakhir: {metaInsights?.sourceUpdatedAt ? new Date(metaInsights.sourceUpdatedAt).toLocaleString('ms-MY') : 'Belum ada'} · {metaInsights?.syncedPostCount || ((metaInsights?.facebook?.topPosts?.length || 0) + (metaInsights?.instagram?.topPosts?.length || 0))} post</small></p></div>
