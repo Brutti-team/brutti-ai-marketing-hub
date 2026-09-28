@@ -34,7 +34,17 @@ const PRODUCT_REFERENCE_HEADERS = ['ID', 'Project / Kiosk Name', 'Reference Type
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.view === 'meta-insights') {
-    const payload = { ok: true, data: metaInsightsPublic_() };
+    // The website adds accessKey. An older deployment ignores that parameter
+    // and still answers. This version requires the existing WORKSPACE_KEY
+    // and does not return token health or any token details.
+    try {
+      authorize_(e.parameter.accessKey);
+    } catch (error) {
+      return json_({ ok: false, error: error.message || 'Invalid BRUTTI workspace key.' });
+    }
+    const data = metaInsightsPublic_();
+    if (data) delete data.tokenHealth;
+    const payload = { ok: true, data: data };
     if (e.parameter.callback) {
       const callback = String(e.parameter.callback).replace(/[^a-zA-Z0-9_$.]/g, '');
       return ContentService.createTextOutput(callback + '(' + JSON.stringify(payload) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -348,8 +358,7 @@ function metaGraphRequest_(path, token, params) {
 function metaInsightsPublic_() {
   const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
   const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
-  const tokenHealth = readMetaTokenHealth_();
-  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, syncedPostCount: 0, tokenHealth: tokenHealth, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
+  if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, syncedPostCount: 0, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
   const unavailable = {};
   const postList = rows.map(row => {
@@ -375,7 +384,7 @@ function metaInsightsPublic_() {
     styleSignals: styleSignals_(post.message)
   }));
   return {
-    sourceUpdatedAt: sourceUpdatedAt || null, syncedPostCount: rankedPosts.length, tokenHealth: tokenHealth, unavailableMetrics: Object.keys(unavailable),
+    sourceUpdatedAt: sourceUpdatedAt || null, syncedPostCount: rankedPosts.length, unavailableMetrics: Object.keys(unavailable),
     instagram: { latestReach: null, followers: null, trend: [], topPosts: instagramTopPosts },
     facebook: { followers: null, topPosts: topPosts },
     // Keep the complete synced post set private to the Apps Script response

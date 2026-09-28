@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
 
-const endpoint = import.meta.env.VITE_APPS_SCRIPT_URL
 const CACHE_PREFIX = 'brutti-meta-daily-insights-v2-'
 
 function findAnalyticsHost() { return [...document.querySelectorAll('.page')].find((page) => page.querySelector('.page-header h1')?.textContent?.trim() === 'Analytics') || null }
@@ -64,6 +64,8 @@ function PostDetail({ post, onClose }) {
       {post.thumbnail ? <div className="meta-post-thumbnail"><img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/></div> : null}
       {caption ? <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{caption}</p></section> : null}
       <section className="meta-detail-section"><span className="eyebrow">ALL METRICS</span><div className="meta-detail-metrics">{metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{display(value)}</strong></div>)}</div></section>
+      <section className="meta-detail-section"><span className="eyebrow">AI PERFORMANCE SUMMARY</span><p>{performanceSummary(post)}</p></section>
+      <section className="meta-detail-section recommendation"><span className="eyebrow">NEXT RECOMMENDATION</span><p>{recommendation(post)}</p></section>
       {(post.permalink || post.permalinkUrl) ? <a className="button primary meta-post-link" href={post.permalink || post.permalinkUrl} target="_blank" rel="noreferrer">Open original post</a> : <p className="settings-copy">Original post link not available from Meta.</p>}
     </aside>
   </div>, document.body)
@@ -76,11 +78,11 @@ export default function MetaInsightsEnhancer() {
   useEffect(() => { const syncHost = () => setHost(findAnalyticsHost()); syncHost(); const observer = new MutationObserver(syncHost); observer.observe(document.body, { childList: true, subtree: true }); return () => observer.disconnect() }, [])
   useEffect(() => {
     if (!host) return undefined
-    if (!endpoint) { setState({ loading: false, data: null, error: 'Apps Script deployment belum dikonfigurasi. Tiada KPI Meta dipaparkan.', cached: false }); return undefined }
+    const requestUrl = metaInsightsRequestUrl()
+    if (!requestUrl) { setState({ loading: false, data: null, error: 'Apps Script deployment belum dikonfigurasi. Tiada KPI Meta dipaparkan.', cached: false }); return undefined }
     let active = true; const cacheKey = CACHE_PREFIX + localDateKey()
-    try { const cached = JSON.parse(window.localStorage.getItem(cacheKey) || 'null'); if (cached?.data?.sourceUpdatedAt) { setState({ loading: false, data: cached.data, error: '', cached: true }); return undefined } } catch { /* Read fresh data. */ }
-    const separator = endpoint.includes('?') ? '&' : '?'
-    fetch(`${endpoint}${separator}view=meta-insights`, { cache: 'no-store' }).then((response) => response.ok ? response.json() : Promise.reject(new Error('Meta endpoint unavailable'))).then((result) => { if (!result?.ok || !result?.data?.sourceUpdatedAt) throw new Error(result?.error || 'Post-level Meta data belum tersedia.'); const data = result.data; const compact = { sourceUpdatedAt: data.sourceUpdatedAt || null, syncedPostCount: data.syncedPostCount || 0, tokenHealth: data.tokenHealth || null, facebook: { topPosts: data.facebook?.topPosts || [] }, instagram: { topPosts: data.instagram?.topPosts || [] }, styleLibrary: data.styleLibrary || [] }; try { Object.keys(window.localStorage).filter((key) => key.startsWith(CACHE_PREFIX) && key !== cacheKey).forEach((key) => window.localStorage.removeItem(key)); window.localStorage.setItem(cacheKey, JSON.stringify({ data: compact })) } catch { /* Browser quota must not block live Meta insights. */ } if (active) setState({ loading: false, data, error: '', cached: false }) }).catch((error) => active && setState({ loading: false, data: null, error: error.message || 'Post-level Meta data belum tersedia.', cached: false }))
+    try { const cached = JSON.parse(window.localStorage.getItem(cacheKey) || 'null'); if (cached?.data?.sourceUpdatedAt) { const data = omitMetaTokenDetails(cached.data); if (data !== cached.data) { try { window.localStorage.setItem(cacheKey, JSON.stringify({ data })) } catch { /* Keep the stripped snapshot in memory if storage is full. */ } } setState({ loading: false, data, error: '', cached: true }); return undefined } } catch { /* Read fresh data. */ }
+    fetch(requestUrl, { cache: 'no-store' }).then((response) => response.ok ? response.json() : Promise.reject(new Error('Meta endpoint unavailable'))).then((result) => { if (!result?.ok || !result?.data?.sourceUpdatedAt) throw new Error(result?.error || 'Post-level Meta data belum tersedia.'); const data = omitMetaTokenDetails(result.data); const compact = { sourceUpdatedAt: data.sourceUpdatedAt || null, syncedPostCount: data.syncedPostCount || 0, facebook: { topPosts: data.facebook?.topPosts || [] }, instagram: { topPosts: data.instagram?.topPosts || [] }, styleLibrary: data.styleLibrary || [] }; try { Object.keys(window.localStorage).filter((key) => key.startsWith(CACHE_PREFIX) && key !== cacheKey).forEach((key) => window.localStorage.removeItem(key)); window.localStorage.setItem(cacheKey, JSON.stringify({ data: compact })) } catch { /* Browser quota must not block live Meta insights. */ } if (active) setState({ loading: false, data, error: '', cached: false }) }).catch((error) => active && setState({ loading: false, data: null, error: error.message || 'Post-level Meta data belum tersedia.', cached: false }))
     return () => { active = false }
   }, [host])
   const posts = useMemo(() => normalisePosts(state.data), [state.data])

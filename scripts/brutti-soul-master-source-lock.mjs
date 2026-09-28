@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 
-const expectedNormalizedSha256 = '001c9d4031c8edba13eb47dc33c07519c7bf47b1b99ce8532acdb6ff7cd6cb9d'
+const expectedNormalizedSha256 = '9b7b79aba84ef39d3914e4565750f48fa85f81454a7326876eea5bea62a8ded8'
 const sourcePath = new URL('../src/Brutti_Soul_MasterDoc.md', import.meta.url)
 
 const raw = await readFile(sourcePath, 'utf8')

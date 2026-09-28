@@ -33,6 +33,25 @@ function getWorkspaceKey() {
   return window.sessionStorage.getItem(workspaceKeyName) || window.localStorage.getItem(rememberedWorkspaceKeyName) || ''
 }
 
+// Extra accessKey is ignored by the currently deployed Apps Script.
+// After that script is updated, the same parameter is required.
+export function metaInsightsRequestUrl() {
+  if (!appsScriptUrl) return ''
+  const url = new URL(appsScriptUrl)
+  url.searchParams.set('view', 'meta-insights')
+  const accessKey = getWorkspaceKey()
+  if (accessKey) url.searchParams.set('accessKey', accessKey)
+  return url.toString()
+}
+
+export function omitMetaTokenDetails(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return data
+  if (!Object.prototype.hasOwnProperty.call(data, 'tokenHealth')) return data
+  const snapshot = { ...data }
+  delete snapshot.tokenHealth
+  return snapshot
+}
+
 function isWorkspaceAuthError(message = '') {
   const value = String(message).toLowerCase()
   return value.includes('workspace key') || value.includes('workspace_key')
@@ -184,19 +203,24 @@ export async function confirmProductImageMatch(productId, postId) {
 }
 
 export async function loadPublicMetaInsights() {
-  if (!appsScriptUrl) throw new Error('Google Apps Script is not configured yet.')
-  const response = await fetch(`${appsScriptUrl}?view=meta-insights`, { method: 'GET', redirect: 'follow' })
+  const requestUrl = metaInsightsRequestUrl()
+  if (!requestUrl) throw new Error('Google Apps Script is not configured yet.')
+  const response = await fetch(requestUrl, { method: 'GET', redirect: 'follow' })
   const raw = await response.text()
   let result
   try { result = JSON.parse(raw) } catch { throw new Error('Meta Insights returned an invalid response.') }
-  if (!result?.ok) throw new Error(result?.error || 'Meta Insights snapshot is unavailable.')
-  const data = result.data || result
+  if (!result?.ok) {
+    const message = result?.error || 'Meta Insights snapshot is unavailable.'
+    if (isWorkspaceAuthError(message)) clearWorkspaceKey()
+    throw new Error(message)
+  }
+  const data = omitMetaTokenDetails(result.data || result)
   try {
     const now = new Date()
     const cacheKey = `brutti-meta-daily-insights-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     // Keep the full synced post snapshot locally. Recommendations rotate from
     // this cache and do not need another Meta request on every page refresh.
-    const compact = { sourceUpdatedAt: data.sourceUpdatedAt || null, syncedPostCount: data.syncedPostCount || 0, tokenHealth: data.tokenHealth || null, facebook: { topPosts: (data.facebook?.topPosts || []).slice(0, 50) }, instagram: { topPosts: (data.instagram?.topPosts || []).slice(0, 50) }, styleLibrary: (data.styleLibrary || []).slice(0, 20) }
+    const compact = { sourceUpdatedAt: data.sourceUpdatedAt || null, syncedPostCount: data.syncedPostCount || 0, facebook: { topPosts: (data.facebook?.topPosts || []).slice(0, 50) }, instagram: { topPosts: (data.instagram?.topPosts || []).slice(0, 50) }, styleLibrary: (data.styleLibrary || []).slice(0, 20) }
     Object.keys(window.localStorage).filter((key) => key.startsWith('brutti-meta-daily-insights-') && key !== cacheKey).forEach((key) => window.localStorage.removeItem(key))
     window.localStorage.setItem(cacheKey, JSON.stringify({ data: compact }))
   } catch {
