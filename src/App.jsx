@@ -877,14 +877,12 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
     } finally { setSyncing(false) }
   }, [workspaceActive, integrations.meta, toast])
   useEffect(() => { syncInsights() }, [syncInsights])
-  const tokenStatus = metaInsights?.tokenHealth?.status || 'not_checked'
-  const tokenLabel = tokenStatus === 'valid' ? 'Token valid' : tokenStatus === 'expired_or_invalid' ? 'Token perlu dikemas kini' : tokenStatus === 'not_checked' ? 'Belum diperiksa' : 'Semak token'
   const facebookCount = metaInsights?.facebook?.topPosts?.length || 0
   const instagramCount = metaInsights?.instagram?.topPosts?.length || 0
   const syncTime = metaInsights?.sourceUpdatedAt ? new Date(metaInsights.sourceUpdatedAt).toLocaleString('ms-MY') : 'Belum ada'
   const totalSynced = metaInsights?.syncedPostCount || facebookCount + instagramCount
-  const platformStatus = (count) => metaInsights?.sourceUpdatedAt && (metaInsights?.tokenHealth?.status === 'valid' || count > 0) ? 'Connected' : metaInsights?.sourceUpdatedAt ? 'No posts read' : 'Pending'
-  const sources = [['Follower export','Facebook','12,001 records','Imported snapshot'],['Reaction export','Facebook','728 records','Imported snapshot'],['Media archive','Facebook','7,062 files','Reference count'],['Product source','Notion / Google',`${productData.length} loaded`,productData.length >= 88 ? 'Full product set' : 'Partial sync'],['Facebook posts','Facebook',`${facebookCount} synced`,facebookCount ? 'Connected' : 'No post snapshot'],['Instagram posts','Instagram',`${instagramCount} synced`,instagramCount ? 'Connected' : 'No post snapshot'],['Meta token','Facebook / Instagram',metaInsights?.tokenHealth?.checkedAt ? new Date(metaInsights.tokenHealth.checkedAt).toLocaleString('ms-MY') : '—',tokenLabel],['Meta Insights','Facebook / Instagram',metaInsights?.sourceUpdatedAt ? `Synced · ${metaInsights.syncedPostCount || 0} posts` : 'Awaiting sync',metaInsights?.sourceUpdatedAt ? 'Verified source' : 'Sync required']]
+  const platformStatus = (count) => metaInsights?.sourceUpdatedAt && count > 0 ? 'Connected' : metaInsights?.sourceUpdatedAt ? 'No posts read' : 'Pending'
+  const sources = [['Follower export','Facebook','12,001 records','Imported snapshot'],['Reaction export','Facebook','728 records','Imported snapshot'],['Media archive','Facebook','7,062 files','Reference count'],['Product source','Notion / Google',`${productData.length} loaded`,productData.length >= 88 ? 'Full product set' : 'Partial sync'],['Facebook posts','Facebook',`${facebookCount} synced`,facebookCount ? 'Connected' : 'No post snapshot'],['Instagram posts','Instagram',`${instagramCount} synced`,instagramCount ? 'Connected' : 'No post snapshot'],['Meta Insights','Facebook / Instagram',metaInsights?.sourceUpdatedAt ? `Synced · ${metaInsights.syncedPostCount || 0} posts` : 'Awaiting sync',metaInsights?.sourceUpdatedAt ? 'Verified source' : 'Sync required']]
   const stages = ['Draft','AI Generated','Review','Approved','Scheduled','Published']
   const maxCount = Math.max(1, ...stages.map((stage) => content.filter((item) => item.stage === stage).length))
   const scheduledPlans = plans.filter((plan) => plan.status === 'Scheduled').length

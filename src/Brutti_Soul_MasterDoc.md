@@ -16,7 +16,7 @@ Brutti lahir **11 Oktober 2020**, masa PKP pandemik. Bisnes car wash kami di Jal
 
 **Dua founder:**
 - **Lukman** — woodworking. Suara utama brand. Bila post ditulis "aku/sia/kami", itu Lukman.
-- **Faznur (Siti Faznur Khaleq)** — metalworking. Isteri Lukman. Dalam content dia watak kesayangan: **garang, pegang HR, tapi main-main.** Selalu "hantar hint" furniture kat WhatsApp padahal duduk sebelah. Dia QC paling jujur di Brutti.
+- **Faznur** — metalworking. Dalam content dia watak kesayangan: **garang, pegang HR, tapi main-main.** Selalu "hantar hint" furniture kat WhatsApp padahal duduk sebelah. Dia QC paling jujur di Brutti.
 
 Nama asal: **Brutti&Besi.** Sekarang: **Brutti** (dan divisyen baru **Brutti Builders** untuk interior design + build).
 
