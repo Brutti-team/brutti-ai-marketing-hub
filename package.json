@@ -11,6 +11,7 @@
     "quality:soul": "node scripts/content-studio-soul-policy-smoke.mjs",
     "quality:soul-lock": "node scripts/brutti-soul-master-source-lock.mjs",
     "quality:product": "node scripts/content-studio-product-context-smoke.mjs",
+    "quality:product-photo": "node scripts/product-library-meta-photo-smoke.mjs",
     "quality:live-caption": "node scripts/live-caption-narrative-smoke.mjs",
     "quality:voice": "node scripts/brutti-voice-quality-smoke.mjs",
     "quality:caption-v3": "node scripts/brutti-caption-v3-smoke.mjs",
@@ -19,7 +20,7 @@
     "quality:language-lock": "node scripts/app-language-lock-smoke.mjs",
     "quality:caption-legacy-guard": "node scripts/caption-engine-legacy-guard-smoke.mjs",
     "check:css": "node scripts/css-balance-check.mjs",
-    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:live-caption && npm run quality:voice && npm run quality:caption-v3 && npm run quality:caption-v32 && npm run quality:caption-final && npm run quality:language-lock && npm run quality:caption-legacy-guard && npm run check:css"
+    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:product-photo && npm run quality:live-caption && npm run quality:voice && npm run quality:caption-v3 && npm run quality:caption-v32 && npm run quality:caption-final && npm run quality:language-lock && npm run quality:caption-legacy-guard && npm run check:css"
   },
   "dependencies": {
     "react": "^19.1.1",
