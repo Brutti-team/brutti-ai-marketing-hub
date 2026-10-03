@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
+import { filterSyncedPosts, normaliseSearchPosts, postImageUrl } from './lib/syncedPostSearch'
 
 const CACHE_PREFIX = 'brutti-meta-daily-insights-v2-'
 
-function findAnalyticsHost() { return [...document.querySelectorAll('.page')].find((page) => page.querySelector('.page-header h1')?.textContent?.trim() === 'Analytics') || null }
+function findAnalyticsHost() {
+  return [...document.querySelectorAll('.page')].find((page) => {
+    const title = page.querySelector('.page-header h1')?.textContent?.trim()
+    return title === 'Analytics' || title === 'Analitik'
+  }) || null
+}
 function localDateKey() { const now = new Date(); return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-') }
 function metric(value) { return value === null || value === undefined || value === '' ? null : (Number.isFinite(Number(value)) ? Number(value) : null) }
 function display(value) { return value === null ? '—' : new Intl.NumberFormat('en-MY').format(value) }
@@ -50,6 +56,63 @@ function normalisePosts(data) {
   return [...unique.values()].sort((a, b) => new Date(a.createdTime || 0) - new Date(b.createdTime || 0) || (b.interactions ?? -1) - (a.interactions ?? -1))
 }
 
+const SEARCH_PAGE_SIZE = 8
+
+function useUiLanguage() {
+  const [language, setLanguage] = useState(() => (document.documentElement.dataset.bruttiUiLanguage === 'en' ? 'en' : 'bm'))
+  useEffect(() => {
+    const onChange = (event) => setLanguage(event.detail?.language === 'en' ? 'en' : 'bm')
+    window.addEventListener('brutti:languagechange', onChange)
+    return () => window.removeEventListener('brutti:languagechange', onChange)
+  }, [])
+  return language
+}
+
+function SearchPostedPieces({ data, loading, error, onOpen }) {
+  const language = useUiLanguage()
+  const [query, setQuery] = useState('')
+  const [platform, setPlatform] = useState('')
+  const [date, setDate] = useState('')
+  const [visibleCount, setVisibleCount] = useState(SEARCH_PAGE_SIZE)
+  const [brokenImages, setBrokenImages] = useState({})
+  const posts = useMemo(() => normaliseSearchPosts(data), [data])
+  const active = Boolean(query.trim() || platform || date)
+  const matches = useMemo(() => (active ? filterSyncedPosts(posts, { query, platform, date }) : []), [active, posts, query, platform, date])
+  useEffect(() => { setVisibleCount(SEARCH_PAGE_SIZE) }, [query, platform, date, data])
+  const visible = matches.slice(0, visibleCount)
+  const readyText = language === 'en' ? `${posts.length} synced posts are ready.` : `Ada ${posts.length} post yang sudah diselaraskan.`
+  const showingText = language === 'en' ? `Showing ${visible.length} of ${matches.length} posts` : `Ditunjukkan ${visible.length} daripada ${matches.length} post`
+  const openPost = (post) => {
+    const image = brokenImages[post.key] ? '' : (post.thumbnail || postImageUrl(post))
+    onOpen(image ? { ...post, thumbnail: image } : post)
+  }
+  return <section className="panel meta-post-search" aria-label="Find a posted caption or visual" style={{ marginTop: 24 }}>
+    <div className="panel-heading"><div><span className="eyebrow">FIND AN OLD POST</span><h3>Find a posted caption or visual</h3><p className="settings-copy">Search Facebook and Instagram posts already synced. Opening a result does not publish it again.</p></div></div>
+    <div className="meta-search-controls">
+      <label>Caption words<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search words in the caption…" autoComplete="off"/></label>
+      <label>Platform<select value={platform} onChange={(event) => setPlatform(event.target.value)} aria-label="Platform"><option value="">All</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option></select></label>
+      <div className="meta-search-date"><label htmlFor="meta-search-date">Post date</label><div className="meta-search-date-row"><input id="meta-search-date" type="date" value={date} onChange={(event) => setDate(event.target.value)}/>{date ? <button type="button" className="meta-view-post" onClick={() => setDate('')}>Clear date</button> : null}</div></div>
+    </div>
+    {loading ? <p className="settings-copy">Loading synced posts…</p> : null}
+    {!loading && error ? <p className="settings-copy"><span>Synced posts could not be read.</span> {error}</p> : null}
+    {!loading && !error && !active ? <p className="settings-copy">{posts.length ? <>{readyText} <span>Type a caption word, choose Facebook or Instagram, or pick a date.</span></> : <span>No synced posts to search yet.</span>}</p> : null}
+    {!loading && !error && active && !matches.length ? <p className="settings-copy">No synced posts match this search.</p> : null}
+    {visible.length ? <div className="meta-search-results">{visible.map((post) => {
+      const image = brokenImages[post.key] ? '' : postImageUrl(post)
+      const caption = post.message
+      return <article className="meta-search-result" key={post.key}>
+        {image ? <img className="meta-search-visual" src={image} alt="" onError={() => setBrokenImages((current) => ({ ...current, [post.key]: true }))}/> : <div className="meta-search-no-image">{postImageUrl(post) ? 'Image could not be shown here.' : 'No image'}</div>}
+        <div>
+          <div className="meta-search-meta">{post.platform === 'facebook' || post.platform === 'instagram' ? <span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span> : <span>Platform unavailable</span>}<time dateTime={post.createdTime || undefined}>{formatDate(post.createdTime)}</time></div>
+          {caption ? <p className="meta-search-caption" data-user-content>{caption}</p> : <p className="meta-search-caption">No caption was synced for this post.</p>}
+        </div>
+        <button type="button" className="meta-view-post" onClick={() => openPost(post)} aria-label={`Open post from ${formatDate(post.createdTime)}`}>Open post</button>
+      </article>
+    })}</div> : null}
+    {visibleCount < matches.length ? <div className="meta-load-more"><span>{showingText}</span><button type="button" className="button secondary" onClick={() => setVisibleCount((count) => Math.min(count + SEARCH_PAGE_SIZE, matches.length))}>Muat lagi</button></div> : null}
+  </section>
+}
+
 function PostDetail({ post, onClose }) {
   useEffect(() => {
     const close = (event) => { if (event.key === 'Escape') onClose() }
@@ -62,7 +125,7 @@ function PostDetail({ post, onClose }) {
     <aside className="meta-post-drawer" role="dialog" aria-modal="true" aria-labelledby="meta-post-heading">
       <div className="meta-drawer-head"><div><span className="eyebrow">POST DETAILS</span><h3 id="meta-post-heading">{formatDate(post.createdTime)}</h3><p>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'} · {post.type}</p></div><button type="button" className="meta-drawer-close" onClick={onClose} aria-label="Close post details">×</button></div>
       {post.thumbnail ? <div className="meta-post-thumbnail"><img src={post.thumbnail} alt="Post thumbnail" loading="lazy"/></div> : null}
-      {caption ? <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption">{caption}</p></section> : null}
+      {caption ? <section className="meta-detail-section"><span className="eyebrow">FULL CAPTION</span><p className="meta-full-caption" data-user-content>{caption}</p></section> : null}
       <section className="meta-detail-section"><span className="eyebrow">ALL METRICS</span><div className="meta-detail-metrics">{metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{display(value)}</strong></div>)}</div></section>
       <section className="meta-detail-section"><span className="eyebrow">AI PERFORMANCE SUMMARY</span><p>{performanceSummary(post)}</p></section>
       <section className="meta-detail-section recommendation"><span className="eyebrow">NEXT RECOMMENDATION</span><p>{recommendation(post)}</p></section>
@@ -89,9 +152,9 @@ export default function MetaInsightsEnhancer() {
   useEffect(() => { setVisibleCount(10) }, [state.data])
   const visiblePosts = posts.slice(0, visibleCount)
   if (!host) return null
-  return <>{createPortal(<section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
+  return <>{createPortal(<><SearchPostedPieces data={state.data} loading={state.loading} error={state.error} onOpen={setSelectedPost}/><section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
     <div className="panel-heading"><div><span className="eyebrow">LIVE META INSIGHTS</span><h3>Recent post performance</h3></div><span className="verified-label system-copy-hidden">{state.cached ? 'Daily sheet snapshot' : 'Read-only Meta data'}</span></div>
     {state.loading ? <p className="settings-copy">Loading verified Meta metrics…</p> : null}{state.error ? <p className="settings-copy">{state.error} Sistem tidak menganggarkan nombor.</p> : null}
     {posts.length ? <><div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{visiblePosts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div>{visibleCount < posts.length ? <div className="meta-load-more"><span>Showing {visiblePosts.length} of {posts.length} posts</span><button type="button" className="button secondary" onClick={() => setVisibleCount((count) => Math.min(count + 10, posts.length))}>Muat lagi</button></div> : <p className="meta-list-count">All {posts.length} posts loaded</p>}</> : null}
-  </section>, host)}{selectedPost ? <PostDetail post={selectedPost} onClose={() => setSelectedPost(null)}/> : null}</>
+  </section></>, host)}{selectedPost ? <PostDetail post={selectedPost} onClose={() => setSelectedPost(null)}/> : null}</>
 }

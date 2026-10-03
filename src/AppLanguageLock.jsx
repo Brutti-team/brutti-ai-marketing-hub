@@ -289,6 +289,23 @@ const PAIRS = [
   ["Campaign Planner", "Perancang Kempen"],
   ["Analytics", "Analitik"],
   ["Settings", "Tetapan"],
+  ["FIND AN OLD POST", "CARI POST LAMA"],
+  ["Find a posted caption or visual", "Cari caption atau gambar yang sudah disiarkan"],
+  ["Search Facebook and Instagram posts already synced. Opening a result does not publish it again.", "Cari post Facebook dan Instagram yang sudah ada. Buka satu hasil untuk lihat semula. Ia tidak disiarkan semula."],
+  ["Caption words", "Perkataan dalam caption"],
+  ["Search words in the caption…", "Cari perkataan dalam caption…"],
+  ["Post date", "Tarikh post"],
+  ["Clear date", "Kosongkan tarikh"],
+  ["Type a caption word, choose Facebook or Instagram, or pick a date.", "Taip perkataan dalam caption, pilih Facebook atau Instagram, atau pilih tarikh."],
+  ["Open post", "Buka post"],
+  ["No image", "Tiada gambar"],
+  ["Image could not be shown here.", "Gambar tidak dapat dipaparkan di sini."],
+  ["No caption was synced for this post.", "Tiada caption dalam data yang diselaraskan."],
+  ["Platform unavailable", "Platform tidak tersedia"],
+  ["No synced posts match this search.", "Tiada post yang sepadan. Cuba perkataan, platform, atau tarikh lain."],
+  ["Loading synced posts…", "Sedang memuatkan post yang diselaraskan…"],
+  ["Synced posts could not be read.", "Post yang diselaraskan belum boleh dibaca."],
+  ["No synced posts to search yet.", "Belum ada post yang diselaraskan untuk dicari."],
 
 ]
 
@@ -336,7 +353,7 @@ function translateDocument(language) {
   while (walker.nextNode()) nodes.push(walker.currentNode)
   nodes.forEach((node) => {
     const parent = node.parentElement
-    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control')) return
+    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content]')) return
     const next = replaceText(node.nodeValue || '', dictionary, language)
     if (next !== node.nodeValue) node.nodeValue = next
   })
