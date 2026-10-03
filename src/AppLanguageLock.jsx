@@ -155,6 +155,8 @@ const PAIRS = [
   ['Sync Notion products', 'Selaraskan produk Notion'],
   ['Syncing…', 'Sedang menyelaras…'],
   ['Photo confirmed', 'Foto disahkan'],
+  ['Facebook post photo', 'Foto post Facebook'],
+  ['Instagram post photo', 'Foto post Instagram'],
   ['Verified source', 'Sumber disahkan'],
   ['Uncategorised', 'Tanpa kategori'],
   ['Verified name. Add specifications from the source before making product claims.', 'Nama disahkan. Tambah spesifikasi daripada sumber sebelum membuat tuntutan produk.'],
