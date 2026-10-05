@@ -1,547 +1,444 @@
 // Local Bahasa Malaysia captions for Content Studio. No network, no paid model.
-// Voice: Brutti Soul Master (short lines, first person, loghat Sabah, light humour)
-// plus the shape of Brutti's own Sep 2026 posts: scene or "POV:" first, one point,
-// words such as bah, teda, ngam, jaaa, kasi, ni and sia, one or two emojis at line ends,
-// then a simple close. No hashtags. No copied post, no borrowed facts.
-// A Dusun gloss is not invented when the product name has no verified meaning.
+// Voice: Brutti Soul Master, checked against Brutti's own Sep–Oct 2026 posts.
+// Those posts open on a piece name or a short scene, one thought a line.
+// Dialect that actually shows up: ni, ngam, ja, kan, sudah, boleh, bikin, kasi,
+// tinguk, mau, and only rarely bah, teda, jaaa. mau stands where a stiff
+// synonym would have been. Closes are a soft observation or a function line.
+// Emoji, if any, sits at the end of a line. No hashtags. No copied post.
+// No borrowed facts. No invented Dusun gloss.
 // Blank price, material, size and colour are skipped. Every caption is 4 lines,
 // or 5 when a real note or a filled spec needs its own line.
 
 const HUMOUR = {
-  wardrobe: 'Sia pun pernah buka almari, pastu terus tutup balik. 🥰',
-  storage: 'Cari satu benda kecil kadang makan masa lebih lama dari masak. 🥰',
-  display: 'Kalau semua barang menjerit, teda yang kedengaran. 🥰',
-  kiosk: 'Kotak terbuka di tepi kaunter dah nampak letih. 🥰',
-  bespoke: 'Paksa ruang ikut perabot, akhirnya perabot yang menang. 🥰',
-  general: 'Gambar orang lain cantik. Hidup kamu lain. 🥰',
+  wardrobe: 'Baju banyak, tapi bilik masih boleh nampak kemas. 😆',
+  storage: 'Barang kecil pun kena ada tempat. 😆',
+  display: 'Kalau semua barang sama, teda yang orang nampak. 😆',
+  kiosk: 'Meja jualan yang kemas, barang nampak dari jauh. 😆',
+  bespoke: 'Ruang kecil pun boleh ada piece sendiri. 😆',
+  general: 'Gambar orang lain cantik. Hidup kamu lain. 😆',
 }
 
 const CTA = {
-  highlight: [
-    'Nak tinguk, mesej kami bah.',
-    'Kalau ngam dengan ruang kamu, WhatsApp kami. 😍',
-    'Mesej ja, kami dengar dulu. 🥰',
-  ],
-  promo: [
-    'Kalau ngam, WhatsApp kami bah.',
-    'Jom cerita pasal ruang kamu. ✨',
-    'DM kami kalau piece ni mau kamu tinguk.',
-  ],
-  customer: [
-    'Cerita pada kami pasal ruang kamu bah.',
-    'Hantar gambar ruang tu, kami tinguk sama-sama. 🥰',
-    'Mesej dulu, kami dengar sebelum cadang apa-apa.',
-  ],
-  behind: [
-    'Nak tinguk hasil, mesej kami bah.',
-    'WhatsApp kami kalau nak yang ikut ruang kamu. ✨',
-    'DM kami, kami cerita proses dia. 😍',
-  ],
-  tips: [
-    'Simpan dulu tip ni bah.',
-    'Nak kami tinguk ruang kamu, mesej ja. 🥰',
-    'Susun ikut cara kamu jaaa. ✨',
-  ],
+  highlight: {
+    wardrobe: ['Baju nampak, tinguk ja. 😍', 'Bilik pun boleh nampak kemas. 😉', 'Dari jauh, baju terus nampak. ✨'],
+    storage: ['Setiap barang ada tempat sendiri. 😍', 'Ruang rumah lebih kemas. 😉', 'Ngam sudah bah. 😉'],
+    display: ['Barang terus nampak. 😍', 'Display dengan kemas. 😉', 'Dari jauh pun senang nampak. ✨'],
+    kiosk: ['Barang nampak dari jauh. 😍', 'Kaunter yang kemas. 😉', 'Setup simple sudah cukup. ✨'],
+    bespoke: ['Ikut ruang kamu. 😍', 'Piece untuk ruang sendiri. 😉', 'Custom, dan fungsi dia nampak. ✨'],
+    general: ['Satu sudut pun sudah lain. 😍', 'Ikut cara kamu hidup. 😉', 'Barang harian ada tempat. ✨'],
+  },
+  promo: {
+    wardrobe: ['Simple ja, untuk baju kamu. 😉', 'Boleh ikut cara kamu simpan. ✨', 'Bilik lebih senang nampak. 😍'],
+    storage: ['Simple ja, dan ruang dia terus lebih kemas. 😉', 'Boleh ikut apa yang kamu simpan. ✨', 'Storage yang kemas untuk setiap hari. 😍'],
+    display: ['Display terus lebih kemas. 😉', 'Barang penting duduk di tempat yang nampak. ✨', 'Senang nampak dari jauh. 😍'],
+    kiosk: ['Untuk jualan kamu. 😉', 'Barang nampak dari jauh. ✨', 'Setup yang simple. 😍'],
+    bespoke: ['Ikut ruang, bukan ikut orang lain. 😉', 'Kami buat ikut kamu. ✨', 'Piece untuk ruang kamu. 😍'],
+    general: ['Ikut cara kamu. 😉', 'Satu sudut dulu sudah cukup. ✨', 'Ruang lebih kemas. 😍'],
+  },
+  customer: {
+    wardrobe: ['Lain rumah, lain cara simpan. 😉', 'Ikut baju kamu. ✨', 'Setiap bilik ada cara dia. 😍'],
+    storage: ['Lain barang, lain tempat. 😉', 'Ikut apa yang kamu simpan. ✨', 'Setiap ruang ada cara dia. 😍'],
+    display: ['Lain client, lain barang. 😉', 'Display ikut ruang kamu. ✨', 'Barang penting senang nampak. 😍'],
+    kiosk: ['Lain client, lain setup. 😉', 'Ikut cara kamu jualan. ✨', 'Kaunter untuk kamu. 😍'],
+    bespoke: ['Lain ruang, lain piece. 😉', 'Ikut cerita kamu. ✨', 'Custom untuk ruang tu. 😍'],
+    general: ['Lain hari, lain barang. 😉', 'Ikut cara kamu guna. ✨', 'Setiap sudut ada cara dia. 😍'],
+  },
+  behind: {
+    wardrobe: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+    storage: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+    display: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+    kiosk: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+    bespoke: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+    general: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
+  },
+  tips: {
+    wardrobe: ['Simple ja kan. 😍', 'Senang ambil, senang simpan. ✨', 'Mau susun macam mana, ikut kamu jaaa. ✨'],
+    storage: ['Simple ja kan. 😍', 'Setiap barang ada tempat. ✨', 'Ikut cara kamu susun. 😉'],
+    display: ['Simple ja kan. 😍', 'Senang nampak dari jauh. ✨', 'Display lebih kemas bila ada ruang. 😉'],
+    kiosk: ['Simple ja kan. 😍', 'Barang nampak dari jauh. ✨', 'Setup dulu, baru keluar. 😉'],
+    bespoke: ['Simple ja kan. 😍', 'Ikut ruang kamu. ✨', 'Cerita dulu, baru kami buat. 😉'],
+    general: ['Simple ja kan. 😍', 'Dari sana baru susun. ✨', 'Satu sudut dulu sudah cukup. 😉'],
+  },
 }
 
 const CTA_SHORT = {
-  highlight: ['Mesej kami bah. 🥰', 'WhatsApp kami. 😍', 'Mesej ja. ✨'],
-  promo: ['WhatsApp kami bah.', 'Jom cerita. ✨', 'DM kami. 😍'],
-  customer: ['Cerita pada kami bah.', 'Hantar gambar ruang tu. 🥰', 'Mesej, kami dengar dulu.'],
-  behind: ['Mesej kami bah.', 'WhatsApp kami. ✨', 'DM kami. 😍'],
-  tips: ['Simpan tip ni bah.', 'Mesej ja. 🥰', 'Ikut cara kamu jaaa. ✨'],
+  highlight: ['Fungsi dia terus nampak. 😍', 'Simple sudah. 😉', 'Ngam untuk ruang kamu. ✨'],
+  promo: ['Ruang dia lebih kemas. 😉', 'Boleh ikut kamu simpan. ✨', 'Simple ja. 😍'],
+  customer: ['Lain ruang, lain cara. 😉', 'Ikut cara kamu. ✨', 'Setiap ruang ada cara dia. 😍'],
+  behind: ['Dari tangan Team. ❤', 'Sampai dia siap. ✨', 'Ada kerja Team. 😍'],
+    tips: ['Simple sudah kan. 😍', 'Senang nampak. ✨', 'Susun ikut kamu. 😉'],
 }
 
 const OPEN = {
   highlight: {
-    wardrobe: [
-      'POV: baju bertindih sampai susah nak cari. 🌿',
-      HUMOUR.wardrobe,
-      'Baju banyak, tapi sudut bilik masih boleh nampak kemas. ✨',
-    ],
-    storage: [
-      'POV: barang hilang sebab teda tempat tetap. 🌿',
-      HUMOUR.storage,
-      'Rumah atau kedai nampak sesak sebab barang bertindih. ✨',
-    ],
-    display: [
-      'POV: paparan kedai penuh, mata terus pening. 🌿',
-      HUMOUR.display,
-      'Kedai kecil pun boleh nampak kemas, asalkan paparan dia tak berebut. ✨',
-    ],
-    kiosk: [
-      'POV: kaunter dari jauh, pelanggan dah boleh nampak barang. 🌿',
-      HUMOUR.kiosk,
-      'Bisnes yang keluar jualan perlukan kaunter yang kemas. ✨',
-    ],
-    bespoke: [
-      'POV: ruang kamu tak muat dengan barang katalog. 🌿',
-      HUMOUR.bespoke,
-      'Ada ruang yang memang minta piece ikut dia, bukan sebaliknya. ✨',
-    ],
-    general: [
-      'POV: satu sudut dulu, jangan ubah semua sekali. 🌿',
-      HUMOUR.general,
-      'Barang yang kamu pegang setiap hari patut ada tempat tetap. ✨',
-    ],
+    wardrobe: [(n) => `${n} ✨`, HUMOUR.wardrobe, 'POV: satu sudut bilik, baju ada tempat. ✨'],
+    storage: [(n) => `${n} ✨`, HUMOUR.storage, 'Ada sudut yang barang dia banyak. ✨'],
+    display: [(n) => `${n} ✨`, HUMOUR.display, 'Kadang display nampak penuh. ✨'],
+    kiosk: [(n) => `${n} ✨`, HUMOUR.kiosk, 'Kaunter untuk jualan, barang nampak dari jauh. ✨'],
+    bespoke: [(n) => `${n} ✨`, HUMOUR.bespoke, 'Ada ruang yang mau piece ikut dia. ✨'],
+    general: [(n) => `${n} ✨`, HUMOUR.general, 'Satu sudut dulu, tidak perlu ubah semua sekali. ✨'],
   },
   promo: {
-    wardrobe: [
-      'Nak almari yang ikut cara kamu simpan baju? 🌿',
-      'Bilik yang baju dia dah teda muat, memang penat tiap pagi. 🥰',
-      'Tempat gantung dan tempat lipat, dalam satu piece. ✨',
-    ],
-    storage: [
-      'Nak rak yang ikut barang kamu, bukan yang semua orang beli sama? 🌿',
-      'Penat tinguk barang berlonggok, tapi nda tau nak mula dari mana. 🥰',
-      'Rak yang ngam ikut barang kamu, bukan ikut katalog. ✨',
-    ],
-    display: [
-      'Nak paparan yang pelanggan nampak terus? 🌿',
-      'Kedai yang dah susun berkali-kali, tapi masih nampak sesak. 🥰',
-      'Paparan yang jelas, mata tak perlu cari-cari. ✨',
-    ],
-    kiosk: [
-      'Nak kaunter yang ikut cara kamu jualan? 🌿',
-      'Penat sewa meja, dengan kotak berlonggok di tepi. 🥰',
-      'Kaunter custom, senang dibawa bila pigi event. ✨',
-    ],
-    bespoke: [
-      'Nak piece yang ikut ruang kamu, bukan ikut katalog? 🌿',
-      'Barang biasa teda muat, katalog pun dah menyerah. 🥰',
-      'Ruang pelik sikit pun boleh ada piece sendiri. ✨',
-    ],
-    general: [
-      'Nak susunan yang ikut cara kamu hidup? 🌿',
-      'Ubah semua sekali memang penat. Satu sudut dulu pun dah lega. 🥰',
-      'Barang harian dulu, yang jarang keluar biar di tepi. ✨',
-    ],
+    wardrobe: [(n) => `${n} ✨`, 'Bilik yang baju dia banyak. 😆', 'Tempat gantung dan drawer, dalam satu piece. ✨'],
+    storage: [(n) => `${n} 🌿`, 'Barang banyak, tapi setiap satu boleh ada tempat. ✨', 'Storage yang ngam ikut apa yang kamu simpan. 😉'],
+    display: [(n) => `${n} ✨`, 'Display yang kemas, mata terus nampak. 😍', 'Barang penting, kasi dia nampak. 😉'],
+    kiosk: [(n) => `${n} ✨`, 'Kaunter custom untuk jualan kamu. ✨', 'Bukan meja kosong. 😉'],
+    bespoke: [(n) => `${n} ✨`, 'Ruang kecil pun boleh ada piece sendiri. ✨', 'Custom, ikut ruang kamu. 😍'],
+    general: [(n) => `${n} ✨`, 'Barang yang kamu guna setiap hari, patut ada tempat. ✨', 'Susun satu sudut dulu. 😉'],
   },
   customer: {
-    wardrobe: [
-      'Ada bilik yang baju dia selalu bertindih. Kami dengar cerita tu. 🌿',
-      'Almari yang ngam selalunya mula dari bilik sebenar, bukan katalog. 🥰',
-      'Lain rumah, lain cara simpan baju. ✨',
-    ],
-    storage: [
-      'Ada sudut yang barang dia berlonggok. Itu yang pelanggan tunjuk. 🌿',
-      'Rak yang ngam mula dari barang sebenar, bukan dari gambar katalog. 🥰',
-      'Lain orang, lain barang yang kena tempat. ✨',
-    ],
-    display: [
-      'Ada kedai yang paparan dia penuh, pelanggan lalu saja. 🌿',
-      'Paparan yang ngam mula dari kaunter sebenar. 🥰',
-      'Lain kedai, lain barang yang mau ditonjol. ✨',
-    ],
-    kiosk: [
-      'Ada bisnes yang kaunter dia masih meja kosong. 🌿',
-      'Kiosk yang ngam mula dari cara kamu layan pelanggan. 🥰',
-      'Lain bisnes, lain cara jualan. ✨',
-    ],
-    bespoke: [
-      'Ada ruang yang barang kedai memang tak masuk. 🌿',
-      'Piece custom mula bila kamu cerita ruang tu digunakan untuk apa. 🥰',
-      'Lain ruang, lain yang wajib muat. ✨',
-    ],
-    general: [
-      'Ada sudut yang kamu sentuh setiap hari, tapi masih bersepah. 🌿',
-      'Susunan yang ngam mula bila kami nampak ruang sebenar. 🥰',
-      'Lain hari, lain barang yang kamu cari. ✨',
-    ],
+    wardrobe: ['Ada bilik yang baju dia banyak. ✨', 'Wardrobe yang ngam mula dari bilik kamu. 😍', 'Lain rumah, lain cara simpan baju. 😉'],
+    storage: ['Ada sudut yang barang dia banyak. ✨', 'Storage yang ngam mula dari barang kamu. 😍', 'Lain orang, lain barang yang kena tempat. 😉'],
+    display: ['Ada display yang penuh. ✨', 'Display yang ngam mula dari ruang kamu. 😍', 'Lain client, lain barang yang mau nampak. 😉'],
+    kiosk: ['Ada jualan yang kaunter dia masih meja kosong. ✨', 'Kiosk yang ngam mula dari cara kamu. 😍', 'Lain client, lain setup. 😉'],
+    bespoke: ['Ada ruang yang piece biasa tidak muat. ✨', 'Piece custom mula bila kamu cerita ruang tu. 😍', 'Lain ruang, lain yang mau muat. 😉'],
+    general: ['Ada sudut yang kamu guna setiap hari. ✨', 'Susun yang ngam mula bila kami nampak ruang kamu. 😍', 'Lain hari, lain barang yang kamu cari. 😉'],
   },
   behind: {
-    wardrobe: [
-      'Sebelum almari ni sampai ke bilik, dia melalui tangan kami dulu. 🌿',
-      'Yang nampak siap dalam gambar, belakang dia ada kerja custom. 🥰',
-      'Orang nampak almari yang dah siap. Kami nampak masa dia masih papan. ✨',
-    ],
-    storage: [
-      'Sebelum rak ni dipasang, kami bikin dia di bengkel. 🌿',
-      'Gambar yang kemas tu, ada orang semak sebelum dia keluar. 🥰',
-      'Rak ni teda datang dari kontena. ✨',
-    ],
-    display: [
-      'Sebelum rak paparan ni berdiri di kedai, kami bikin dia dulu. 🌿',
-      'Kami tinguk dulu dia selesa dipandang, baru dia keluar. 🥰',
-      'Pelanggan nampak rak yang dah berisi. Kami ingat rangka dia. ✨',
-    ],
-    kiosk: [
-      'Sebelum kaunter ni ikut kamu keluar jualan, kami siapkan dulu. 🌿',
-      'Masa dia masih di bengkel, kami dah bayang pelanggan berdiri di depan. 🥰',
-      'Bukan gerai tempahan yang kami tampal logo. ✨',
-    ],
-    bespoke: [
-      'Piece custom ni teda dalam katalog siap. 🌿',
-      'Kerja dia banyak masa masih perbincangan, lepas jelas baru kami bikin. 🥰',
-      'Soalan pertama kami: ruang ni untuk apa. ✨',
-    ],
-    general: [
-      'Sebelum susunan ni keluar, ada orang yang ukur, potong dan semak. 🌿',
-      'Gambar yang kemas tu ada proses di belakang. 🥰',
-      'Bukan barang siap yang ditampal nama. ✨',
-    ],
+    wardrobe: ['Behind the scene. ✨', 'Yang nampak siap, ada kerja custom. 😉', 'Dari proses sampai siap. 😍'],
+    storage: ['Behind the scene. ✨', 'Gambar yang kemas, ada proses sebelum dia siap. 😉', 'Custom, bukan piece yang semua orang dapat sama. 😍'],
+    display: ['Behind the scene. ✨', 'Kami buat dulu, baru dia keluar. 😉', 'Client nampak display yang sudah siap. 😍'],
+    kiosk: ['Behind the scene. ✨', 'Team buat dulu, baru dia ikut kamu. 😉', 'Bukan meja yang sudah siap dari orang lain. 😍'],
+    bespoke: ['Piece custom, bila ada cerita. ✨', 'Cerita dulu, baru kami bikin. 😉', 'Ruang ni untuk apa. 😍'],
+    general: ['Behind the scene. ✨', 'Gambar yang kemas ada proses. 😉', 'Nampak simple, tapi ada kerja. 😍'],
   },
   tips: {
-    wardrobe: [
-      'Sebelum isi almari, asingkan baju gantung dengan baju lipat. 🌿',
-      'Baju yang dipakai setiap minggu, letak di tempat tangan terus sampai. 🥰',
-      'Pintu almari tersangkut? Keluarkan dulu yang dah nda dipakai. ✨',
-    ],
-    storage: [
-      'Sebelum isi rak, kumpul barang yang sejenis. 🌿',
-      'Barang harian, letak di tempat tangan terus sampai. 🥰',
-      'Satu paras, satu tugas. Jangan campur aduk. ✨',
-    ],
-    display: [
-      'Barang yang orang selalu tanya, jangan sorok di belakang. 🌿',
-      'Paparan yang sesak, orang lalu saja. Bagi dia ruang kosong sikit. 🥰',
-      'Pilih satu barang utama. Yang lain sokong dia. ✨',
-    ],
-    kiosk: [
-      'Pastikan pelanggan nampak barang tanpa menjenguk. 🌿',
-      'Sebelum bawa kaunter keluar, susun dulu barang yang nak dijual. 🥰',
-      'Cuba buka dan tutup sekali sebelum keluar, nanti tak panik. ✨',
-    ],
-    bespoke: [
-      'Sebelum minta piece custom, senaraikan apa yang wajib muat. 🌿',
-      'Bawa contoh barang bila nak bincang. Tekaan selalunya meleset. 🥰',
-      'Cerita hari biasa ruang tu, bukan hari raya saja. ✨',
-    ],
-    general: [
-      'Mula dengan barang yang kamu pegang setiap hari. 🌿',
-      'Tinguk satu hari biasa dulu, baru ubah susunan. 🥰',
-      'Jangan ubah serentak. Satu sudut, kemudian sudut seterusnya. ✨',
-    ],
+    wardrobe: ['Baju untuk gantung, dan baju untuk drawer. ✨', 'Baju yang kamu guna minggu ni, letak di tempat yang senang. 😍', 'Yang sudah lama tidak kamu ambil, keluar dulu. 😉'],
+    storage: ['Letak barang yang sama, bersama. ✨', 'Barang harian, letak di tempat yang senang sampai. 😍', 'Satu jenis, satu tempat. 😉'],
+    display: ['Barang yang kamu selalu cari, kasi dia nampak. ✨', 'Kadang display nampak penuh. 😍', 'Barang penting, kasi nampak dari jauh. 😉'],
+    kiosk: ['Barang patut nampak dari jauh. ✨', 'Susun dulu barang jualan, baru bawa keluar. 😍', 'Setup simple, barang masih nampak. 😉'],
+    bespoke: ['Cerita apa yang mau muat. ✨', 'Bawa gambar ruang bila mau cerita. 😍', 'Hari biasa ruang tu, itu yang kami ikut. 😉'],
+    general: ['Mula dari barang yang kamu guna setiap hari. ✨', 'Tinguk satu hari biasa dulu, baru ubah. 😍', 'Satu sudut dulu, baru pigi sudut lain. ✨'],
   },
 }
 
 const BODY = {
   highlight: {
     wardrobe: [
-      (n) => `${n} ni untuk tempat gantung, dan laci untuk yang dilipat.`,
-      (n) => `${n} ngam bila baju banyak tapi bilik mau tetap lega.`,
-      (n) => `Sebelah untuk gantung, sebelah untuk lipat. Itu guna ${n} ni.`,
+      () => 'Ngam ni untuk simpan baju, dengan drawer untuk yang dilipat.',
+      (n) => `${n} ni sudah ada tempat gantung, dengan drawer sekali.`,
+      (n) => `${n} ni kami buat custom, ikut cara kamu simpan.`,
     ],
     storage: [
-      (n) => `${n} ni bagi setiap benda sudut dia sendiri.`,
-      (n) => `${n} ngam bila ruang kecil, tapi barang yang kena simpan tetap banyak.`,
-      (n) => `Barang yang bertindih, ${n} ni kasi nampak balik.`,
+      () => 'Ngam ni untuk storage yang mau setiap barang ada tempat.',
+      (n) => `${n} ni untuk ruang rumah yang barang dia banyak.`,
+      (n) => `${n} ni kami buat custom, ikut apa yang kamu simpan.`,
     ],
     display: [
-      (n) => `${n} ni untuk susun barang supaya yang penting nampak dulu.`,
-      (n) => `${n} ngam untuk kaunter atau dinding kedai.`,
-      (n) => `Paparan kedai yang kemas, itu kerja ${n} ni.`,
+      () => 'Ngam ni untuk display barang dengan kemas.',
+      (n) => `${n} ni kasi barang penting nampak dari jauh.`,
+      (n) => `${n} ni untuk setup yang simple, barang masih nampak.`,
     ],
     kiosk: [
-      (n) => `${n} ni kaunter yang kami bikin ikut cara kamu layan pelanggan.`,
-      (n) => `${n} ngam bila kamu jual di luar, barang jangan tertimbus.`,
-      (n) => `Bukan meja kosong. ${n} ni untuk bisnes kamu.`,
+      () => 'Ngam ni untuk jualan, barang nampak dari jauh.',
+      (n) => `${n} ni kaunter custom, bukan meja kosong.`,
+      (n) => `${n} ni kami buat untuk setup kamu.`,
     ],
     bespoke: [
-      (n) => `${n} ni untuk ruang yang barang kedai tak muat.`,
-      (n) => `${n} ngam bila katalog dah tak cukup.`,
-      (n) => `Ikut ruang kamu. Itu ${n} ni.`,
+      () => 'Ngam ni untuk ruang yang piece biasa tidak muat.',
+      (n) => `${n} ni ikut ruang kamu.`,
+      (n) => `${n} ni kami buat custom.`,
     ],
     general: [
-      (n) => `${n} ni, kami cadang ikut cara kamu guna ruang tu.`,
-      (n) => `${n} ngam bila satu sudut dikemaskan dulu.`,
-      (n) => `Barang harian ada tempat. Itu mula untuk ${n} ni.`,
+      () => 'Ngam ni untuk susun ruang, satu sudut dulu.',
+      (n) => `${n} ni, barang harian ada tempat.`,
+      (n) => `${n} ni kami buat ikut cara kamu.`,
     ],
   },
   promo: {
     wardrobe: [
-      (n) => `${n} ni kami bikin custom kat Sabah, ikut baju kamu.`,
-      (n) => `${n} untuk bilik yang almari lama dia dah tak muat.`,
+      () => 'Ngam ni untuk simpan baju kamu, drawer untuk yang dilipat.',
+      (n) => `${n} ni untuk bilik yang mau lebih kemas.`,
       (n) => `Kalau ${n} ngam dengan bilik kamu, kami bikin ikut cara kamu simpan.`,
     ],
     storage: [
-      (n) => `${n} ni untuk rumah atau kedai yang barang dia selalu berlonggok.`,
-      (n) => `${n} kami bikin custom kat Sabah, ikut barang yang kamu simpan.`,
-      (n) => `${n} ni, bukan rak yang semua rumah dapat sama.`,
+      () => 'Ngam ni untuk storage yang mau setiap barang ada tempat.',
+      (n) => `${n} ni kami buat custom, ikut apa yang kamu simpan.`,
+      (n) => `${n} ni, bukan storage yang semua rumah dapat sama.`,
     ],
     display: [
-      (n) => `${n} ni untuk kedai yang mau pelanggan nampak barang terus.`,
-      (n) => `${n} kami bikin custom kat Sabah, ikut cara kedai kamu jual.`,
-      (n) => `${n} ni, bukan rak pajang yang semua kedai nampak sama.`,
+      () => 'Ngam ni untuk display yang mau barang terus nampak.',
+      (n) => `${n} ni kami bikin custom, ikut cara kamu susun barang.`,
+      (n) => `${n} ni, bukan display yang semua ruang nampak sama.`,
     ],
     kiosk: [
-      (n) => `${n} ni kami bikin custom kat Sabah, untuk jualan kamu.`,
-      (n) => `${n} untuk event, pop-up atau kedai yang mau kaunter sendiri.`,
-      (n) => `${n} ni untuk jualan yang mau kaunter sendiri.`,
+      () => 'Ngam ni untuk jualan yang mau kaunter sendiri.',
+      (n) => `${n} ni kami bikin custom.`,
+      (n) => `${n} ni untuk setup kamu, barang nampak dari jauh.`,
     ],
     bespoke: [
-      (n) => `${n} ni kami bikin kat Sabah bila katalog tak cukup.`,
-      (n) => `${n} untuk ruang yang ikut hidup kamu, bukan ikut orang lain.`,
-      (n) => `${n} ni, kami dengar dulu baru bikin.`,
+      () => 'Ngam ni untuk ruang yang mau piece sendiri.',
+      (n) => `${n} ni kami buat ikut hidup kamu.`,
+      (n) => `${n} ni, kami cerita dulu baru bikin.`,
     ],
     general: [
-      (n) => `${n} ni, kalau ada kena dengan ruang kamu, kami bikin custom kat Sabah.`,
-      (n) => `${n} untuk yang mau susunan lebih kemas, tanpa teka.`,
-      (n) => `Nak bincang ${n}? Kami kat Sabah.`,
+      () => 'Ngam ni untuk ruang yang mau lebih kemas.',
+      (n) => `${n} ni, satu sudut dulu sudah cukup.`,
+      (n) => `${n} ni kami buat custom.`,
     ],
   },
   customer: {
     wardrobe: [
-      (n) => `Kalau baju kamu macam tu, ${n} ni boleh jadi tempat gantung dan lipat.`,
-      (n) => `${n} selalunya mula bila seseorang tunjuk bilik dia.`,
-      (n) => `${n} ni ikut baju kamu. Lain rumah, lain susunan.`,
+      (n) => `${n} ni untuk simpan baju, dengan drawer sekali.`,
+      (n) => `${n} ni mula dari cara kamu simpan.`,
+      (n) => `${n} ni ikut baju kamu. Lain rumah, lain cara.`,
     ],
     storage: [
-      (n) => `Kalau barang kamu macam tu, ${n} ni kami susun ikut apa yang kena duduk.`,
-      (n) => `${n} selalunya mula dari sudut yang berlonggok.`,
-      (n) => `${n} ni tak sama untuk setiap orang.`,
+      (n) => `${n} ni kami susun ikut barang yang kamu simpan.`,
+      (n) => `${n} ni mula dari sudut yang penuh.`,
+      (n) => `${n} ni tidak sama untuk setiap orang.`,
     ],
     display: [
-      (n) => `Kalau kedai kamu macam tu, ${n} ni kasi barang penting duduk depan.`,
-      (n) => `${n} selalunya mula dari kaunter kedai yang sebenar.`,
-      (n) => `Paparan ${n} ikut cara kedai tu jual.`,
+      (n) => `${n} ni kasi barang penting duduk di tempat yang nampak.`,
+      (n) => `${n} ni mula dari ruang kamu.`,
+      (n) => `Display ${n} ni ikut cara kamu susun.`,
     ],
     kiosk: [
-      (n) => `Kalau jualan kamu macam tu, ${n} ni ikut cara kamu layan orang.`,
-      (n) => `${n} mula bila kamu cerita pasal bisnes, bukan salin gerai orang.`,
-      (n) => `${n} ni, lain bisnes, lain susunan.`,
+      (n) => `${n} ni untuk jualan kamu, barang nampak dari jauh.`,
+      (n) => `${n} ni mula bila kamu cerita setup kamu.`,
+      (n) => `${n} ni, lain client, lain susun.`,
     ],
     bespoke: [
-      (n) => `Kalau ruang kamu macam tu, ${n} ni kami dengar dulu.`,
-      (n) => `${n} mula dari senarai apa yang wajib muat.`,
-      (n) => `Kerja ${n}, lepas jelas baru kami bikin kat Sabah.`,
+      (n) => `${n} ni untuk ruang yang piece biasa tidak muat.`,
+      (n) => `${n} ni mula dari cerita kamu.`,
+      (n) => `${n} ni, bila kamu cerita, baru kami buat.`,
     ],
     general: [
-      (n) => `Untuk ${n} ni, cerita macam mana kamu guna ruang tu setiap hari.`,
-      (n) => `${n} lagi jelas bila kami nampak ruang sebenar.`,
-      (n) => `Setiap permintaan pasal ${n} kami layan satu-satu.`,
+      (n) => `Untuk ${n} ni, cerita macam mana kamu guna ruang tu.`,
+      (n) => `${n} ni ikut ruang yang kami nampak.`,
+      (n) => `Setiap cerita untuk ${n} ni, kami buat satu-satu.`,
     ],
   },
   behind: {
     wardrobe: [
-      (n) => `${n} ni kami bikin kat Sabah. Bukan almari tampal nama.`,
-      (n) => `Belakang gambar ${n}, ada tangan yang semak sebelum dia keluar.`,
-      (n) => `${n} ni masa masih papan. Itu yang kami nampak dulu.`,
+      (n) => `${n} ni Team bikin, dari proses sampai siap.`,
+      (n) => `Gambar ${n} ni kemas, sebab ada kerja custom.`,
+      (n) => `${n} ni, dari tangan Team sampai dia siap.`,
     ],
     storage: [
-      (n) => `${n} ni kami bikin sendiri. Bukan rak tampal logo.`,
-      (n) => `${n} disemak dulu, baru dia keluar dari bengkel.`,
-      (n) => `${n} ni keluar dari kerja kami kat Sabah.`,
+      (n) => `${n} ni kami bikin sendiri.`,
+      (n) => `${n} ni dibuat dulu, baru dia keluar.`,
+      (n) => `${n} ni, kerja custom dari Team.`,
     ],
     display: [
-      (n) => `${n} ni kami bikin untuk kedai, bukan rak pajang beli lalu letak nama.`,
-      (n) => `Sebelum ${n} tunjuk barang orang, kami pastikan dia selesa dipandang.`,
-      (n) => `Rangka ${n} dulu. Barang kemudian.`,
+      (n) => `${n} ni kami bikin untuk display.`,
+      (n) => `Sebelum ${n} ni keluar, Team check dulu.`,
+      (n) => `${n} ni kami buat untuk display kamu.`,
     ],
     kiosk: [
-      (n) => `${n} ni kami siapkan kat Sabah sebelum dia ikut kamu keluar.`,
-      (n) => `${n} tak sama setiap satu, sebab cara jualan kamu pun tak sama.`,
-      (n) => `${n} ni bukan gerai yang kami tempah siap.`,
+      (n) => `${n} ni kami buat sebelum dia ikut kamu keluar.`,
+      (n) => `${n} ni tidak sama setiap satu.`,
+      (n) => `${n} ni bukan kaunter yang kami ambil siap.`,
     ],
     bespoke: [
-      (n) => `${n} ni kami bikin bila permintaan tu sampai, bukan dari katalog siap.`,
-      (n) => `Perbincangan dulu, kemudian ${n} baru kami buat.`,
-      (n) => `Dari soalan ruang tu, baru ${n} kami bikin.`,
+      (n) => `${n} ni kami bikin bila ada cerita dari kamu.`,
+      (n) => `Cerita dulu, baru ${n} ni kami buat.`,
+      (n) => `Dari ruang kamu, baru ${n} ni kami bikin.`,
     ],
     general: [
-      (n) => `${n} ni kami bikin custom kat Sabah.`,
-      (n) => `Ada orang di belakang ${n} sebelum gambar dia kemas.`,
-      (n) => `${n} nampak mudah. Belakang dia ada keputusan kecil.`,
+      (n) => `${n} ni kami bikin custom.`,
+      (n) => `Ada kerja Team untuk ${n} ni sebelum gambar dia kemas.`,
+      (n) => `${n} ni nampak simple. Ada kerja untuk dia.`,
     ],
   },
   tips: {
     wardrobe: [
-      (n) => `Dalam ${n} ni, baju gantung sebelah, baju lipat sebelah.`,
-      (n) => `Dalam ${n}, baju mingguan jangan kasi baju setahun rebut tempat depan.`,
-      (n) => `${n} pun lega bila yang dah tak dipakai dikeluarkan dulu.`,
+      (n) => `Dalam ${n} ni, baju gantung dengan drawer untuk yang dilipat.`,
+      (n) => `Dalam ${n} ni, baju minggu ni letak di tempat yang senang ambil.`,
+      (n) => `${n} ni lebih kemas bila yang lama tidak kamu ambil, keluar dulu.`,
     ],
     storage: [
-      (n) => `Lepas dikumpul, baru isi ${n} ni. Rak terus nampak lebih lapang.`,
-      (n) => `Kat ${n} ni, barang harian di paras tangan. Yang jarang, atas sekali.`,
-      (n) => `${n} lagi berguna bila satu paras buat satu kerja.`,
+      (n) => `Barang yang sama, letak bersama dalam ${n} ni.`,
+      (n) => `Dalam ${n} ni, barang harian di tempat yang senang.`,
+      (n) => `${n} ni lebih senang bila satu jenis ada satu tempat.`,
     ],
     display: [
-      (n) => `Kat ${n} ni, kasi dia duduk depan. Yang lain, tepi sikit.`,
-      (n) => `Jangan sesakkan ${n}. Ruang kosong sikit kasi barang nampak.`,
-      (n) => `Pada ${n} ni, satu barang utama. Yang lain sokong.`,
+      (n) => `Dalam ${n} ni, bagi ruang sikit supaya display lebih kemas.`,
+      (n) => `${n} ni, barang penting kasi nampak dari jauh.`,
+      (n) => `Pada ${n} ni, satu barang dulu. Yang lain boleh duduk bersama.`,
     ],
     kiosk: [
-      (n) => `Kat ${n} ni, barang patut nampak tanpa menjenguk.`,
-      (n) => `Yang tinggal, biar dalam kotak. Jangan kasi ${n} nampak macam stor.`,
-      (n) => `${n} lagi senang dijaga kalau kamu dah cuba buka tutup sekali.`,
+      (n) => `Pada ${n} ni, barang patut nampak dari jauh.`,
+      (n) => `Dalam ${n} ni, susun barang jualan dulu.`,
+      (n) => `${n} ni lebih senang bila setup dia simple.`,
     ],
     bespoke: [
-      (n) => `Senarai tu jadikan permulaan untuk ${n} ni.`,
-      (n) => `Contoh barang bantu kami faham ${n}, lebih dari tekaan.`,
-      (n) => `Hari biasa ruang tu yang tunjuk ${n} patut disusun macam mana.`,
+      (n) => `Cerita tu untuk ${n} ni.`,
+      (n) => `Gambar ruang kami guna untuk ${n} ni.`,
+      (n) => `Hari biasa ruang tu yang bagi ${n} ni fungsi dia.`,
     ],
     general: [
-      (n) => `Untuk ${n} ni, bagi barang harian tempat tetap dulu.`,
-      (n) => `Sebelum ubah ${n} ni, tinguk barang mana yang dicari dan yang hanya lalu.`,
-      (n) => `${n} tak perlu diubah serentak. Satu sudut dulu.`,
+      (n) => `Untuk ${n} ni, barang harian letak di tempat yang senang.`,
+      (n) => `Sebelum ubah ${n} ni, tinguk barang mana yang kamu cari.`,
+      (n) => `${n} ni, satu sudut dulu sudah cukup.`,
     ],
   },
 }
 
 const MID = {
   wardrobe: [
-    'Kami bikin dia custom kat Sabah, ikut cara kamu simpan baju.',
-    'Bukan almari yang semua rumah dapat sama bah.',
-    'Custom kat Sabah, satu bilik dengan bilik lain memang lain.',
+    'Piece ni kami bikin custom. Simple, tapi fungsi dia terus nampak.',
+    'Bukan wardrobe yang semua rumah dapat sama.',
+    'Tempat gantung, dengan drawer sekali.',
   ],
   storage: [
-    'Kami bikin dia custom kat Sabah.',
-    'Ikut barang kamu, bukan ikut rak orang bah.',
-    'Satu rak, satu permintaan. Kerja dia kat Sabah.',
+    'Shelving ni kami bikin custom. Boleh ikut apa yang kamu simpan.',
+    'Setiap barang boleh ada tempat sendiri.',
+    'Rack ni untuk ruang yang mau kemas.',
   ],
   display: [
-    'Kami bikin dia custom kat Sabah, ikut cara kedai kamu berniaga.',
-    'Bukan rak pajang yang semua kedai nampak sama bah.',
-    'Kasi paparan tu jelas, pelanggan terus tau mana nak tinguk.',
+    'Piece ni kami bikin custom. Simple, untuk display yang kemas.',
+    'Bukan display yang semua ruang nampak sama.',
+    'Kasi barang penting nampak dari jauh.',
   ],
   kiosk: [
-    'Kami bikin dia custom kat Sabah.',
-    'Ikut cara kamu jualan, bukan salin gerai orang bah.',
-    'Custom kat Sabah, satu kaunter dengan kaunter lain lain.',
+    'Piece ni kami bikin custom untuk jualan kamu.',
+    'Kaunter yang kemas, barang nampak dari jauh.',
+    'Setup simple pun sudah cukup.',
   ],
   bespoke: [
-    'Kami dengar dulu, baru bikin kat Sabah.',
-    'Bukan barang katalog yang dipaksa masuk bah.',
-    'Kerja custom dia kami siapkan kat Sabah.',
+    'Kami buat dia custom, ikut ruang kamu.',
+    'Bukan piece yang semua rumah dapat sama.',
+    'Ruang kecil pun boleh ada fungsi.',
   ],
   general: [
-    'Custom kat Sabah, ikut kehidupan harian kamu.',
-    'Bukan susunan gambar orang lain bah.',
-    'Satu sudut dulu pun dah rasa lain.',
-  ],
-}
-
-const IG_OPEN = {
-  highlight: {
-    wardrobe: ['Baju bertindih, susah cari kan. 🌿', 'Almari penuh sampai susah tutup. 🥰', 'Gantung sebelah, lipat sebelah. ✨'],
-    storage: ['Barang hilang sebab teda tempat. 🌿', 'Ruang kecil, barang tetap banyak. 🥰', 'Barang bertindih di satu sudut. ✨'],
-    display: ['Paparan penuh, mata pening. 🌿', 'Semua barang menjerit serentak. 🥰', 'Kedai kecil, paparan tetap kemas. ✨'],
-    kiosk: ['Kaunter kena nampak dari jauh. 🌿', 'Barang jangan tertimbus dalam kotak. 🥰', 'Bukan meja kosong. ✨'],
-    bespoke: ['Barang kedai tak muat. 🌿', 'Katalog dah tak cukup. 🥰', 'Ruang kamu yang tentukan. ✨'],
-    general: ['Satu sudut dulu. 🌿', 'Jangan ubah semua sekali. 🥰', 'Barang harian ada tempat. ✨'],
-  },
-  promo: {
-    wardrobe: ['Nak almari ikut baju kamu? 🌿', 'Baju dah teda muat. 🥰', 'Tempat gantung, tempat lipat. ✨'],
-    storage: ['Nak rak ikut barang kamu? 🌿', 'Barang dah berlonggok. 🥰', 'Bukan rak katalog. ✨'],
-    display: ['Nak paparan yang terus nampak? 🌿', 'Kedai masih sesak. 🥰', 'Mata tak payah cari. ✨'],
-    kiosk: ['Nak kaunter ikut jualan kamu? 🌿', 'Penat sewa meja. 🥰', 'Senang bawa bila pigi event. ✨'],
-    bespoke: ['Nak ikut ruang kamu? 🌿', 'Barang biasa tak masuk. 🥰', 'Ruang pelik pun boleh. ✨'],
-    general: ['Nak susunan ikut hidup kamu? 🌿', 'Satu sudut dulu pun lega. 🥰', 'Barang harian dulu. ✨'],
-  },
-  customer: {
-    wardrobe: ['Cerita baju apa yang kena tempat. 🌿', 'Mula dari bilik sebenar. 🥰', 'Lain rumah, lain almari. ✨'],
-    storage: ['Cerita barang apa yang kena tempat. 🌿', 'Mula dari sudut berlonggok. 🥰', 'Lain orang, lain rak. ✨'],
-    display: ['Cerita barang yang kamu jual. 🌿', 'Mula dari kaunter kedai. 🥰', 'Lain kedai, lain tonjolan. ✨'],
-    kiosk: ['Cerita cara kamu jualan. 🌿', 'Mula dari bisnes kamu. 🥰', 'Lain bisnes, lain kiosk. ✨'],
-    bespoke: ['Cerita apa yang wajib muat. 🌿', 'Mula dari ruang sebenar. 🥰', 'Lain ruang, lain piece. ✨'],
-    general: ['Cerita macam mana ruang tu diguna. 🌿', 'Lebih jelas bila kami nampak. 🥰', 'Kami layan satu-satu. ✨'],
-  },
-  behind: {
-    wardrobe: ['Kami bikin kat Sabah. 🌿', 'Belakang gambar ada kerja custom. 🥰', 'Masa dia masih papan. ✨'],
-    storage: ['Dari bengkel kami. 🌿', 'Disemak dulu sebelum keluar. 🥰', 'Teda dari kontena. ✨'],
-    display: ['Kami bikin untuk kedai. 🌿', 'Kami tinguk dia selesa dipandang. 🥰', 'Rangka dulu, barang kemudian. ✨'],
-    kiosk: ['Disiapkan sebelum keluar jualan. 🌿', 'Pelanggan kami bayang dari bengkel. 🥰', 'Bukan gerai tampal logo. ✨'],
-    bespoke: ['Teda dalam katalog siap. 🌿', 'Perbincangan dulu, baru bikin. 🥰', 'Ruang ni untuk apa. ✨'],
-    general: ['Custom, kat Sabah. 🌿', 'Ada proses di belakang gambar. 🥰', 'Nampak mudah, ada keputusan kecil. ✨'],
-  },
-  tips: {
-    wardrobe: ['Asingkan baju gantung dan baju lipat. 🌿', 'Baju mingguan, tempat senang capai. 🥰', 'Keluarkan yang dah lama diam. ✨'],
-    storage: ['Kumpul barang sejenis dulu. 🌿', 'Barang harian di paras tangan. 🥰', 'Satu paras, satu tugas. ✨'],
-    display: ['Jangan sorok barang yang selalu ditanya. 🌿', 'Bagi ruang kosong sikit. 🥰', 'Satu barang utama saja. ✨'],
-    kiosk: ['Barang patut nampak tanpa menjenguk. 🌿', 'Susun jualan sebelum keluar. 🥰', 'Cuba buka tutup sekali dulu. ✨'],
-    bespoke: ['Senaraikan yang wajib muat. 🌿', 'Bawa contoh barang. 🥰', 'Cerita hari biasa. ✨'],
-    general: ['Mula dari barang harian. 🌿', 'Tinguk satu hari biasa dulu. 🥰', 'Satu sudut, kemudian sebelah. ✨'],
-  },
-}
-
-const IG_BODY = {
-  wardrobe: [
-    (n) => `${n} ni. Tempat gantung, tempat lipat.`,
-    (n) => `${n} untuk bilik yang mau lega.`,
-    (n) => `${n}, kami bikin kat Sabah.`,
-  ],
-  storage: [
-    (n) => `${n} ni, untuk rumah atau kedai.`,
-    (n) => `${n} bila barang tetap banyak.`,
-    (n) => `${n}, kami bikin kat Sabah.`,
-  ],
-  display: [
-    (n) => `${n} ni, kasi yang penting duduk depan.`,
-    (n) => `${n} untuk kaunter kedai.`,
-    (n) => `${n} ni, custom kat Sabah.`,
-  ],
-  kiosk: [
-    (n) => `${n} ni untuk jualan kamu.`,
-    (n) => `${n}, barang nampak bukan tertimbus.`,
-    (n) => `${n} kami bikin kat Sabah.`,
-  ],
-  bespoke: [
-    (n) => `${n} ni ikut ruang kamu.`,
-    (n) => `${n} bila katalog tak cukup.`,
-    (n) => `${n} kami bikin kat Sabah.`,
-  ],
-  general: [
-    (n) => `${n} ni, ikut cara kamu hidup.`,
-    (n) => `${n}, satu sudut dulu.`,
-    (n) => `${n} kami bikin kat Sabah.`,
+    'Piece ni custom, ikut ruang kamu.',
+    'Satu sudut dulu sudah cukup.',
+    'Barang harian ada tempat sendiri.',
   ],
 }
 
 const TIP_MID = {
   wardrobe: [
-    'Dari situ baru nampak dia lega, atau masih sesak.',
-    'Yang jarang dipakai, jangan rebut tempat depan.',
-    'Baru susun semula. Almari pun rasa lega.',
+    'Drawer untuk yang dilipat. Tempat gantung untuk yang lain.',
+    'Yang kamu guna minggu ni, letak supaya senang ambil.',
+    'Bila yang lama keluar, ruang dalam dia lebih kemas.',
   ],
   storage: [
-    'Kamu tak payah gali untuk cari satu benda.',
-    'Yang jarang keluar, atas sekali pun tak mengapa.',
+    'Kamu tidak perlu cari lama untuk satu barang.',
+    'Yang tidak selalu kamu guna, tempat yang jauh pun boleh.',
     'Cuba satu jenis barang dulu.',
   ],
   display: [
-    'Pelanggan terus tau mana nak tinguk.',
-    'Barang nampak lebih jelas bila ada ruang.',
-    'Kalau semua sama kuat, teda yang diingat.',
+    'Display lebih senang nampak bila ada ruang kosong.',
+    'Barang penting letak di tempat yang senang nampak.',
+    'Kalau semua barang sama, teda yang orang nampak.',
   ],
   kiosk: [
-    'Laluan depan kaunter, biar jelas.',
-    'Kaunter tak perlu nampak macam stor.',
-    'Nanti di luar, lebih tenang.',
+    'Dari jauh, barang terus nampak.',
+    'Kaunter tidak perlu nampak penuh.',
+    'Bila pigi keluar, setup sudah kemas.',
   ],
   bespoke: [
-    'Perbualan dengan kami terus lebih jelas.',
-    'Gambar ruang pun membantu.',
-    'Hari biasa yang tunjuk susunan yang patut.',
+    'Cerita kamu buat piece tu lebih ngam.',
+    'Gambar ruang pun kami guna.',
+    'Hari biasa yang kami ikut.',
   ],
   general: [
-    'Yang jarang keluar, jangan duduk di depan.',
-    'Dari situ baru susun.',
-    'Kemaskan satu sudut, baru pergi ke sebelah.',
+    'Barang harian di tempat yang senang.',
+    'Dari sana baru susun.',
+    'Satu sudut dulu, baru pigi ke sudut lain.',
+  ],
+}
+
+const IG_OPEN = {
+  highlight: {
+    wardrobe: ['Drawer untuk baju yang dilipat. ✨', 'Bilik yang baju dia banyak. 😆', 'Satu sudut, satu fungsi. 😍'],
+    storage: ['Setiap barang, satu tempat. ✨', 'Barang kecil pun kena tempat. 😆', 'Ruang rumah, barang masih banyak. 😍'],
+    display: ['Display barang dengan kemas. ✨', 'Kadang semua barang sama kuat. 😆', 'Dari jauh, barang terus nampak. 😍'],
+    kiosk: ['Kaunter untuk jualan. ✨', 'Meja jualan yang kemas. 😆', 'Barang nampak dari jauh. 😍'],
+    bespoke: ['Piece ikut ruang. ✨', 'Ruang kecil, piece sendiri. 😆', 'Custom untuk ruang kamu. 😍'],
+    general: ['Satu sudut dulu. ✨', 'Gambar orang lain, hidup kamu lain. 😆', 'Barang harian ada tempat. 😍'],
+  },
+  promo: {
+    wardrobe: ['Untuk baju kamu. ✨', 'Bilik yang mau kemas. 😉', 'Gantung dan drawer, satu piece. 😍'],
+    storage: ['Storage untuk barang kamu. 🌿', 'Setiap barang boleh ada tempat. ✨', 'Ikut apa yang kamu simpan. 😉'],
+    display: ['Display yang kemas. ✨', 'Mata terus nampak. 😍', 'Barang penting kasi nampak. 😉'],
+    kiosk: ['Kaunter custom. ✨', 'Untuk jualan kamu. 😉', 'Bukan meja kosong. 😍'],
+    bespoke: ['Piece untuk ruang kamu. ✨', 'Ruang kecil pun boleh. 😉', 'Ikut ruang kamu. 😍'],
+    general: ['Untuk ruang kamu. ✨', 'Barang setiap hari ada tempat. 😉', 'Satu sudut dulu. 😍'],
+  },
+  customer: {
+    wardrobe: ['Lain rumah, lain baju. ✨', 'Mula dari bilik kamu. 😍', 'Ikut cara kamu simpan. 😉'],
+    storage: ['Lain barang, lain tempat. ✨', 'Mula dari barang kamu. 😍', 'Tidak sama setiap orang. 😉'],
+    display: ['Lain client, lain barang. ✨', 'Mula dari ruang kamu. 😍', 'Barang yang mau nampak. 😉'],
+    kiosk: ['Kaunter masih meja kosong. ✨', 'Mula dari cara kamu. 😍', 'Lain client, lain setup. 😉'],
+    bespoke: ['Piece biasa tidak muat. ✨', 'Mula dari cerita kamu. 😍', 'Lain ruang, lain piece. 😉'],
+    general: ['Sudut yang kamu guna. ✨', 'Bila kami nampak ruang kamu. 😍', 'Lain hari, lain barang. 😉'],
+  },
+  behind: {
+    wardrobe: ['Behind the scene. ✨', 'Ada kerja custom. 😉', 'Dari proses sampai siap. 😍'],
+    storage: ['Behind the scene. ✨', 'Ada proses sebelum siap. 😉', 'Bukan piece yang sama untuk semua. 😍'],
+    display: ['Behind the scene. ✨', 'Buat dulu, baru keluar. 😉', 'Display yang sudah siap. 😍'],
+    kiosk: ['Behind the scene. ✨', 'Team buat dulu. 😉', 'Bukan meja siap dari orang lain. 😍'],
+    bespoke: ['Bila ada cerita. ✨', 'Cerita dulu, baru bikin. 😉', 'Ruang ni untuk apa. 😍'],
+    general: ['Behind the scene. ✨', 'Gambar kemas ada proses. 😉', 'Nampak simple, ada kerja. 😍'],
+  },
+  tips: {
+    wardrobe: ['Baju gantung, baju drawer. ✨', 'Baju minggu ni, tempat yang senang. 😍', 'Yang lama, keluar dulu. 😉'],
+    storage: ['Barang yang sama, bersama. ✨', 'Barang harian, tempat yang senang. 😍', 'Satu jenis, satu tempat. 😉'],
+    display: ['Yang kamu selalu cari, kasi nampak. ✨', 'Kadang nampak penuh. 😍', 'Penting, nampak dari jauh. 😉'],
+    kiosk: ['Patut nampak dari jauh. ✨', 'Susun dulu, baru bawa keluar. 😍', 'Setup simple. 😉'],
+    bespoke: ['Cerita apa yang mau muat. ✨', 'Bawa gambar ruang. 😍', 'Hari biasa yang kami ikut. 😉'],
+    general: ['Barang yang kamu guna setiap hari. ✨', 'Tinguk hari biasa dulu. 😍', 'Satu sudut, baru sudut lain. 😉'],
+  },
+}
+
+const IG_BODY = {
+  wardrobe: [
+    (n) => `${n} ni. Drawer untuk yang dilipat.`,
+    (n) => `${n} ni untuk bilik yang mau kemas.`,
+    (n) => `${n} ni, Team bikin custom.`,
+  ],
+  storage: [
+    (n) => `${n} ni untuk storage yang kemas.`,
+    (n) => `${n} ni bila barang masih banyak.`,
+    (n) => `${n} ni, kami bikin custom.`,
+  ],
+  display: [
+    (n) => `${n} ni, kasi barang penting nampak.`,
+    (n) => `${n} ni untuk display yang kemas.`,
+    (n) => `${n} ni, simple dan custom.`,
+  ],
+  kiosk: [
+    (n) => `${n} ni untuk jualan kamu.`,
+    (n) => `${n} ni, barang nampak dari jauh.`,
+    (n) => `${n} ni kami bikin custom.`,
+  ],
+  bespoke: [
+    (n) => `${n} ni ikut ruang kamu.`,
+    (n) => `${n} ni bila piece biasa tidak muat.`,
+    (n) => `${n} ni kami buat custom.`,
+  ],
+  general: [
+    (n) => `${n} ni, ikut cara kamu.`,
+    (n) => `${n} ni, satu sudut dulu.`,
+    (n) => `${n} ni kami bikin custom.`,
   ],
 }
 
 const IG_MID = [
-  'Kami bikin custom kat Sabah.',
-  'Ikut ruang kamu bah.',
-  'Simple ja kan, tapi fungsi dia jelas.',
+  'Kami bikin piece ni custom.',
+  'Simple sudah, tapi fungsi nampak.',
+  'Ikut ruang kamu.',
 ]
 
 const TT_OPEN = {
-  wardrobe: ['Baju bertindih lagi. 🌿', 'Almari penuh, mood pun penat. 🥰', 'Satu bilik, satu fungsi. ✨'],
-  storage: ['Barang hilang lagi. 🌿', 'Masa habis cari satu benda. 🥰', 'Sudut yang sesak. ✨'],
-  display: ['Mata pening kat paparan. 🌿', 'Barang terlalu ramai menjerit. 🥰', 'Kedai kecil boleh kemas. ✨'],
-  kiosk: ['Kaunter dari jauh. 🌿', 'Kotak tepi nampak letih. 🥰', 'Bukan meja kosong. ✨'],
-  bespoke: ['Ruang yang pelik sikit. 🌿', 'Katalog dah menyerah. 🥰', 'Ikut ruang kamu. ✨'],
-  general: ['Satu sudut dulu. 🌿', 'Jangan ubah serentak. 🥰', 'Barang harian dulu. ✨'],
+  wardrobe: ['Baju dengan drawer. ✨', 'Bilik yang kemas. 😆', 'Satu wardrobe. 😍'],
+  storage: ['Storage untuk barang kamu. 🌿', 'Setiap barang, satu tempat. ✨', 'Ruang rumah lebih kemas. 😉'],
+  display: ['Display yang kemas. ✨', 'Barang nampak dari jauh. 😍', 'Ruang kosong sikit. 😉'],
+  kiosk: ['Kaunter untuk jualan. ✨', 'Barang nampak dari jauh. 😍', 'Setup simple. 😉'],
+  bespoke: ['Piece ikut ruang. ✨', 'Custom untuk kamu. 😍', 'Ruang sendiri. 😉'],
+  general: ['Satu sudut dulu. ✨', 'Barang harian. 😍', 'Ruang kamu. 😉'],
 }
 
 const TT_MID = {
-  wardrobe: ['Tempat gantung, tempat lipat.', 'Bilik yang mau lega.', 'Kami bikin kat Sabah.'],
-  storage: ['Setiap benda ada sudut.', 'Ikut barang kamu.', 'Kami bikin kat Sabah.'],
-  display: ['Yang penting duduk depan.', 'Kasi paparan jelas.', 'Custom kat Sabah.'],
-  kiosk: ['Barang nampak dari jauh.', 'Ikut cara kamu jualan.', 'Kami bikin kat Sabah.'],
-  bespoke: ['Ikut ruang, bukan katalog.', 'Kami dengar dulu.', 'Kerja dia kat Sabah.'],
-  general: ['Ikut cara kamu hidup.', 'Satu sudut dulu.', 'Custom kat Sabah.'],
+  wardrobe: ['Tempat baju dengan drawer.', 'Bilik lebih kemas.', 'Custom dari Team.'],
+  storage: ['Setiap barang ada tempat.', 'Untuk ruang rumah.', 'Storage yang kemas.'],
+  display: ['Barang penting nampak.', 'Display dengan kemas.', 'Dari jauh terus nampak.'],
+  kiosk: ['Untuk jualan kamu.', 'Barang nampak dari jauh.', 'Setup yang simple.'],
+  bespoke: ['Ikut ruang kamu.', 'Piece custom.', 'Untuk ruang sendiri.'],
+  general: ['Ikut cara kamu.', 'Satu sudut dulu.', 'Barang harian ada tempat.'],
 }
 
 export const CAPTION_GOALS = [
@@ -645,7 +542,7 @@ function facebookLines(goal, kind, name, index) {
     line(OPEN[goal][kind][index], name),
     line(BODY[goal][kind][index], name),
     line(goal === 'tips' ? TIP_MID[kind][index] : MID[kind][index], name),
-    line(CTA[goal][index], name),
+    line(CTA[goal][kind][index], name),
   ]
 }
 

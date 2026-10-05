@@ -110,6 +110,8 @@ function assertPlatforms(output) {
     const lines = nonEmptyLines(output[key])
     assert(lines.length >= 4 && lines.length <= 5, `${key} must be 4 to 5 non-empty lines, got ${lines.length}:\n${output[key]}`)
     assert(!output[key].includes('#'), `${key} must not contain a hashtag:\n${output[key]}`)
+    assert(!/\bnak\b/i.test(output[key]), `Banned whole word nak in ${key}:\n${output[key]}`)
+    assert(!/mesej kami bah/i.test(output[key]), `Banned close in ${key}:\n${output[key]}`)
   }
 }
 
@@ -147,7 +149,9 @@ assert(/\bjaaa\b/.test(sampleBlob) && /\bteda\b/.test(sampleBlob) && /\bngam\b/.
 assert(/[🌿✨😍🥰]/u.test(sampleBlob), 'A caption should carry the light emoji recent posts use at line ends.')
 assert(!sampleBlob.includes('#'), 'Facebook captions must not contain hashtags.')
 assert(engine.includes('Brutti Soul Master'), 'The generator should name Brutti Soul Master as the voice source.')
-assert(/\bbikin\b/.test(engine) && /\btinguk\b/.test(engine) && /\bngam\b/.test(engine) && /\bnda\b/.test(engine) && /\bsia\b/.test(engine), 'Soul dialect words should live in the phrase banks.')
+assert(/\bbikin\b/.test(engine) && /\btinguk\b/.test(engine) && /\bngam\b/.test(engine) && /\bmau\b/.test(engine) && /\bteda\b/.test(engine), 'Dialect words from the recent posts should live in the phrase banks.')
+assert(!/\bnak\b/i.test(engine), 'The generator must not contain the banned whole word nak.')
+assert(!/mesej kami bah/i.test(engine), 'The generator must not contain the banned close.')
 
 const priced = { ...pusma, price: 'RM890', material: 'Plywood', dimensions: '180 x 40 x 90 cm', colour: 'Natural' }
 const filled = generateBmCaptions({ product: priced, goal: 'highlight', variation: 0 })
