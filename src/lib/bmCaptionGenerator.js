@@ -6,8 +6,10 @@
 // synonym would have been. Closes are a soft observation or a function line.
 // Emoji, if any, sits at the end of a line. No hashtags. No copied post.
 // No borrowed facts. No invented Dusun gloss.
-// Blank price, material, size and colour are skipped. Every caption is 4 lines,
-// or 5 when a real note or a filled spec needs its own line.
+// The caption uses the Product Name alone and does not append the category.
+// Line 4 is the design line, from the design note, name descriptors, or colour.
+// Price, size and material stay out of those lines. When a field has a value,
+// a Product details list follows the 4-line caption. Blank fields are omitted.
 
 const HUMOUR = {
   wardrobe: 'Baju banyak, tapi bilik masih boleh nampak kemas. 😆',
@@ -16,57 +18,6 @@ const HUMOUR = {
   kiosk: 'Meja jualan yang kemas, barang nampak dari jauh. 😆',
   bespoke: 'Ruang kecil pun boleh ada piece sendiri. 😆',
   general: 'Gambar orang lain cantik. Hidup kamu lain. 😆',
-}
-
-const CTA = {
-  highlight: {
-    wardrobe: ['Baju nampak, tinguk ja. 😍', 'Bilik pun boleh nampak kemas. 😉', 'Dari jauh, baju terus nampak. ✨'],
-    storage: ['Setiap barang ada tempat sendiri. 😍', 'Ruang rumah lebih kemas. 😉', 'Ngam sudah bah. 😉'],
-    display: ['Barang terus nampak. 😍', 'Display dengan kemas. 😉', 'Dari jauh pun senang nampak. ✨'],
-    kiosk: ['Barang nampak dari jauh. 😍', 'Kaunter yang kemas. 😉', 'Setup simple sudah cukup. ✨'],
-    bespoke: ['Ikut ruang kamu. 😍', 'Piece untuk ruang sendiri. 😉', 'Custom, dan fungsi dia nampak. ✨'],
-    general: ['Satu sudut pun sudah lain. 😍', 'Ikut cara kamu hidup. 😉', 'Barang harian ada tempat. ✨'],
-  },
-  promo: {
-    wardrobe: ['Simple ja, untuk baju kamu. 😉', 'Boleh ikut cara kamu simpan. ✨', 'Bilik lebih senang nampak. 😍'],
-    storage: ['Simple ja, dan ruang dia terus lebih kemas. 😉', 'Boleh ikut apa yang kamu simpan. ✨', 'Storage yang kemas untuk setiap hari. 😍'],
-    display: ['Display terus lebih kemas. 😉', 'Barang penting duduk di tempat yang nampak. ✨', 'Senang nampak dari jauh. 😍'],
-    kiosk: ['Untuk jualan kamu. 😉', 'Barang nampak dari jauh. ✨', 'Setup yang simple. 😍'],
-    bespoke: ['Ikut ruang, bukan ikut orang lain. 😉', 'Kami buat ikut kamu. ✨', 'Piece untuk ruang kamu. 😍'],
-    general: ['Ikut cara kamu. 😉', 'Satu sudut dulu sudah cukup. ✨', 'Ruang lebih kemas. 😍'],
-  },
-  customer: {
-    wardrobe: ['Lain rumah, lain cara simpan. 😉', 'Ikut baju kamu. ✨', 'Setiap bilik ada cara dia. 😍'],
-    storage: ['Lain barang, lain tempat. 😉', 'Ikut apa yang kamu simpan. ✨', 'Setiap ruang ada cara dia. 😍'],
-    display: ['Lain client, lain barang. 😉', 'Display ikut ruang kamu. ✨', 'Barang penting senang nampak. 😍'],
-    kiosk: ['Lain client, lain setup. 😉', 'Ikut cara kamu jualan. ✨', 'Kaunter untuk kamu. 😍'],
-    bespoke: ['Lain ruang, lain piece. 😉', 'Ikut cerita kamu. ✨', 'Custom untuk ruang tu. 😍'],
-    general: ['Lain hari, lain barang. 😉', 'Ikut cara kamu guna. ✨', 'Setiap sudut ada cara dia. 😍'],
-  },
-  behind: {
-    wardrobe: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-    storage: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-    display: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-    kiosk: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-    bespoke: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-    general: ['Dari tangan Team. ❤', 'Dari proses sampai siap. ✨', 'Nampak simple, tapi ada kerja. 😍'],
-  },
-  tips: {
-    wardrobe: ['Simple ja kan. 😍', 'Senang ambil, senang simpan. ✨', 'Mau susun macam mana, ikut kamu jaaa. ✨'],
-    storage: ['Simple ja kan. 😍', 'Setiap barang ada tempat. ✨', 'Ikut cara kamu susun. 😉'],
-    display: ['Simple ja kan. 😍', 'Senang nampak dari jauh. ✨', 'Display lebih kemas bila ada ruang. 😉'],
-    kiosk: ['Simple ja kan. 😍', 'Barang nampak dari jauh. ✨', 'Setup dulu, baru keluar. 😉'],
-    bespoke: ['Simple ja kan. 😍', 'Ikut ruang kamu. ✨', 'Cerita dulu, baru kami buat. 😉'],
-    general: ['Simple ja kan. 😍', 'Dari sana baru susun. ✨', 'Satu sudut dulu sudah cukup. 😉'],
-  },
-}
-
-const CTA_SHORT = {
-  highlight: ['Fungsi dia terus nampak. 😍', 'Simple sudah. 😉', 'Ngam untuk ruang kamu. ✨'],
-  promo: ['Ruang dia lebih kemas. 😉', 'Boleh ikut kamu simpan. ✨', 'Simple ja. 😍'],
-  customer: ['Lain ruang, lain cara. 😉', 'Ikut cara kamu. ✨', 'Setiap ruang ada cara dia. 😍'],
-  behind: ['Dari tangan Team. ❤', 'Sampai dia siap. ✨', 'Ada kerja Team. 😍'],
-    tips: ['Simple sudah kan. 😍', 'Senang nampak. ✨', 'Susun ikut kamu. 😉'],
 }
 
 const OPEN = {
@@ -312,7 +263,7 @@ const TIP_MID = {
   wardrobe: [
     'Drawer untuk yang dilipat. Tempat gantung untuk yang lain.',
     'Yang kamu guna minggu ni, letak supaya senang ambil.',
-    'Bila yang lama keluar, ruang dalam dia lebih kemas.',
+    'Mau susun macam mana, ikut kamu jaaa. ✨',
   ],
   storage: [
     'Kamu tidak perlu cari lama untuk satu barang.',
@@ -468,12 +419,6 @@ function readField(value) {
   return isBlankField(text) ? '' : text
 }
 
-function tidyNote(note) {
-  const text = readField(note)
-  if (!text) return ''
-  return /[.!?]$/.test(text) ? text : `${text}.`
-}
-
 function categoryKind(category = '') {
   const value = clean(category).toLowerCase()
   if (!value) return 'general'
@@ -496,28 +441,96 @@ function kindFrom(name = '', category = '') {
   return categoryKind(category)
 }
 
-function spokenSpecs(specs) {
-  const parts = []
-  for (const spec of specs) {
-    if (spec.key === 'price') parts.push(`Harga dia ${spec.value}.`)
-    if (spec.key === 'material') parts.push(`Kami guna ${spec.value}.`)
-    if (spec.key === 'dimensions') parts.push(`Saiz dia ${spec.value}.`)
-    if (spec.key === 'colour') parts.push(`Warna dia ${spec.value}.`)
-  }
-  return parts.join(' ')
+const FINISH_WORD = /\b(?:coatings?|finish(?:es|ing)?|varnish(?:es)?|lacquers?|paints?|sealers?)\b/i
+
+const NEUTRAL_LOOK = [
+  'Nampak simple, dan kemas. 😍',
+  'Nampak simple, tapi ada kerja. 😉',
+  'Piece ni simple, senang mata nampak. ✨',
+]
+
+function finishLine(text) {
+  const value = clean(text)
+  return /[.!?]$/.test(value) ? value : `${value}.`
 }
 
-function specsFromProduct(product = {}) {
-  const specs = []
-  const price = readField(product.price)
-  const material = readField(product.material)
+function designDescriptors(name) {
+  const found = []
+  const pattern = /open concept|modular|fold(?:ing|able)|extend(?:ed|able)/gi
+  for (const match of clean(name).matchAll(pattern)) {
+    const word = match[0]
+    if (!found.some((item) => item.toLowerCase() === word.toLowerCase())) found.push(word)
+  }
+  return found
+}
+
+function designLine(name, colour, note, index) {
+  const noteRaw = readField(note)
+  const colourText = readField(colour)
+  const noteKey = noteRaw.toLowerCase()
+  const descriptors = designDescriptors(name).filter((item) => !noteKey.includes(item.toLowerCase()))
+  const showColour = Boolean(colourText) && !noteKey.includes(colourText.toLowerCase())
+  const slot = ((Number(index) || 0) % NEUTRAL_LOOK.length + NEUTRAL_LOOK.length) % NEUTRAL_LOOK.length
+  if (!noteRaw && !descriptors.length && !showColour) return NEUTRAL_LOOK[slot]
+  if (!noteRaw && !descriptors.length) {
+    const colourLines = [
+      `Warna dia ${colourText}.`,
+      `Warna dia ${colourText}, nampak pada piece ni.`,
+      `Piece ni warna dia ${colourText}.`,
+    ]
+    return finishLine(colourLines[slot])
+  }
+  const bits = []
+  if (descriptors.length) bits.push(descriptors.join(', '))
+  if (noteRaw) bits.push(noteRaw)
+  if (showColour) bits.push(`warna dia ${colourText}`)
+  const detail = bits.join(', ')
+  const leads = [
+    `Design ni ${detail}.`,
+    `Piece ni ${detail}.`,
+    `${detail}, itu design dia.`,
+  ]
+  return finishLine(leads[slot])
+}
+
+function normalisePrice(value) {
+  let text = clean(value)
+  const leading = /^(?:(?:harga|price)\s+)?(?:bermula(?:\s+dari)?|starts?\s+from|from)\s+/i
+  for (let guard = 0; guard < 4 && leading.test(text); guard += 1) {
+    text = clean(text.replace(leading, ''))
+  }
+  return text
+}
+
+function splitMaterial(material) {
+  const text = clean(material)
+  if (!text) return { materials: '', finishing: '' }
+  const withSplit = text.match(/^(.*?)\s+\bwith\b\s+(.+)$/i)
+  if (withSplit && FINISH_WORD.test(withSplit[2])) {
+    return { materials: clean(withSplit[1]), finishing: clean(withSplit[2]) }
+  }
+  if (FINISH_WORD.test(text)) {
+    const remainder = text.replace(/\b(?:coatings?|finish(?:es|ing)?|varnish(?:es)?|lacquers?|paints?|sealers?)\b/gi, ' ').replace(/[&,/+–—-]+/g, ' ').replace(/\s+/g, ' ').trim()
+    if (!remainder) return { materials: '', finishing: text }
+  }
+  return { materials: text, finishing: '' }
+}
+
+function productDetails(product = {}) {
   const dimensions = readField(product.dimensions || product.dimension)
-  const colour = readField(product.colour || product.color)
-  if (price) specs.push({ key: 'price', value: price })
-  if (material) specs.push({ key: 'material', value: material })
-  if (dimensions) specs.push({ key: 'dimensions', value: dimensions })
-  if (colour) specs.push({ key: 'colour', value: colour })
-  return specs
+  const material = readField(product.material)
+  const price = readField(product.price)
+  const { materials, finishing } = splitMaterial(material)
+  const lines = []
+  if (dimensions) lines.push(`- Size: ${dimensions}`)
+  if (materials) lines.push(`- Materials: ${materials}`)
+  if (finishing) lines.push(`- Finishing: ${finishing}`)
+  if (price) lines.push(`- Price starts from ${normalisePrice(price)}`)
+  const used = []
+  if (price) used.push('price')
+  if (materials || finishing) used.push('material')
+  if (dimensions) used.push('dimensions')
+  return { text: lines.length ? `Product details:\n\n${lines.join('\n')}` : '', used }
 }
 
 function line(value, name) {
@@ -529,12 +542,9 @@ function render(parts) {
   return parts.map((part) => clean(part)).filter(Boolean).join('\n\n')
 }
 
-function compose(base, note, spec) {
-  const [a, b, c, d] = base
-  if (note && spec) return render([a, b, note, spec, d])
-  if (note) return render([a, b, note, d])
-  if (spec) return render([a, b, spec, c, d])
-  return render([a, b, c, d])
+function attach(lines, design, details) {
+  const body = render([...lines, design])
+  return details ? `${body}\n\n${details}` : body
 }
 
 function facebookLines(goal, kind, name, index) {
@@ -542,7 +552,6 @@ function facebookLines(goal, kind, name, index) {
     line(OPEN[goal][kind][index], name),
     line(BODY[goal][kind][index], name),
     line(goal === 'tips' ? TIP_MID[kind][index] : MID[kind][index], name),
-    line(CTA[goal][kind][index], name),
   ]
 }
 
@@ -551,16 +560,14 @@ function instagramLines(goal, kind, name, index) {
     line(IG_OPEN[goal][kind][index], name),
     line(IG_BODY[kind][index], name),
     line(IG_MID[index], name),
-    line(CTA_SHORT[goal][index], name),
   ]
 }
 
-function tiktokLines(goal, kind, name, index) {
+function tiktokLines(kind, name, index) {
   return [
     line(TT_OPEN[kind][index], name),
     `${name} ni.`,
     line(TT_MID[kind][index], name),
-    line(CTA_SHORT[goal][index], name),
   ]
 }
 
@@ -582,12 +589,12 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
   }
 
   const kind = kindFrom(name, readField(record.category))
-  const specs = specsFromProduct(record)
-  const noteText = tidyNote(note)
-  const specText = spokenSpecs(specs)
-  const facebook = compose(facebookLines(selectedGoal, kind, name, index), noteText, specText)
-  const instagram = compose(instagramLines(selectedGoal, kind, name, index), noteText, specText)
-  const tiktok = compose(tiktokLines(selectedGoal, kind, name, index), noteText, specText)
+  const colour = readField(record.colour || record.color)
+  const design = designLine(name, colour, note, index)
+  const details = productDetails(record)
+  const facebook = attach(facebookLines(selectedGoal, kind, name, index), design, details.text)
+  const instagram = attach(instagramLines(selectedGoal, kind, name, index), design, details.text)
+  const tiktok = attach(tiktokLines(kind, name, index), design, details.text)
 
   return {
     facebook,
@@ -595,6 +602,6 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
     tiktok,
     variation: index,
     structureId: `${selectedGoal}-${kind}-${index}`,
-    usedFacts: specs.map((item) => item.key),
+    usedFacts: colour ? [...details.used, 'colour'] : details.used,
   }
 }

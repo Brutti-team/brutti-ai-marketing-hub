@@ -62,6 +62,17 @@ function nonEmptyLines(text) {
   return String(text).split('\n').map((line) => line.trim()).filter(Boolean)
 }
 
+function captionBody(text) {
+  const raw = String(text)
+  const marker = '\n\nProduct details:'
+  const cut = raw.indexOf(marker)
+  return cut === -1 ? raw : raw.slice(0, cut)
+}
+
+function bodyLines(text) {
+  return nonEmptyLines(captionBody(text))
+}
+
 function assertDialect(output) {
   for (const key of ['facebook', 'instagram', 'tiktok']) {
     assert(soulDialect.test(output[key]), `${key} caption is missing Sabah dialect:\n${output[key]}`)
@@ -107,11 +118,13 @@ function assertPlatforms(output) {
   assert(output.facebook !== output.instagram, 'Facebook and Instagram must not be the same caption.')
   assert(!/\b(analitik|analytics|views|reach|tontonan)\b/i.test(output.tiktok), 'TikTok caption must not include analytics.')
   for (const key of ['facebook', 'instagram', 'tiktok']) {
-    const lines = nonEmptyLines(output[key])
-    assert(lines.length >= 4 && lines.length <= 5, `${key} must be 4 to 5 non-empty lines, got ${lines.length}:\n${output[key]}`)
+    const lines = bodyLines(output[key])
+    assert(lines.length >= 4 && lines.length <= 5, `${key} caption body must be 4 to 5 non-empty lines, got ${lines.length}:\n${output[key]}`)
     assert(!output[key].includes('#'), `${key} must not contain a hashtag:\n${output[key]}`)
     assert(!/\bnak\b/i.test(output[key]), `Banned whole word nak in ${key}:\n${output[key]}`)
     assert(!/mesej kami bah/i.test(output[key]), `Banned close in ${key}:\n${output[key]}`)
+    assert(!/Price starts from\s+(?:starts from|bermula|price starts from)/i.test(output[key]), `Doubled price lead-in in ${key}:\n${output[key]}`)
+    assert(!/^-\s*(?:Size|Materials|Finishing):\s*$/m.test(output[key]), `Blank product-detail line in ${key}:\n${output[key]}`)
   }
 }
 
@@ -135,6 +148,7 @@ for (const product of [kaanagan, ahtam, pusma]) {
       assert(!output.usedFacts.includes('material'), 'Blank material must not be marked as used.')
       assert(!output.usedFacts.includes('dimensions'), 'Blank dimensions must not be marked as used.')
       assert(!output.usedFacts.includes('colour'), 'Blank colour must not be marked as used.')
+      assert(!output.facebook.includes('Product details:') && !output.instagram.includes('Product details:') && !output.tiktok.includes('Product details:'), 'A product with every spec blank must omit the Product details block.')
     })
     assert(new Set(versions.map((item) => item.facebook)).size === 3, `${goal} regenerate did not change the Facebook caption for ${product.name}.`)
     assert(new Set(versions.map((item) => item.instagram)).size === 3, `${goal} regenerate did not change the Instagram caption for ${product.name}.`)
@@ -158,9 +172,12 @@ const filled = generateBmCaptions({ product: priced, goal: 'highlight', variatio
 assertNatural(`${filled.facebook}\n${filled.instagram}\n${filled.tiktok}`)
 assertDialect(filled)
 assertPlatforms(filled)
-assert(filled.facebook.includes('RM890'), 'Recorded price should be used when the field is filled.')
-assert(filled.instagram.includes('RM890'), 'Instagram should keep the recorded price.')
-assert(filled.facebook.includes('Plywood') && filled.facebook.includes('180 x 40 x 90 cm') && filled.facebook.includes('Natural'), 'Filled material, dimensions and colour should appear.')
+const filledBody = captionBody(filled.facebook)
+assert(!filledBody.includes('RM890') && !filledBody.includes('Plywood') && !filledBody.includes('180 x 40 x 90 cm'), 'Price, size and material must stay out of the caption body.')
+assert(bodyLines(filled.facebook)[3].includes('Natural'), 'Colour is a design fact and belongs on line 4.')
+assert(filled.facebook.includes('Product details:\n\n- Size: 180 x 40 x 90 cm\n- Materials: Plywood\n- Price starts from RM890'), 'Filled size, material and price belong in the details list.')
+assert(!filled.facebook.includes('- Finishing:'), 'A material with no finishing part must omit Finishing.')
+assert(filled.instagram.includes('- Price starts from RM890') && filled.tiktok.includes('- Materials: Plywood'), 'Instagram and TikTok keep the same details list.')
 assert(filled.usedFacts.includes('price') && filled.usedFacts.includes('material') && filled.usedFacts.includes('dimensions') && filled.usedFacts.includes('colour'), 'Filled spec fields should be recorded as used.')
 
 const cleared = generateBmCaptions({ product: { ...priced, price: '   ', material: '-', dimensions: 'N/A', colour: 'tiada' }, goal: 'highlight', variation: 0 })
@@ -170,12 +187,52 @@ assertPlatforms(cleared)
 assertNoBlankLeak(`${cleared.facebook}\n${cleared.instagram}\n${cleared.tiktok}`, { price: '', material: '', dimensions: '', colour: '' })
 assert(!cleared.facebook.includes('RM890') && !cleared.facebook.includes('Plywood'), 'Cleared fields must not keep the previous values.')
 
-const noted = generateBmCaptions({ product: ahtam, goal: 'customer', note: 'Pelanggan di Penampang guna rak ini untuk kedai runcit.', variation: 0 })
+const designNote = 'kaki besi, top kayu'
+const noted = generateBmCaptions({ product: ahtam, goal: 'customer', note: designNote, variation: 0 })
 assertNatural(`${noted.facebook}\n${noted.instagram}`)
 assertDialect(noted)
 assertPlatforms(noted)
-assert(noted.facebook.includes('Pelanggan di Penampang guna rak ini untuk kedai runcit.'), 'A supplied note should be kept as written.')
+for (const key of ['facebook', 'instagram', 'tiktok']) {
+  const lines = bodyLines(noted[key])
+  assert(lines[3].includes(designNote), `Design note should be reflected in line 4 of ${key}:\n${lines[3]}`)
+}
 assertNoBlankLeak(`${noted.facebook}\n${noted.instagram}`, ahtam, noted.facebook)
+
+const ayyash = {
+  name: 'AYYASH',
+  category: 'Wall Rack',
+  price: 'RM87',
+  material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+  dimensions: '5 ft H × 20 in W',
+  colour: '',
+}
+for (const variation of [0, 1, 2]) {
+  const named = generateBmCaptions({ product: ayyash, goal: 'highlight', variation })
+  assertPlatforms(named)
+  for (const key of ['facebook', 'instagram', 'tiktok']) {
+    assert(named[key].includes('AYYASH'), `${key} should mention the product name.`)
+    assert(!/AYYASH\s+Wall Rack/i.test(named[key]), `Category must not be appended after the product name in ${key}:\n${named[key]}`)
+    const body = captionBody(named[key])
+    assert(!body.includes('RM87') && !body.includes('Solid Upcycled Pine Wood') && !body.includes('Sealer') && !body.includes('5 ft H'), `Specs must stay out of the ${key} caption body.`)
+  }
+}
+const ayyashPost = generateBmCaptions({ product: ayyash, goal: 'highlight', variation: 0 })
+assert(ayyashPost.facebook.includes('Product details:\n\n- Size: 5 ft H × 20 in W\n- Materials: Solid Upcycled Pine Wood\n- Finishing: Sealer & Satin Coating\n- Price starts from RM87'), 'AYYASH details should split material and finishing.')
+assert(!/- (?:Size|Materials|Finishing|Price starts from):\s*\n/i.test(ayyashPost.facebook), 'Blank detail lines must be omitted.')
+
+const eunoiaSize = '3’ lebar x 1.5’ depth x 75cm height'
+const eunoia = generateBmCaptions({
+  product: { name: 'Eunoia Kiosk', category: 'Kiosk', price: 'bermula RM487', dimensions: eunoiaSize, material: '', colour: '' },
+  goal: 'highlight',
+  variation: 0,
+})
+assertPlatforms(eunoia)
+assert(eunoia.facebook.includes('Eunoia Kiosk'), 'The Eunoia caption should use the product name.')
+assert(!/Eunoia Kiosk\s+Kiosk/i.test(eunoia.facebook), 'Category must not be appended after Eunoia Kiosk.')
+assert(!captionBody(eunoia.facebook).includes('RM487') && !captionBody(eunoia.facebook).includes(eunoiaSize), 'Eunoia price and size stay out of the caption body.')
+assert(eunoia.facebook.includes(`Product details:\n\n- Size: ${eunoiaSize}\n- Price starts from RM487`), 'Eunoia details should keep the stored size and a single price lead-in.')
+assert(!eunoia.facebook.includes('- Materials:') && !eunoia.facebook.includes('- Finishing:') && !/bermula/i.test(eunoia.facebook), 'Blank material lines and the stored bermula prefix must be omitted.')
+assert(!/Price starts from\s+bermula/i.test(eunoia.facebook), 'Price lead-in must not double.')
 
 const topicOnly = generateBmCaptions({ topic: 'susun ruang kedai', goal: 'tips', variation: 1 })
 assertNatural(`${topicOnly.facebook}\n${topicOnly.instagram}\n${topicOnly.tiktok}`)
@@ -197,7 +254,7 @@ assert(!/saved kiosk or project reference/i.test(sentinel.facebook), 'Internal p
 assert(!generateBmCaptions({ variation: 0 }).facebook, 'Missing product and topic should not invent a caption.')
 
 assert(!/\b(fetch|openai|supabase|generativelanguage|api\.openai)\b/i.test(engine), 'The caption generator must stay local.')
-assert(engine.includes('HUMOUR') && engine.includes('CTA'), 'Phrase banks should live in the generator.')
+assert(engine.includes('HUMOUR') && engine.includes('Product details:'), 'Phrase banks and the product details block should live in the generator.')
 assert(app.includes('BmCaptionStudio') && app.includes('Penjana Kapsyen') && app.includes("useState('caption')"), 'Content Studio should open on the Malay caption generator.')
 assert(posts.includes('meta-post-list') && posts.includes('meta-post-drawer'), 'The locked Post List and its side panel must stay in place.')
 assert(packageJson.includes('quality:bm-caption'), 'The check script must call the caption smoke test.')
