@@ -30,6 +30,7 @@ import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow,
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
+import BmCaptionStudio from './BmCaptionStudio'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -652,15 +653,15 @@ function GeneratorForm({ form, setForm, onGenerate, output, onOutputChange, save
 }
 
 function ContentStudio({ content, deleteContent, generator, setGenerator, output, setOutput, generate, saveDraft, openContent, workspaceActive, toast, productOptions }) {
-  const [tab, setTab] = useState('generator')
+  const [tab, setTab] = useState('caption')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Buat dan asah caption Facebook dalam gaya Brutti Sabahan yang santai, kemudian hantar untuk human review." />
-      <div className="tab-bar"><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
-      {tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast} productOptions={productOptions}/> : (
+      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Jana kapsyen Bahasa Malaysia untuk Facebook dan Instagram daripada produk atau topik. Tiada AI berbayar, dan medan kosong tidak direka." />
+      <div className="tab-bar"><button className={`bm-caption-tab ${tab === 'caption' ? 'active' : ''}`} onClick={() => setTab('caption')}><Icon name="sparkles"/>Penjana Kapsyen</button><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></div>
+      {tab === 'caption' ? <BmCaptionStudio productOptions={productOptions} toast={toast} /> : tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast} productOptions={productOptions}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
           <div className="content-table-wrap"><table className="content-table"><thead><tr><th>Content</th><th>Type</th><th>Rule check</th><th>Stage</th><th>Updated</th><th/></tr></thead><tbody>{visible.map((item) => <tr key={item.id}><td><span className="content-channel">f</span><div><strong>{item.title}</strong><small>{item.product}</small></div></td><td>{item.type}</td><td><StatusPill>{item.aiReview}</StatusPill></td><td><StatusPill>{item.stage}</StatusPill></td><td>{item.updatedAt}</td><td><div className="row-actions"><button onClick={() => openContent(item)} aria-label={`Edit ${item.title}`}><Icon name="edit"/></button><button onClick={() => deleteContent(item.id)} aria-label={`Delete ${item.title}`}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>
