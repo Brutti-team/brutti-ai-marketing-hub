@@ -55,16 +55,17 @@ function assertNatural(text) {
   }
 }
 
-// Brutti Soul Master §2 and §9: loghat Sabah belongs in the caption, and "bah" is part of that voice.
-const soulDialect = /\b(bah|kan|tinguk|ngam|bikin|nda|teda|kasi|jak|sia|antam|la)\b/i
+// Recent Brutti posts and Soul: loghat shows up as bah, teda, ngam, kasi, ni, tinguk, jaaa.
+const soulDialect = /\b(bah|teda|ngam|kasi|jaaa|ni|tinguk|bikin)\b/i
+
+function nonEmptyLines(text) {
+  return String(text).split('\n').map((line) => line.trim()).filter(Boolean)
+}
 
 function assertDialect(output) {
-  assert(soulDialect.test(output.facebook), `Facebook caption is missing Sabah dialect:\n${output.facebook}`)
-  assert(soulDialect.test(output.instagram), `Instagram caption is missing Sabah dialect:\n${output.instagram}`)
-  assert(/\bbah\b/i.test(output.facebook), `Facebook caption is missing Sabah "bah":\n${output.facebook}`)
-  assert(/\bbah\b/i.test(output.instagram), `Instagram caption is missing Sabah "bah":\n${output.instagram}`)
-  const facebookBah = output.facebook.match(/\bbah\b/gi) || []
-  assert(facebookBah.length <= 2, `Facebook caption stacks "bah" until it sounds like a caricature:\n${output.facebook}`)
+  for (const key of ['facebook', 'instagram', 'tiktok']) {
+    assert(soulDialect.test(output[key]), `${key} caption is missing Sabah dialect:\n${output[key]}`)
+  }
 }
 
 function wordSet(text) {
@@ -103,17 +104,13 @@ function assertNoBlankLeak(text, product, note = '') {
 }
 
 function assertPlatforms(output) {
-  assert(output.facebook.trim(), 'Facebook caption is missing.')
-  assert(output.instagram.trim(), 'Instagram caption is missing.')
-  assert(output.tiktok.trim(), 'TikTok caption is missing.')
   assert(output.facebook !== output.instagram, 'Facebook and Instagram must not be the same caption.')
-  assert(/\n/.test(output.instagram), 'Instagram caption needs line breaks.')
-  assert(/#Brutti\b/.test(output.instagram), 'Instagram caption needs Brutti hashtags.')
-  assert(!/#[A-Za-z0-9_]+/.test(output.facebook), 'Facebook caption should not carry a hashtag block.')
   assert(!/\b(analitik|analytics|views|reach|tontonan)\b/i.test(output.tiktok), 'TikTok caption must not include analytics.')
-  const instagramWords = output.instagram.replace(/#[\p{L}\p{N}_]+/gu, '').split(/\s+/).filter(Boolean)
-  const facebookWords = output.facebook.split(/\s+/).filter(Boolean)
-  assert(instagramWords.length < facebookWords.length, 'Instagram caption should be shorter than Facebook.')
+  for (const key of ['facebook', 'instagram', 'tiktok']) {
+    const lines = nonEmptyLines(output[key])
+    assert(lines.length >= 4 && lines.length <= 5, `${key} must be 4 to 5 non-empty lines, got ${lines.length}:\n${output[key]}`)
+    assert(!output[key].includes('#'), `${key} must not contain a hashtag:\n${output[key]}`)
+  }
 }
 
 const kaanagan = fallbackProduct('KAANAGAN Open Concept Wardrobe with Drawers')
@@ -144,8 +141,11 @@ for (const product of [kaanagan, ahtam, pusma]) {
   }
 }
 
-const withBah = facebookSamples.filter((text) => /\bbah\b/i.test(text))
-assert(withBah.length === facebookSamples.length, 'Sabah "bah" should be part of every caption, not a rare garnish.')
+const sampleBlob = facebookSamples.join('\n')
+assert(/\bPOV:/.test(sampleBlob), 'Some captions should open the way recent Brutti posts do, with POV.')
+assert(/\bjaaa\b/.test(sampleBlob) && /\bteda\b/.test(sampleBlob) && /\bngam\b/.test(sampleBlob) && /\bkasi\b/.test(sampleBlob), 'Phrase banks should use the dialect words from recent Brutti posts.')
+assert(/[🌿✨😍🥰]/u.test(sampleBlob), 'A caption should carry the light emoji recent posts use at line ends.')
+assert(!sampleBlob.includes('#'), 'Facebook captions must not contain hashtags.')
 assert(engine.includes('Brutti Soul Master'), 'The generator should name Brutti Soul Master as the voice source.')
 assert(/\bbikin\b/.test(engine) && /\btinguk\b/.test(engine) && /\bngam\b/.test(engine) && /\bnda\b/.test(engine) && /\bsia\b/.test(engine), 'Soul dialect words should live in the phrase banks.')
 
@@ -153,6 +153,7 @@ const priced = { ...pusma, price: 'RM890', material: 'Plywood', dimensions: '180
 const filled = generateBmCaptions({ product: priced, goal: 'highlight', variation: 0 })
 assertNatural(`${filled.facebook}\n${filled.instagram}\n${filled.tiktok}`)
 assertDialect(filled)
+assertPlatforms(filled)
 assert(filled.facebook.includes('RM890'), 'Recorded price should be used when the field is filled.')
 assert(filled.instagram.includes('RM890'), 'Instagram should keep the recorded price.')
 assert(filled.facebook.includes('Plywood') && filled.facebook.includes('180 x 40 x 90 cm') && filled.facebook.includes('Natural'), 'Filled material, dimensions and colour should appear.')
@@ -161,18 +162,21 @@ assert(filled.usedFacts.includes('price') && filled.usedFacts.includes('material
 const cleared = generateBmCaptions({ product: { ...priced, price: '   ', material: '-', dimensions: 'N/A', colour: 'tiada' }, goal: 'highlight', variation: 0 })
 assertNatural(`${cleared.facebook}\n${cleared.instagram}\n${cleared.tiktok}`)
 assertDialect(cleared)
+assertPlatforms(cleared)
 assertNoBlankLeak(`${cleared.facebook}\n${cleared.instagram}\n${cleared.tiktok}`, { price: '', material: '', dimensions: '', colour: '' })
 assert(!cleared.facebook.includes('RM890') && !cleared.facebook.includes('Plywood'), 'Cleared fields must not keep the previous values.')
 
 const noted = generateBmCaptions({ product: ahtam, goal: 'customer', note: 'Pelanggan di Penampang guna rak ini untuk kedai runcit.', variation: 0 })
 assertNatural(`${noted.facebook}\n${noted.instagram}`)
 assertDialect(noted)
+assertPlatforms(noted)
 assert(noted.facebook.includes('Pelanggan di Penampang guna rak ini untuk kedai runcit.'), 'A supplied note should be kept as written.')
 assertNoBlankLeak(`${noted.facebook}\n${noted.instagram}`, ahtam, noted.facebook)
 
 const topicOnly = generateBmCaptions({ topic: 'susun ruang kedai', goal: 'tips', variation: 1 })
 assertNatural(`${topicOnly.facebook}\n${topicOnly.instagram}\n${topicOnly.tiktok}`)
 assertDialect(topicOnly)
+assertPlatforms(topicOnly)
 assert(topicOnly.facebook.includes('susun ruang kedai'), 'A typed topic should be usable without a product row.')
 assertNoBlankLeak(`${topicOnly.facebook}\n${topicOnly.instagram}\n${topicOnly.tiktok}`, {})
 
@@ -183,6 +187,7 @@ const sentinel = generateBmCaptions({
 })
 assertNatural(`${sentinel.facebook}\n${sentinel.instagram}`)
 assertDialect(sentinel)
+assertPlatforms(sentinel)
 assert(!/saved kiosk or project reference/i.test(sentinel.facebook), 'Internal placeholder material must not be written into a caption.')
 
 assert(!generateBmCaptions({ variation: 0 }).facebook, 'Missing product and topic should not invent a caption.')

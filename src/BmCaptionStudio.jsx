@@ -188,9 +188,9 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           {result ? (
             <>
               <CaptionCard platform="Facebook" text={result.facebook} onChange={updateDraft('facebook')} onCopy={() => copyText(result.facebook, toast)} />
-              <CaptionCard platform="Instagram" text={result.instagram} onChange={updateDraft('instagram')} onCopy={() => copyText(result.instagram, toast)} hint="Lebih pendek, dengan baris baharu dan hashtag." />
+              <CaptionCard platform="Instagram" text={result.instagram} onChange={updateDraft('instagram')} onCopy={() => copyText(result.instagram, toast)} hint="4 hingga 5 baris. Tiada hashtag." />
               {showTikTok ? (
-                <CaptionCard platform="TikTok" text={result.tiktok} onChange={updateDraft('tiktok')} onCopy={() => copyText(result.tiktok, toast)} hint="Kapsyen pendek sahaja. Tiada analitik TikTok." />
+                <CaptionCard platform="TikTok" text={result.tiktok} onChange={updateDraft('tiktok')} onCopy={() => copyText(result.tiktok, toast)} hint="4 hingga 5 baris. Tiada hashtag, tiada analitik." />
               ) : null}
             </>
           ) : (
