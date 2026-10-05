@@ -1,76 +1,82 @@
-// Local Bahasa Malaysia captions for Content Studio.
-// Tone source: Brutti Soul Master and the Brand Library voice card —
-// short lines, first person, Sabah small-business speech, light humour.
-// No network and no paid model. Blank product fields are skipped.
-// "bah" sits in one highlight closing only, so it stays occasional.
+// Local Bahasa Malaysia captions for Content Studio. No network, no paid model.
+// Primary voice: Brutti Soul Master (src/Brutti_Soul_MasterDoc.md).
+// §2 Bahasa — loghat Sabah is the identity, not a garnish:
+//   bah, la, ni, tu, kan, sia, bikin, ngam, antam, teda, tinguk, kasi.
+//   Golden examples (§10) also write nda, jak, and "bikin".
+// §2 Nada — macam kawan, first person kami/sia, bukan salesman, ayat pendek.
+// §2 Humor — gelak diri sendiri, lebih kurang satu variasi dalam tiga.
+// §6 Hook — babak atau nama, bukan "New Product Alert" / "Promo Hebat".
+// §9 — setiap kapsyen ada loghat. "bah" duduk sekali pada ajakan.
+// Founder stories (gaji, pandemik, Faznur, wallet) stay out of product captions.
+// Blank price, material, size and colour are skipped.
 
 const HUMOUR = {
   wardrobe: [
-    'Baju yang "nanti saya pakai" selalunya yang rebut tempat.',
-    'Kami pun pernah buka almari, pastu terus tutup balik.',
-    'Kalau semua almari sama, bilik pun nampak sama ja.',
+    'Baju yang "nanti saya pakai" selalunya yang rebut tempat kan.',
+    'Sia pun pernah buka almari, pastu terus tutup balik.',
+    'Kalau semua almari sama, bilik pun nampak sama jak.',
   ],
   storage: [
-    'Barang yang "tadi ada" selalunya duduk di tempat yang tak disangka.',
-    'Cari satu benda kecil kadang makan masa lebih lama dari masak.',
-    'Rak yang semua orang beli sama, rumah pun nampak sama.',
+    'Barang yang "tadi ada" selalunya duduk di tempat yang nda disangka.',
+    'Cari satu benda kecil kadang makan masa lebih lama dari masak kan.',
+    'Rak yang semua orang beli sama, rumah pun nampak sama jak.',
   ],
   display: [
-    'Paparan terlalu penuh, mata terus penat.',
-    'Kalau semua barang menjerit, tak ada yang kedengaran.',
-    'Kedai yang paparan dia sama dengan jiran, susah orang ingat.',
+    'Paparan terlalu penuh, mata terus penat kan.',
+    'Kalau semua barang menjerit, teda yang kedengaran.',
+    'Kedai yang paparan dia sama dengan jiran, susah orang ingat bah.',
   ],
   kiosk: [
-    'Kaunter berselerak, pelanggan pun segan nak datang dekat.',
+    'Kaunter berselerak, pelanggan pun segan nak datang dekat kan.',
     'Kotak terbuka di tepi kaunter dah nampak letih.',
-    'Meja kosong tampal nama, orang pun rasa.',
+    'Meja kosong tampal nama, orang pun rasa jak.',
   ],
   bespoke: [
     'Ruang pelik sikit memang nda muat barang katalog.',
-    'Paksa ruang ikut perabot, akhirnya perabot yang menang.',
+    'Paksa ruang ikut perabot, akhirnya perabot yang menang kan.',
     'Barang yang semua rumah ada, ruang kamu pula yang kena mengalah.',
   ],
   general: [
     'Ruang kemas selalunya mula dari barang yang dipegang setiap hari.',
-    'Ubah semua sekali memang penat. Satu sudut dulu pun dah lega.',
-    'Gambar orang lain cantik. Hidup kamu lain.',
+    'Ubah semua sekali memang penat. Satu sudut dulu pun dah lega kan.',
+    'Gambar orang lain cantik. Hidup kamu lain jak.',
   ],
 }
 
 const CTA = {
   highlight: [
-    'Nak tinguk, mesej kami ja.',
-    'WhatsApp kami, cerita sikit pasal ruang kamu.',
-    'Kalau nak tanya, mesej kami bah.',
+    'Nak tinguk, mesej kami bah.',
+    'WhatsApp kami, cerita sikit pasal ruang kamu bah.',
+    'Kalau antam nak tanya, mesej ja bah.',
   ],
   promo: [
-    'Nak tanya, WhatsApp kami.',
-    'WhatsApp je, kami balas bila sempat.',
-    'DM kami kalau yang ni ngam.',
+    'Kalau ngam, WhatsApp kami bah.',
+    'WhatsApp jak, kami balas bila sempat bah.',
+    'DM kami kalau yang ni ngam bah.',
   ],
   customer: [
-    'Mesej kami, kami dengar dulu.',
-    'Cerita pada kami pasal ruang kamu.',
-    'Hantar gambar ruang kamu, kami tinguk sama-sama.',
+    'Mesej kami, kami dengar dulu bah.',
+    'Cerita pada kami pasal ruang kamu bah.',
+    'Hantar gambar ruang kamu, kami tinguk sama-sama bah.',
   ],
   behind: [
-    'Nak tinguk hasil, mesej kami.',
-    'Kalau nak yang ikut ruang kamu, WhatsApp kami.',
-    'DM kami, kami cerita proses dia.',
+    'Nak tinguk hasil, mesej kami bah.',
+    'Kalau nak yang ikut ruang kamu, WhatsApp kami bah.',
+    'DM kami, kami cerita proses dia bah.',
   ],
   tips: [
-    'Simpan dulu kalau tip ni berguna.',
-    'Nak kami tinguk ruang kamu, mesej je.',
-    'WhatsApp kami kalau nak susun sama-sama.',
+    'Simpan dulu tip ni bah, kalau berguna.',
+    'Nak kami tinguk ruang kamu, mesej jak bah.',
+    'WhatsApp kami kalau nak susun sama-sama bah.',
   ],
 }
 
 const CTA_SHORT = {
-  highlight: ['Mesej kami ja.', 'WhatsApp kami.', 'Mesej kami bah.'],
-  promo: ['WhatsApp kami.', 'WhatsApp je.', 'DM kami.'],
-  customer: ['Mesej, kami dengar dulu.', 'Cerita pada kami.', 'Hantar gambar ruang kamu.'],
-  behind: ['Mesej kami.', 'WhatsApp kami.', 'DM kami.'],
-  tips: ['Simpan dulu.', 'Mesej je.', 'WhatsApp kami.'],
+  highlight: ['Mesej kami bah.', 'WhatsApp kami bah.', 'Mesej ja bah.'],
+  promo: ['WhatsApp kami bah.', 'WhatsApp jak bah.', 'DM kami bah.'],
+  customer: ['Mesej, kami dengar dulu bah.', 'Cerita pada kami bah.', 'Hantar gambar ruang kamu bah.'],
+  behind: ['Mesej kami bah.', 'WhatsApp kami bah.', 'DM kami bah.'],
+  tips: ['Simpan tip ni bah.', 'Mesej jak bah.', 'WhatsApp kami bah.'],
 }
 
 export const CAPTION_GOALS = [
@@ -183,245 +189,245 @@ function specsFromProduct(product = {}) {
 const HIGHLIGHT = {
   wardrobe: [
     [
-      'Baju bertindih sampai susah nak cari. Rasa macam tu?',
-      (name) => `${name} ni untuk bilik yang perlu tempat gantung, dan tempat lipat. Kami buat custom di Sabah.`,
+      'Baju bertindih sampai susah nak cari kan.',
+      (name) => `${name} ni untuk bilik yang perlu tempat gantung, dan tempat lipat. Kami bikin custom kat Sabah.`,
     ],
     [
-      (name) => `${name} untuk bilik yang almari dia dah tak muat tutup.`,
+      (name) => `${name} ni, untuk bilik yang almari dia nda muat tutup.`,
       HUMOUR.wardrobe[1],
     ],
     [
-      'Baju banyak, tapi tak nak almari yang penuh sesak.',
-      (name) => `${name} kami buat di Sabah. Sebelah untuk gantung, laci untuk yang dilipat. Bukan almari yang semua rumah dapat sama.`,
+      'Baju banyak, tapi nda mau almari yang penuh sesak.',
+      (name) => `${name} kami bikin kat Sabah. Sebelah untuk gantung, laci untuk yang dilipat. Bukan almari yang semua rumah dapat sama.`,
     ],
   ],
   storage: [
     [
-      'Barang yang tak ada tempat tetap, memang senang hilang.',
-      (name) => `${name} untuk rumah atau kedai yang nak setiap benda ada sudut dia. Rak ni kami buat custom di Sabah, ikut barang kamu.`,
+      'Barang yang teda tempat tetap, memang senang hilang.',
+      (name) => `${name} ni untuk rumah atau kedai yang nak setiap benda ada sudut dia. Rak ni kami bikin custom kat Sabah, ikut barang kamu.`,
     ],
     [
       (name) => `${name} ngam bila ruang kecil, tapi barang yang kena simpan tetap banyak.`,
       HUMOUR.storage[1],
     ],
     [
-      'Rumah atau kedai nampak sesak sebab barang bertindih?',
-      (name) => `${name} tolong asingkan supaya nampak. Kami buat rak ni sendiri di Sabah.`,
+      'Rumah atau kedai nampak sesak sebab barang bertindih kan?',
+      (name) => `${name} kasi asing supaya nampak. Kami bikin rak ni sendiri kat Sabah.`,
     ],
   ],
   display: [
     [
-      'Paparan kedai terlalu penuh, pelanggan tak tahu nak tinguk yang mana.',
-      (name) => `${name} untuk susun barang supaya yang penting nampak dulu. Kami buat di Sabah, ikut cara kedai kamu berniaga.`,
+      'Paparan kedai terlalu penuh, pelanggan nda tau nak tinguk yang mana.',
+      (name) => `${name} ni untuk susun barang supaya yang penting nampak dulu. Kami bikin kat Sabah, ikut cara kedai kamu berniaga.`,
     ],
     [
-      (name) => `${name} untuk kaunter atau dinding kedai yang nak tunjuk barang dengan jelas.`,
+      (name) => `${name} ni untuk kaunter atau dinding kedai yang nak tunjuk barang dengan jelas.`,
       HUMOUR.display[1],
     ],
     [
-      'Kedai kecil pun boleh nampak kemas, asalkan paparan dia tak berebut.',
-      (name) => `${name} kami buat di Sabah. Bukan rak pajang yang semua kedai nampak sama.`,
+      'Kedai kecil pun boleh nampak kemas, asalkan paparan dia nda berebut.',
+      (name) => `${name} kami bikin kat Sabah. Bukan rak pajang yang semua kedai nampak sama.`,
     ],
   ],
   kiosk: [
     [
-      'Bisnes yang keluar jualan, kaunter dia kena nampak kemas dari jauh.',
-      (name) => `${name} kami buat custom di Sabah, ikut cara kamu layan pelanggan.`,
+      'Bisnes yang keluar jualan, kaunter dia kena nampak kemas dari jauh kan.',
+      (name) => `${name} ni kami bikin custom kat Sabah, ikut cara kamu layan pelanggan.`,
     ],
     [
-      'Jual di luar premis? Jangan bagi barang tertimbus dalam kotak.',
-      (name) => `${name} bantu susunan tu. ${HUMOUR.kiosk[1]}`,
+      'Jual di luar premis? Jangan kasi barang tertimbus dalam kotak.',
+      (name) => `${name} untuk susunan tu. ${HUMOUR.kiosk[1]}`,
     ],
     [
-      (name) => `${name} bukan meja kosong yang kami beri nama.`,
-      'Dia kaunter yang kami buat untuk bisnes kamu. Custom, di Sabah.',
+      (name) => `${name} bukan meja kosong yang kami kasi nama jak.`,
+      'Dia kaunter yang kami bikin untuk bisnes kamu. Custom, kat Sabah.',
     ],
   ],
   bespoke: [
     [
-      'Ada ruang yang barang kedai memang tak muat.',
-      (name) => `${name} untuk situasi tu. Kami dengar dulu macam mana kamu guna ruang tu, baru buat di Sabah.`,
+      'Ada ruang yang barang kedai memang nda muat.',
+      (name) => `${name} ni untuk situasi tu. Kami dengar dulu macam mana kamu guna ruang tu, baru bikin kat Sabah.`,
     ],
     [
       'Kalau ruang kamu lain dari rumah biasa, jangan paksa dia ikut katalog.',
       (name) => `${name} boleh ikut ruang tu. ${HUMOUR.bespoke[1]}`,
     ],
     [
-      (name) => `${name}, bila barang katalog dah tak cukup.`,
-      'Kamu dah tahu apa yang perlu. Kami siapkan di Sabah.',
+      (name) => `${name} ni, bila barang katalog dah nda cukup.`,
+      'Kamu dah tau apa yang perlu. Kami siapkan kat Sabah.',
     ],
   ],
   general: [
     [
       'Sebelum ubah susunan, tinguk dulu barang mana yang kamu pegang setiap hari.',
-      (name) => `Untuk ${name}, kami cadang ikut cara kamu hidup. Custom di Sabah, bukan ikut gambar orang lain.`,
+      (name) => `Untuk ${name} ni, kami cadang ikut cara kamu hidup. Custom kat Sabah, bukan ikut gambar orang lain.`,
     ],
     [
-      (name) => `${name}. Satu sudut dulu. Jangan ubah semua sekali.`,
+      (name) => `${name}. Satu sudut dulu jak. Jangan ubah semua sekali.`,
       HUMOUR.general[2],
     ],
     [
-      (name) => `${name} lagi senang bila barang harian ada tempat tetap.`,
-      'Yang jarang keluar, biar di tepi. Kami boleh buat susunan tu di Sabah.',
+      (name) => `${name} ni lagi senang bila barang harian ada tempat tetap.`,
+      'Yang jarang keluar, biar di tepi. Kami boleh bikin susunan tu kat Sabah.',
     ],
   ],
 }
 
 const PROMO = {
   wardrobe: [
-    (name) => `Nak almari yang ikut cara kamu simpan baju, bukan yang kamu kena paksa muat? ${name} kami buat custom di Sabah.`,
-    (name) => `${name} untuk bilik yang baju dia dah tak muat. Bukan salah bilik. Almari dia yang tak cukup.`,
-    (name) => `Kalau ${name} ngam dengan bilik kamu, kami buat dia di Sabah ikut baju kamu.`,
+    (name) => `Nak almari yang ikut cara kamu simpan baju, bukan yang kamu kena paksa muat? ${name} ni kami bikin custom kat Sabah.`,
+    (name) => `${name} ni untuk bilik yang baju dia dah nda muat. Bukan salah bilik kan. Almari dia yang tak cukup.`,
+    (name) => `Kalau ${name} ngam dengan bilik kamu, kami bikin dia kat Sabah ikut baju kamu.`,
   ],
   storage: [
-    (name) => `Nak rak yang ikut barang kamu, bukan rak yang semua orang beli sama? ${name} kami buat custom di Sabah.`,
-    (name) => `${name} untuk yang dah penat tengok barang berlonggok, tapi tak tahu nak mula dari mana.`,
-    (name) => `Rumah atau kedai kamu perlukan rak yang ikut barang, bukan ikut katalog? ${name} kami buat di Sabah.`,
+    (name) => `Nak rak yang ikut barang kamu, bukan rak yang semua orang beli sama? ${name} ni kami bikin custom kat Sabah.`,
+    (name) => `${name} ni untuk yang dah penat tinguk barang berlonggok, tapi nda tau nak mula dari mana.`,
+    (name) => `Rumah atau kedai kamu perlu rak yang ikut barang, bukan ikut katalog kan? ${name} ni kami bikin kat Sabah.`,
   ],
   display: [
-    (name) => `Nak paparan yang pelanggan nampak terus, tanpa mata pening? ${name} kami buat custom di Sabah.`,
-    (name) => `${name} untuk kedai yang dah susun berkali-kali, tapi masih nampak sesak.`,
-    (name) => `${name} kalau menarik untuk kedai kamu, kami buat dia di Sabah.`,
+    (name) => `Nak paparan yang pelanggan nampak terus, tanpa mata pening? ${name} ni kami bikin custom kat Sabah.`,
+    (name) => `${name} ni untuk kedai yang dah susun berkali-kali, tapi masih nampak sesak kan.`,
+    (name) => `${name} kalau ngam untuk kedai kamu, kami bikin dia kat Sabah.`,
   ],
   kiosk: [
-    (name) => `Nak kaunter yang ikut cara kamu jualan? ${name} kami buat custom di Sabah.`,
-    (name) => `${name} untuk bisnes yang dah bosan sewa meja, dengan kotak berlonggok di tepi.`,
-    (name) => `${name} ngam dengan cara kamu berniaga? Kami buat kiosk tu di Sabah.`,
+    (name) => `Nak kaunter yang ikut cara kamu jualan? ${name} ni kami bikin custom kat Sabah.`,
+    (name) => `${name} ni untuk bisnes yang dah bosan sewa meja, dengan kotak berlonggok di tepi kan.`,
+    (name) => `${name} ngam dengan cara kamu berniaga? Kami bikin kiosk tu kat Sabah.`,
   ],
   bespoke: [
-    (name) => `Nak sesuatu yang ikut ruang kamu, bukan ikut katalog? ${name} kami buat di Sabah.`,
-    (name) => `${name} untuk ruang yang barang biasa tak masuk. Katalog dah menyerah.`,
-    (name) => `${name} kalau macam yang kamu cari, kerja custom dia kami buat di Sabah.`,
+    (name) => `Nak sesuatu yang ikut ruang kamu, bukan ikut katalog? ${name} ni kami bikin kat Sabah.`,
+    (name) => `${name} ni untuk ruang yang barang biasa nda masuk. Katalog dah menyerah kan.`,
+    (name) => `${name} kalau macam yang kamu cari, kerja custom dia kami bikin kat Sabah.`,
   ],
   general: [
-    (name) => `${name}, kalau ada kena dengan ruang kamu, kami buat custom di Sabah.`,
-    (name) => `${name} untuk yang nak susunan lebih kemas, tanpa teka-teki.`,
-    (name) => `Nak bincang ${name}? Kami di Sabah. Cerita je macam mana ruang tu.`,
+    (name) => `${name} ni, kalau ada kena dengan ruang kamu, kami bikin custom kat Sabah.`,
+    (name) => `${name} ni untuk yang nak susunan lebih kemas, tanpa teka-teki kan.`,
+    (name) => `Nak bincang ${name}? Kami kat Sabah. Cerita jak macam mana ruang tu.`,
   ],
 }
 
 const CUSTOMER_NOTE = [
-  (name) => `Ada yang guna ${name}, dan dia cerita pada kami.`,
+  (name) => `Ada yang guna ${name} ni, dan dia cerita pada kami.`,
   (name) => `${name} ni, pelanggan yang ceritakan macam mana dia duduk dalam ruang dia.`,
-  (name) => `Kami simpan cerita ni pasal ${name}. Dia datang dari ruang sebenar.`,
+  (name) => `Kami simpan cerita ni pasal ${name}. Dia datang dari ruang sebenar kan.`,
 ]
 
 const CUSTOMER_OPEN = {
   wardrobe: [
-    (name) => `Nak almari macam ${name} untuk bilik kamu? Bagi tahu baju apa yang kena ada tempat. Gantung atau lipat, dua-dua kami boleh ikut.`,
-    (name) => `${name} selalunya mula bila seseorang tunjuk bilik dia. Bukan bila kami tolak katalog.`,
-    (name) => `Almari macam ${name} lain rumah, lain keperluan. Yang sama, kami buat dia di Sabah.`,
+    (name) => `Nak almari macam ${name} ni untuk bilik kamu? Bagi tahu baju apa yang kena ada tempat. Gantung atau lipat, dua-dua kami boleh ikut.`,
+    (name) => `${name} ni selalunya mula bila seseorang tunjuk bilik dia. Bukan bila kami tolak katalog kan.`,
+    (name) => `Almari macam ${name} lain rumah, lain keperluan. Yang sama, kami bikin dia kat Sabah.`,
   ],
   storage: [
-    (name) => `Nak rak macam ${name}? Cerita dulu barang apa yang kena duduk di situ. Rumah dan kedai, lain susunan.`,
-    (name) => `${name} selalunya mula bila pelanggan tunjuk sudut yang berlonggok. Katalog tak nampak sudut tu.`,
-    (name) => `Rak macam ${name} tak sama untuk setiap orang. Kami buat dia di Sabah, ikut barang kamu.`,
+    (name) => `Nak rak macam ${name} ni? Cerita dulu barang apa yang kena duduk di situ. Rumah dan kedai, lain susunan.`,
+    (name) => `${name} ni selalunya mula bila pelanggan tunjuk sudut yang berlonggok. Katalog nda nampak sudut tu kan.`,
+    (name) => `Rak macam ${name} nda sama untuk setiap orang. Kami bikin dia kat Sabah, ikut barang kamu.`,
   ],
   display: [
-    (name) => `Nak paparan macam ${name} untuk kedai kamu? Bagi tahu barang apa yang kamu nak pelanggan nampak dulu.`,
-    (name) => `${name} selalunya mula dari kaunter kedai yang sebenar. Bukan dari gambar kedai orang.`,
-    (name) => `Paparan macam ${name} ikut cara kedai tu jual. Kami buat dia di Sabah.`,
+    (name) => `Nak paparan macam ${name} ni untuk kedai kamu? Bagi tahu barang apa yang kamu nak pelanggan tinguk dulu.`,
+    (name) => `${name} ni selalunya mula dari kaunter kedai yang sebenar. Bukan dari gambar kedai orang kan.`,
+    (name) => `Paparan macam ${name} ikut cara kedai tu jual. Kami bikin dia kat Sabah.`,
   ],
   kiosk: [
-    (name) => `Nak kaunter macam ${name}? Cerita macam mana kamu biasa layan pelanggan. Dari situ baru bentuk dia.`,
-    (name) => `${name} mula bila pemilik bisnes cerita pasal jualan dia. Bukan salin gerai orang.`,
-    (name) => `Kiosk macam ${name}, lain bisnes, lain susunan. Kami buat di Sabah ikut cara kamu jualan.`,
+    (name) => `Nak kaunter macam ${name} ni? Cerita macam mana kamu biasa layan pelanggan. Dari situ baru kami bentuk dia.`,
+    (name) => `${name} ni mula bila pemilik bisnes cerita pasal jualan dia. Bukan salin gerai orang kan.`,
+    (name) => `Kiosk macam ${name}, lain bisnes, lain susunan. Kami bikin kat Sabah ikut cara kamu jualan.`,
   ],
   bespoke: [
-    (name) => `Nak buat sesuatu macam ${name}? Cerita apa yang ruang tu kena tampung. Yang wajib, dan yang boleh tinggal, asingkan.`,
-    (name) => `${name} mula dari ruang yang tak cukup dengan barang sedia kedai.`,
-    (name) => `Kerja macam ${name}, kami dengar dulu. Lepas jelas, baru buat di Sabah.`,
+    (name) => `Nak bikin sesuatu macam ${name} ni? Cerita apa yang ruang tu kena tampung. Yang wajib, dan yang boleh tinggal, asingkan.`,
+    (name) => `${name} ni mula dari ruang yang nda cukup dengan barang sedia kedai.`,
+    (name) => `Kerja macam ${name}, kami dengar dulu. Lepas jelas, baru bikin kat Sabah.`,
   ],
   general: [
-    (name) => `Nak sesuatu untuk ${name}? Cerita macam mana kamu guna ruang tu setiap hari.`,
-    (name) => `${name} lagi jelas bila kami nampak ruang sebenar. Tekaan selalunya meleset.`,
-    (name) => `Setiap permintaan pasal ${name} kami layan satu-satu. Dari Sabah.`,
+    (name) => `Nak sesuatu untuk ${name} ni? Cerita macam mana kamu guna ruang tu setiap hari.`,
+    (name) => `${name} ni lagi jelas bila kami nampak ruang sebenar. Tekaan selalunya meleset kan.`,
+    (name) => `Setiap permintaan pasal ${name} kami layan satu-satu. Dari Sabah jak.`,
   ],
 }
 
 const BEHIND = {
   wardrobe: [
     [
-      (name) => `Sebelum ${name} sampai ke bilik, dia dibuat di Sabah.`,
+      (name) => `Sebelum ${name} ni sampai ke bilik, kami bikin dia kat Sabah.`,
       'Bukan almari siap yang kami tampal nama.',
     ],
     [
       (name) => `${name} yang nampak siap dalam gambar, belakang dia ada kerja custom.`,
-      'Kami semak apa yang tak kena, baru dia keluar. Kadang nampak kecil, tapi pelanggan yang rasa.',
+      'Kami semak apa yang nda kena, baru dia keluar. Kadang nampak kecil kan, tapi pelanggan yang rasa.',
     ],
     [
       (name) => `Orang nampak ${name} yang dah siap. Kami nampak masa dia masih papan.`,
-      'Itu kerja harian kami di Sabah.',
+      'Itu kerja harian kami kat Sabah.',
     ],
   ],
   storage: [
     [
-      (name) => `Sebelum ${name} dipasang, dia dibuat di bengkel kami di Sabah.`,
+      (name) => `Sebelum ${name} ni dipasang, kami bikin dia kat bengkel Sabah.`,
       'Bukan rak siap yang kami letak logo.',
     ],
     [
-      (name) => `Gambar ${name} yang kemas tu, ada orang semak sebelum dia keluar.`,
-      'Kami buat dia sendiri. Bukan ambil dari luar, lepas tu letak nama.',
+      (name) => `Gambar ${name} yang kemas tu, ada orang semak sebelum dia keluar kan.`,
+      'Kami bikin dia sendiri. Bukan ambil dari luar, lepas tu letak nama.',
     ],
     [
-      (name) => `${name} tak datang dari kontena.`,
-      'Dia keluar dari kerja kami di Sabah. Satu rak, satu permintaan.',
+      (name) => `${name} ni nda datang dari kontena.`,
+      'Dia keluar dari kerja kami kat Sabah. Satu rak, satu permintaan.',
     ],
   ],
   display: [
     [
-      (name) => `${name} yang berdiri di kedai, asalnya kami buat di Sabah.`,
+      (name) => `${name} yang berdiri di kedai, asalnya kami bikin kat Sabah.`,
       'Bukan rak pajang yang dibeli, lepas tu letak nama.',
     ],
     [
-      (name) => `Sebelum ${name} tunjuk barang orang, kami tinguk dulu dia selesa dipandang.`,
-      'Kerja tu di Sabah. Paparan yang menyakitkan mata, kami tak lepaskan.',
+      (name) => `Sebelum ${name} ni tunjuk barang orang, kami tinguk dulu dia selesa dipandang.`,
+      'Kerja tu kat Sabah. Paparan yang menyakitkan mata, kami nda lepaskan.',
     ],
     [
-      (name) => `Pelanggan nampak ${name} yang dah berisi. Kami ingat rangka dia masa belum siap.`,
+      (name) => `Pelanggan nampak ${name} yang dah berisi. Kami ingat rangka dia masa belum siap kan.`,
       'Custom, dari Sabah.',
     ],
   ],
   kiosk: [
     [
-      (name) => `${name} kami siapkan di Sabah sebelum dia ikut kamu keluar jualan.`,
+      (name) => `${name} ni kami siapkan kat Sabah sebelum dia ikut kamu keluar jualan.`,
       'Bukan gerai tempahan yang kami tampal logo.',
     ],
     [
-      (name) => `Masa ${name} masih di bengkel, kami dah bayang pelanggan berdiri di depan.`,
-      'Baru kami siapkan. Nanti di luar, dia kena berfungsi, bukan cantik dalam gambar ja.',
+      (name) => `Masa ${name} masih di bengkel, kami dah bayang pelanggan berdiri di depan kan.`,
+      'Baru kami siapkan. Nanti di luar, dia kena berfungsi, bukan cantik dalam gambar jak.',
     ],
     [
-      (name) => `${name} tak sama setiap satu. Cara jualan kamu pun tak sama.`,
-      'Sebab tu kami buat dia di Sabah.',
+      (name) => `${name} nda sama setiap satu. Cara jualan kamu pun nda sama.`,
+      'Sebab tu kami bikin dia kat Sabah.',
     ],
   ],
   bespoke: [
     [
-      (name) => `${name} tak ada dalam katalog siap. Dia dibuat bila permintaan tu sampai.`,
-      'Kami mula dari ruang. Kerja dia di Sabah.',
+      (name) => `${name} ni teda dalam katalog siap. Kami bikin bila permintaan tu sampai.`,
+      'Kami mula dari ruang. Kerja dia kat Sabah.',
     ],
     [
-      (name) => `Kerja ${name} banyak masa dia masih perbincangan.`,
-      'Bila dah jelas, baru kami buat. Itu biasa bagi kami.',
+      (name) => `Kerja ${name} banyak masa dia masih perbincangan kan.`,
+      'Bila dah jelas, baru kami bikin. Itu biasa bagi kami.',
     ],
     [
       (name) => `Orang nampak ${name} yang dah jadi. Kami ingat soalan pertama: ruang ni untuk apa?`,
-      'Dari situ baru kami buat di Sabah.',
+      'Dari situ baru kami bikin kat Sabah.',
     ],
   ],
   general: [
     [
-      (name) => `Pasal ${name}, kami buat custom di Sabah.`,
+      (name) => `Pasal ${name} ni, kami bikin custom kat Sabah.`,
       'Bukan barang siap yang ditampal nama.',
     ],
     [
-      (name) => `Sebelum ${name} keluar, ada orang yang ukur, potong, dan semak.`,
-      'Kerja tu di Sabah. Gambar yang kemas tu ada proses di belakang.',
+      (name) => `Sebelum ${name} keluar, ada orang yang ukur, potong, dan semak kan.`,
+      'Kerja tu kat Sabah. Gambar yang kemas tu ada proses di belakang.',
     ],
     [
       (name) => `${name} nampak mudah dalam gambar.`,
-      'Belakang dia ada keputusan kecil yang kami buat satu-satu.',
+      'Belakang dia ada keputusan kecil yang kami bikin satu-satu.',
     ],
   ],
 }
@@ -429,86 +435,87 @@ const BEHIND = {
 const TIPS = {
   wardrobe: [
     [
-      (name) => `Sebelum isi ${name}, asingkan baju gantung dengan baju lipat.`,
+      (name) => `Sebelum isi ${name} ni, asingkan baju gantung dengan baju lipat.`,
       'Dari situ baru nampak dia lega, atau masih sesak.',
     ],
     [
       (name) => `Baju yang dipakai setiap minggu, letak di tempat senang capai dalam ${name}.`,
-      'Yang setahun sekali, jangan rebut tempat depan. Nanti kamu yang penat.',
+      'Yang setahun sekali, jangan rebut tempat depan. Nanti kamu yang penat kan.',
     ],
     [
       (name) => `Pintu almari tersangkut sebab baju menolak dari dalam? ${name} pun susah nak bantu.`,
-      'Keluarkan dulu yang dah tak dipakai. Baru susun semula.',
+      'Keluarkan dulu yang dah nda dipakai. Baru susun semula.',
     ],
   ],
   storage: [
     [
-      (name) => `Sebelum isi ${name}, kumpul barang yang sejenis.`,
-      'Rak terus nampak lebih lapang. Kamu tak payah gali untuk cari satu benda.',
+      (name) => `Sebelum isi ${name} ni, kumpul barang yang sejenis.`,
+      'Rak terus nampak lebih lapang. Kamu nda payah gali untuk cari satu benda.',
     ],
     [
-      (name) => `Barang harian, letak di tempat tangan terus sampai. Pada ${name}.`,
-      'Yang jarang dipakai, atas sekali pun tak mengapa.',
+      (name) => `Barang harian, letak di tempat tangan terus sampai. Kat ${name} ni.`,
+      'Yang jarang dipakai, atas sekali pun nda mengapa kan.',
     ],
     [
       (name) => `${name} lagi berguna bila satu paras, satu tugas.`,
-      'Jangan campur aduk. Cuba satu jenis barang dulu.',
+      'Jangan campur aduk. Cuba satu jenis barang dulu jak.',
     ],
   ],
   display: [
     [
-      'Barang yang orang selalu tanya, jangan sorok.',
-      (name) => `Pada ${name}, letak dia di depan. Yang lain, tepi sikit. Pelanggan tak payah cari-cari.`,
+      'Barang yang orang selalu tanya, jangan sorok la.',
+      (name) => `Kat ${name} ni, kasi duduk depan. Yang lain, tepi sikit.`,
+      'Pelanggan nda payah cari-cari.',
     ],
     [
-      (name) => `Paparan ${name} yang sesak, orang lalu ja.`,
-      'Bagi sikit ruang kosong di keliling barang. Dia nampak lebih jelas.',
+      (name) => `Paparan ${name} ni yang sesak, orang lalu jak.`,
+      'Bagi sikit ruang kosong di keliling barang. Dia nampak lebih jelas kan.',
     ],
     [
-      (name) => `Pilih satu barang utama untuk ${name}.`,
-      'Yang lain sokong dia. Kalau semua sama kuat, tak ada yang diingat.',
+      (name) => `Pilih satu barang utama untuk ${name} ni.`,
+      'Yang lain sokong dia. Kalau semua sama kuat, teda yang diingat.',
     ],
   ],
   kiosk: [
     [
-      (name) => `Pada ${name}, pastikan pelanggan nampak barang tanpa menjenguk.`,
+      (name) => `Kat ${name} ni, pastikan pelanggan nampak barang tanpa menjenguk.`,
       'Laluan depan kaunter, biar jelas.',
     ],
     [
       (name) => `Sebelum bawa ${name} keluar, susun dulu barang yang nak dijual hari tu.`,
-      'Yang tinggal, biar dalam kotak. Jangan bagi kaunter nampak macam stor.',
+      'Yang tinggal, biar dalam kotak. Jangan kasi kaunter nampak macam stor kan.',
     ],
     [
       (name) => `${name} lagi senang dijaga kalau kamu dah cuba buka dan tutup sekali sebelum keluar.`,
-      'Nanti di luar, tak perlu panik.',
+      'Nanti di luar, nda perlu panik.',
     ],
   ],
   bespoke: [
     [
-      (name) => `Sebelum minta ${name}, senaraikan apa yang wajib muat, dan apa yang boleh tinggal.`,
+      (name) => `Sebelum minta ${name} ni, senaraikan apa yang wajib muat, dan apa yang boleh tinggal.`,
       'Perbualan dengan kami terus lebih jelas.',
     ],
     [
       (name) => `Bawa contoh barang yang akan diletakkan bila nak bincang ${name}.`,
-      'Gambar ruang pun membantu. Tekaan selalunya meleset.',
+      'Gambar ruang pun membantu. Tekaan selalunya meleset kan.',
     ],
     [
-      (name) => `Untuk ${name}, cerita hari biasa ruang tu. Bukan hari raya ja.`,
+      (name) => `Untuk ${name}, cerita hari biasa ruang tu. Bukan hari raya jak.`,
       'Hari biasa yang tunjuk susunan yang patut.',
     ],
   ],
   general: [
     [
-      (name) => `Untuk ${name}, mula dengan barang yang kamu pegang setiap hari.`,
-      'Bagi dia tempat tetap. Yang jarang keluar, jangan duduk di depan.',
+      (name) => `Untuk ${name} ni, mula dengan barang yang kamu pegang setiap hari.`,
+      'Kasi dia tempat tetap. Yang jarang keluar, jangan duduk di depan.',
     ],
     [
-      (name) => `Sebelum ubah ${name}, tinguk satu hari biasa dulu.`,
+      (name) => `Sebelum ubah ${name} ni, tinguk satu hari biasa dulu.`,
       'Barang mana yang dicari, barang mana yang hanya lalu. Dari situ baru susun.',
     ],
     [
-      (name) => `${name} tak perlu diubah serentak.`,
-      'Pilih satu sudut. Kemaskan. Baru pergi ke sudut seterusnya.',
+      (name) => `${name} nda perlu diubah serentak.`,
+      'Pilih satu sudut. Kemaskan. Baru pergi ke sudut seterusnya kan.',
     ],
   ],
 }
@@ -516,173 +523,173 @@ const TIPS = {
 const IG_LEAD = {
   highlight: {
     wardrobe: [
-      (name) => `Baju bertindih, susah nak cari?\n\n${name}. Sebelah gantung, sebelah lipat.`,
-      (name) => `${name}\n\nAlmari dah tak muat tutup? Kami pun pernah tutup balik.`,
-      (name) => `Tempat gantung. Tempat lipat.\n\n${name}, dibuat di Sabah.`,
+      (name) => `Baju bertindih, susah cari kan?\n\n${name} ni.\nTempat gantung, tempat lipat.`,
+      (name) => `${name} ni.\n\nAlmari nda muat tutup? Sia pun pernah tutup balik.`,
+      (name) => `Tempat gantung. Tempat lipat.\n\n${name} ni, kami bikin kat Sabah.`,
     ],
     storage: [
-      (name) => `Barang hilang sebab tak ada tempat?\n\n${name}, untuk rumah atau kedai.`,
-      (name) => `${name}\n\nRuang kecil. Barang tetap banyak.`,
-      (name) => `Barang bertindih?\n\n${name} asingkan supaya nampak.`,
+      (name) => `Barang hilang sebab teda tempat?\n\n${name} ni, untuk rumah atau kedai.`,
+      (name) => `${name} ni.\n\nRuang kecil. Barang tetap banyak kan.`,
+      (name) => `Barang bertindih kan?\n\n${name} kasi asing supaya nampak.`,
     ],
     display: [
-      (name) => `Paparan penuh, mata pening.\n\n${name} susun yang penting dulu.`,
-      (name) => `${name}\n\nUntuk kaunter atau dinding kedai.`,
-      (name) => `Paparan tak payah berebut.\n\n${name}, custom di Sabah.`,
+      (name) => `Paparan penuh, mata pening.\n\n${name} ni susun yang penting dulu.`,
+      (name) => `${name} ni.\n\nUntuk kaunter atau dinding kedai.`,
+      (name) => `Paparan nda payah berebut.\n\n${name}, custom kat Sabah.`,
     ],
     kiosk: [
-      (name) => `Kaunter kena nampak dari jauh.\n\n${name}, dibuat di Sabah.`,
-      (name) => `${name}\n\nBarang nampak. Bukan tertimbus.`,
-      (name) => `Bukan meja kosong.\n\n${name} untuk bisnes kamu.`,
+      (name) => `Kaunter kena nampak dari jauh kan.\n\n${name} ni, kami bikin kat Sabah.`,
+      (name) => `${name} ni.\n\nBarang nampak. Bukan tertimbus.`,
+      (name) => `Bukan meja kosong jak.\n\n${name} untuk bisnes kamu.`,
     ],
     bespoke: [
-      (name) => `Barang kedai tak muat?\n\n${name}.`,
-      (name) => `${name}\n\nIkut ruang kamu, bukan katalog.`,
-      (name) => `Katalog dah tak cukup.\n\n${name} kami buat di Sabah.`,
+      (name) => `Barang kedai nda muat?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nIkut ruang kamu, bukan katalog.`,
+      (name) => `Katalog dah nda cukup.\n\n${name} kami bikin kat Sabah.`,
     ],
     general: [
-      (name) => `${name}\n\nTinguk barang yang kamu pegang setiap hari dulu.`,
-      (name) => `Satu sudut dulu.\n\n${name}.`,
-      (name) => `${name}\n\nBarang harian ada tempat tetap.`,
+      (name) => `${name} ni.\n\nTinguk barang yang kamu pegang setiap hari dulu.`,
+      (name) => `Satu sudut dulu jak.\n\n${name}.`,
+      (name) => `${name} ni.\n\nBarang harian ada tempat tetap.`,
     ],
   },
   promo: {
     wardrobe: [
-      (name) => `Nak almari ikut cara kamu simpan baju?\n\n${name}.`,
-      (name) => `${name}\n\nBaju dah tak muat. Bukan salah bilik.`,
-      (name) => `${name} ngam dengan bilik kamu?\n\nKami buat ikut baju kamu.`,
+      (name) => `Nak almari ikut cara kamu simpan baju?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nBaju dah nda muat. Bukan salah bilik kan.`,
+      (name) => `${name} ngam dengan bilik kamu?\n\nKami bikin ikut baju kamu.`,
     ],
     storage: [
-      (name) => `Nak rak ikut barang kamu?\n\n${name}.`,
-      (name) => `${name}\n\nUntuk barang yang dah berlonggok.`,
-      (name) => `Rak ikut barang, bukan katalog.\n\n${name}.`,
+      (name) => `Nak rak ikut barang kamu?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nUntuk barang yang dah berlonggok kan.`,
+      (name) => `Rak ikut barang, bukan katalog.\n\n${name} ni.`,
     ],
     display: [
-      (name) => `Nak paparan yang terus nampak?\n\n${name}.`,
-      (name) => `${name}\n\nKedai masih nampak sesak?`,
-      (name) => `${name}\n\nKami buat di Sabah.`,
+      (name) => `Nak paparan yang terus nampak?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nKedai masih nampak sesak kan?`,
+      (name) => `${name} ni.\n\nKami bikin kat Sabah.`,
     ],
     kiosk: [
-      (name) => `Nak kaunter ikut cara kamu jualan?\n\n${name}.`,
-      (name) => `${name}\n\nDah bosan sewa meja?`,
+      (name) => `Nak kaunter ikut cara kamu jualan?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nDah bosan sewa meja kan?`,
       (name) => `${name} ngam dengan bisnes kamu?`,
     ],
     bespoke: [
-      (name) => `Nak ikut ruang kamu?\n\n${name}.`,
-      (name) => `${name}\n\nBarang biasa tak masuk. Katalog dah menyerah.`,
-      (name) => `${name}\n\nKerja custom di Sabah.`,
+      (name) => `Nak ikut ruang kamu?\n\n${name} ni.`,
+      (name) => `${name} ni.\n\nBarang biasa nda masuk. Katalog dah menyerah.`,
+      (name) => `${name} ni.\n\nKerja custom kat Sabah.`,
     ],
     general: [
-      (name) => `${name}\n\nCustom di Sabah, kalau ada kena dengan ruang kamu.`,
-      (name) => `${name}\n\nNak susunan lebih kemas.`,
-      (name) => `Nak bincang ${name}?\n\nCerita je.`,
+      (name) => `${name} ni.\n\nCustom kat Sabah, kalau ada kena dengan ruang kamu.`,
+      (name) => `${name} ni.\n\nNak susunan lebih kemas kan.`,
+      (name) => `Nak bincang ${name}?\n\nCerita jak.`,
     ],
   },
   customer: {
     wardrobe: [
-      (name) => `Nak almari macam ${name}?\n\nBagi tahu baju apa yang kena tempat.`,
-      (name) => `${name}\n\nMula dari bilik sebenar, bukan katalog.`,
-      (name) => `Lain rumah, lain almari.\n\n${name} dibuat di Sabah.`,
+      (name) => `Nak almari macam ${name} ni?\n\nBagi tahu baju apa yang kena tempat.`,
+      (name) => `${name} ni.\n\nMula dari bilik sebenar, bukan katalog.`,
+      (name) => `Lain rumah, lain almari.\n\n${name} kami bikin kat Sabah.`,
     ],
     storage: [
-      (name) => `Nak rak macam ${name}?\n\nCerita barang apa yang kena tempat.`,
-      (name) => `${name}\n\nMula dari sudut yang berlonggok.`,
-      (name) => `Lain orang, lain rak.\n\n${name} dibuat di Sabah.`,
+      (name) => `Nak rak macam ${name} ni?\n\nCerita barang apa yang kena tempat.`,
+      (name) => `${name} ni.\n\nMula dari sudut yang berlonggok kan.`,
+      (name) => `Lain orang, lain rak.\n\n${name} kami bikin kat Sabah.`,
     ],
     display: [
-      (name) => `Nak paparan macam ${name}?\n\nCerita barang yang kamu jual.`,
-      (name) => `${name}\n\nMula dari kaunter kedai.`,
-      (name) => `Ikut cara kedai kamu jual.\n\n${name}.`,
+      (name) => `Nak paparan macam ${name} ni?\n\nCerita barang yang kamu jual.`,
+      (name) => `${name} ni.\n\nMula dari kaunter kedai.`,
+      (name) => `Ikut cara kedai kamu jual.\n\n${name} ni.`,
     ],
     kiosk: [
-      (name) => `Nak kaunter macam ${name}?\n\nCerita cara kamu jualan.`,
-      (name) => `${name}\n\nMula dari bisnes kamu.`,
+      (name) => `Nak kaunter macam ${name} ni?\n\nCerita cara kamu jualan.`,
+      (name) => `${name} ni.\n\nMula dari bisnes kamu kan.`,
       (name) => `Lain bisnes, lain kiosk.\n\n${name}.`,
     ],
     bespoke: [
-      (name) => `Nak buat macam ${name}?\n\nCerita apa yang ruang tu kena tampung.`,
-      (name) => `${name}\n\nUntuk ruang yang barang kedai tak muat.`,
-      (name) => `Kami dengar dulu.\n\nBaru buat ${name}.`,
+      (name) => `Nak bikin macam ${name} ni?\n\nCerita apa yang ruang tu kena tampung.`,
+      (name) => `${name} ni.\n\nUntuk ruang yang barang kedai nda muat.`,
+      (name) => `Kami dengar dulu.\n\nBaru bikin ${name}.`,
     ],
     general: [
-      (name) => `${name}\n\nCerita macam mana kamu guna ruang tu.`,
-      (name) => `${name}\n\nLebih jelas bila kami nampak ruangnya.`,
-      (name) => `${name}\n\nKami layan satu-satu.`,
+      (name) => `${name} ni.\n\nCerita macam mana kamu guna ruang tu.`,
+      (name) => `${name} ni.\n\nLebih jelas bila kami nampak ruangnya kan.`,
+      (name) => `${name} ni.\n\nKami layan satu-satu.`,
     ],
   },
   behind: {
     wardrobe: [
-      (name) => `${name}\n\nDibuat di Sabah. Bukan almari tampal nama.`,
-      (name) => `Belakang gambar ${name}, ada kerja custom.`,
-      (name) => `${name} masa masih papan.\n\nItu yang kami nampak dulu.`,
+      (name) => `${name} ni.\n\nKami bikin kat Sabah. Bukan almari tampal nama.`,
+      (name) => `Belakang gambar ${name} ni, ada kerja custom.`,
+      (name) => `${name} masa masih papan.\n\nItu yang kami nampak dulu kan.`,
     ],
     storage: [
-      (name) => `${name}\n\nDari bengkel kami di Sabah.`,
-      (name) => `${name} disemak dulu sebelum keluar.`,
-      (name) => `${name} tak datang dari kontena.`,
+      (name) => `${name} ni.\n\nDari bengkel kami kat Sabah.`,
+      (name) => `${name} disemak dulu sebelum keluar kan.`,
+      (name) => `${name} ni nda datang dari kontena.`,
     ],
     display: [
-      (name) => `${name}\n\nKami buat di Sabah untuk kedai.`,
+      (name) => `${name} ni.\n\nKami bikin kat Sabah untuk kedai.`,
       (name) => `Sebelum ${name} tunjuk barang, kami tinguk dia selesa dipandang.`,
-      (name) => `Rangka ${name} dulu.\n\nBarang kemudian.`,
+      (name) => `Rangka ${name} dulu.\n\nBarang kemudian kan.`,
     ],
     kiosk: [
-      (name) => `${name}\n\nDisiapkan di Sabah sebelum keluar jualan.`,
-      (name) => `Kami bayang pelanggan berdiri di depan ${name}.`,
-      (name) => `${name} tak sama setiap satu.`,
+      (name) => `${name} ni.\n\nDisiapkan kat Sabah sebelum keluar jualan.`,
+      (name) => `Kami bayang pelanggan berdiri di depan ${name} kan.`,
+      (name) => `${name} nda sama setiap satu.`,
     ],
     bespoke: [
-      (name) => `${name}\n\nTak ada dalam katalog siap.`,
-      (name) => `${name} banyak masa dia masih perbincangan.`,
+      (name) => `${name} ni.\n\nTeda dalam katalog siap.`,
+      (name) => `${name} banyak masa dia masih perbincangan kan.`,
       (name) => `Soalan pertama untuk ${name}:\n\nRuang ni untuk apa?`,
     ],
     general: [
-      (name) => `${name}\n\nCustom, di Sabah.`,
-      (name) => `Ada orang yang siapkan ${name} sebelum dia keluar.`,
+      (name) => `${name} ni.\n\nCustom, kat Sabah.`,
+      (name) => `Ada orang yang siapkan ${name} sebelum dia keluar kan.`,
       (name) => `${name} nampak mudah.\n\nBelakang dia ada keputusan kecil.`,
     ],
   },
   tips: {
     wardrobe: [
-      (name) => `Asingkan baju gantung dan baju lipat dulu.\n\nBaru isi ${name}.`,
-      (name) => `Baju mingguan, tempat senang capai.\n\nDalam ${name}.`,
-      (name) => `Pintu almari tersangkut?\n\nKeluarkan yang dah tak dipakai. ${name} pun lega.`,
+      (name) => `Asingkan baju gantung dan baju lipat dulu.\n\nBaru isi ${name} ni.`,
+      (name) => `Baju mingguan, tempat senang capai.\n\nDalam ${name} kan.`,
+      (name) => `Pintu almari tersangkut?\n\nKeluarkan yang dah nda dipakai. ${name} pun lega.`,
     ],
     storage: [
-      (name) => `Kumpul barang sejenis dulu.\n\nBaru isi ${name}.`,
-      (name) => `Barang harian, tempat tangan terus sampai.\n\nPada ${name}.`,
-      (name) => `Satu paras, satu tugas.\n\n${name} terus berguna.`,
+      (name) => `Kumpul barang sejenis dulu.\n\nBaru isi ${name} ni.`,
+      (name) => `Barang harian, tempat tangan terus sampai.\n\nKat ${name}.`,
+      (name) => `Satu paras, satu tugas.\n\n${name} ni terus berguna.`,
     ],
     display: [
-      (name) => `Barang yang selalu ditanya, letak di depan.\n\n${name} untuk susunan tu.`,
-      (name) => `Jangan sesakkan ${name}.\n\nBagi dia ruang kosong sikit.`,
-      (name) => `Satu barang utama pada ${name}.\n\nYang lain sokong.`,
+      (name) => `Barang yang selalu ditanya, jangan sorok la.\n\n${name} ni, kasi duduk depan.`,
+      (name) => `Jangan sesakkan ${name} ni.\n\nBagi dia ruang kosong sikit.`,
+      (name) => `Satu barang utama pada ${name}.\n\nYang lain sokong kan.`,
     ],
     kiosk: [
-      (name) => `Pada ${name}, barang patut nampak tanpa menjenguk.`,
-      (name) => `Susun barang jualan dulu, sebelum bawa ${name} keluar.`,
+      (name) => `Kat ${name} ni, barang patut nampak tanpa menjenguk.`,
+      (name) => `Susun barang jualan dulu, sebelum bawa ${name} keluar kan.`,
       (name) => `Cuba buka dan tutup ${name} sekali sebelum keluar.`,
     ],
     bespoke: [
-      (name) => `Senaraikan apa yang wajib muat, sebelum minta ${name}.`,
-      (name) => `Bawa contoh barang bila nak bincang ${name}.`,
+      (name) => `Senaraikan apa yang wajib muat, sebelum minta ${name} ni.`,
+      (name) => `Bawa contoh barang bila nak bincang ${name} kan.`,
       (name) => `Cerita hari biasa ruang tu, bila nak ${name}.`,
     ],
     general: [
-      (name) => `Untuk ${name}, mula dengan barang yang dipegang setiap hari.`,
-      (name) => `Sebelum ubah ${name}, tinguk satu hari biasa dulu.`,
-      (name) => `${name} tak perlu diubah serentak.\n\nSatu sudut dulu.`,
+      (name) => `Untuk ${name} ni, mula dengan barang yang dipegang setiap hari.`,
+      (name) => `Sebelum ubah ${name}, tinguk satu hari biasa dulu kan.`,
+      (name) => `${name} nda perlu diubah serentak.\n\nSatu sudut dulu jak.`,
     ],
   },
 }
 
 const TIKTOK_LINE = {
-  wardrobe: 'Untuk susun baju. Dibuat di Sabah.',
-  storage: 'Untuk barang yang selalu dicari.',
+  wardrobe: 'Untuk susun baju. Kami bikin kat Sabah.',
+  storage: 'Untuk barang yang selalu dicari kan.',
   display: 'Untuk paparan kedai yang lebih jelas.',
-  kiosk: 'Kaunter custom dari Sabah.',
-  bespoke: 'Dibuat ikut ruang kamu.',
-  general: 'Ikut cara ruang tu digunakan.',
+  kiosk: 'Kaunter custom. Kami bikin kat Sabah.',
+  bespoke: 'Kami bikin ikut ruang kamu.',
+  general: 'Ikut cara ruang tu diguna.',
 }
 
 function blocksFor(goal, kind, name, variation) {
@@ -695,9 +702,9 @@ function blocksFor(goal, kind, name, variation) {
 
 function promoPriceLine(name, price, variation) {
   return [
-    `${name}. Harga dia ${price}.`,
-    `Kalau ${name} yang kamu minat, harga dia ${price}.`,
-    `Harga ${name}: ${price}.`,
+    `${name} ni. Harga dia ${price}.`,
+    `Kalau ${name} yang kamu mau, harga dia ${price}.`,
+    `Harga ${name} ni, ${price}.`,
   ][variation]
 }
 
@@ -735,7 +742,7 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
     ...customerLead,
     noteText,
     specText,
-    selectedGoal === 'customer' && noteText ? 'Kalau ruang kamu lain, cerita ja. Kami buat custom di Sabah.' : '',
+    selectedGoal === 'customer' && noteText ? 'Kalau ruang kamu lain, cerita jak. Kami bikin custom kat Sabah.' : '',
     CTA[selectedGoal][index],
   ])
 
@@ -752,9 +759,9 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
 
   const tiktokSecond = noteText || specText || TIKTOK_LINE[kind]
   const tiktokHooks = [
-    `${name}.`,
-    `Dari Sabah: ${name}.`,
-    `Untuk ruang kamu — ${name}.`,
+    `${name} ni.`,
+    `${name} ni kan.`,
+    `Untuk ruang kamu, ${name} ni.`,
   ]
   const tiktok = [tiktokHooks[index], tiktokSecond, CTA_SHORT[selectedGoal][index]].filter(Boolean).join('\n')
 
