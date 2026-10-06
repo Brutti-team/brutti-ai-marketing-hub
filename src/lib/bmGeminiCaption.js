@@ -121,6 +121,14 @@ const STYLE_EXAMPLES = [
   },
 ]
 
+const HOOK_OPENERS = [
+  'POV: jumpa satu cozy corner di office. 🌿',
+  'Kadang healing tidak perlu jauh-jauh pun.',
+  'Pallet lama tidak semestinya jadi waste.',
+  'Kek yang sedap patut nampak dari jauh lagi 😋',
+  'Kalau tinguk sekali nampak macam kaunter biasa ja kan',
+]
+
 const SYSTEM_INSTRUCTION = `You write Facebook, Instagram, and TikTok captions for Brutti, a Sabah custom furniture workshop. The voice source is Brutti Soul Master: a friend telling a real scene, not a salesperson and not a corporate brand.
 
 Voice
@@ -138,8 +146,10 @@ Voice
 
 Shape
 - Each caption is 4 or 5 short lines. No blank line inside a caption. No title and no quotation marks around the caption.
-- Open on a small scene or "POV:". Do not start with the product name on its own line.
-- Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
+- Line 1 is a short curiosity hook that makes someone keep reading: a question, a surprising or relatable tease, an open loop, or "POV:" with a twist. About 12 words or fewer. Do not open with a long flat scene. Do not start with the product name on its own line.
+- Real hook openers from Brutti posts, for rhythm only: ${HOOK_OPENERS.join(' | ')}
+- Mention the product by the title-case name in the user message, exactly once in each caption. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
+- Use each size, material, finishing, and colour fact at most once in a caption. Do not repeat the same idea on two lines, such as writing "kemas" twice.
 - Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Facebook, Instagram, and TikTok must not share the same line 4.
 - Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Everyday words and any word order are fine, such as "kayu pine upcycled" or "standard single". Do not start every line 4 with "Bahan dia".
 - Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, each line 4 is a different neutral look-and-feel line.
@@ -219,6 +229,8 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
       : `Variasi ${index + 1}. Tulis kapsyen yang lain daripada variasi sebelum ini. Tukar babak dan baris pertama.`,
     '',
     `Nama produk, tulis begini dan jangan tambah perkataan selepasnya: ${brief.name}`,
+    'Sebut nama itu sekali saja dalam setiap kapsyen. Jangan ulang nama. Setiap fakta saiz, bahan, finishing, dan warna sekali saja, jangan pada dua baris. Jangan ulang idea yang sama, contohnya kemas.',
+    'Baris 1 mesti hook pendek, kira-kira 12 patah kata: soalan, tease, open loop, atau POV dengan twist. Jangan ayat panjang yang rata.',
     brief.officialName && brief.officialName !== brief.name ? `Jangan tulis nama ini dalam huruf besar semua: ${brief.officialName}` : '',
     `Kategori, jangan tulis ini selepas nama: ${none(brief.category)}`,
     `Matlamat siaran: ${goalLabel(goal)}`,
@@ -228,7 +240,7 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
       : 'Tiada fakta design. Tiga baris 4 mesti lain, pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga. Jangan guna perkataan bah.',
     designFacts.join('\n'),
     strict
-      ? `Cubaan semula. Kapsyen tadi ditolak. Nama produk mesti disebut dalam setiap kapsyen: ${brief.name}. Kalau belum ada, letak dalam baris 2 atau 3. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, selepas, atau kepala-otak. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.`
+      ? `Cubaan semula. Kapsyen tadi ditolak. Nama produk mesti disebut sekali saja dalam setiap kapsyen: ${brief.name}. Kalau belum ada, letak dalam baris 2 atau 3, dan buang sebutan yang berulang. Jangan ulang saiz, bahan, finishing, atau warna pada dua baris. Jangan ulang idea yang sama, contohnya kemas. Baris 1 mesti hook pendek, bukan ayat panjang yang rata. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, selepas, atau kepala-otak. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.`
       : '',
     '',
     'Contoh gaya dari pos Brutti. Ikut rentak sahaja. Jangan salin. Jangan pindahkan harga, material, stok, nama artisan, atau nama client dari contoh ke produk ini.',
@@ -407,8 +419,60 @@ function designLineOk(lines, brief) {
   return measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))
 }
 
+function wordCount(line) {
+  const stripped = norm(line)
+  return stripped ? stripped.split(' ').length : 0
+}
+
+function nameHits(text, name) {
+  if (!name) return 0
+  const pattern = new RegExp(String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'), 'gi')
+  return (String(text).match(pattern) || []).length
+}
+
+function fieldTokenSet(value) {
+  const found = new Set(factTokens(value))
+  const extras = String(value || '').toLowerCase().match(/\d+\s*'\s*\d+|\d+\s*(?:cm|mm|ft|in)\b/g) || []
+  extras.forEach((token) => found.add(token.replace(/\s+/g, '')))
+  return found
+}
+
+function lineHasToken(line, token) {
+  const lower = String(line || '').toLowerCase()
+  if (/^\d/.test(token)) return lower.replace(/\s+/g, '').includes(token)
+  return new RegExp(`\\b${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(lower)
+}
+
+function repeatedFact(lines, brief) {
+  const fields = {
+    size: fieldTokenSet(brief.dimensions),
+    material: fieldTokenSet(brief.materials),
+    finishing: fieldTokenSet(brief.finishing),
+    colour: fieldTokenSet(brief.colour),
+  }
+  const names = Object.keys(fields)
+  const shared = new Set()
+  names.forEach((left, index) => {
+    names.slice(index + 1).forEach((right) => {
+      fields[left].forEach((token) => {
+        if (fields[right].has(token)) shared.add(token)
+      })
+    })
+  })
+  names.forEach((name) => shared.forEach((token) => fields[name].delete(token)))
+  const material = String(brief.materials || '')
+  if (/wood|timber|pine|plywood|oak|teak|jati/i.test(material)) fields.material.add('kayu')
+  if (/steel|iron|metal/i.test(material)) fields.material.add('besi')
+  if (/glass/i.test(material)) fields.material.add('kaca')
+  return names.some((name) => {
+    const tokens = [...fields[name]]
+    if (!tokens.length) return false
+    return lines.filter((line) => tokens.some((token) => lineHasToken(line, token))).length >= 2
+  })
+}
+
 function withProductName(lines, name) {
-  if (!name || lines.join('\n').includes(name)) return lines
+  if (!name || nameHits(lines.join('\n'), name) > 0) return lines
   const next = lines.slice()
   const slot = next.length >= 2 ? 1 : 0
   next[slot] = `${name} ni. ${next[slot] || ''}`.trim()
@@ -426,6 +490,7 @@ function platformOk(lines, brief, platform) {
   if (platform === 'tiktok' && /\b(analitik|analytics|views|reach|tontonan)\b/i.test(text)) return false
   if (/\b(sila|contact|dm)\b/i.test(text)) return false
   if (bareNameLine(lines[0], brief.name) || isFactDump(lines[3], brief)) return false
+  if (wordCount(lines[0]) > 12 || nameHits(text, brief.name) > 1 || repeatedFact(lines, brief)) return false
   if (copiedStyle(lines) || leaksHiddenFact(lines, brief) || categoryAppended(lines, brief)) return false
   if (!designLineOk(lines, brief)) return false
   return true
