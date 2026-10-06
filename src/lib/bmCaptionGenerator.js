@@ -1,6 +1,7 @@
 // Local Bahasa Malaysia captions for Content Studio. No network, no paid model.
 // Voice: Brutti Soul Master, checked against Brutti's own Sep–Oct 2026 posts.
-// Those posts open on a piece name or a short scene, one thought a line.
+// Captions open on a short scene or POV, not on the bare product name.
+// A name that is stored in capitals is written in title case, such as Ayyash.
 // Dialect that actually shows up: ni, ngam, ja, kan, sudah, boleh, bikin, kasi,
 // tinguk, mau, and only rarely bah, teda, jaaa. mau stands where a stiff
 // synonym would have been. Closes are a soft observation or a function line.
@@ -22,20 +23,20 @@ const HUMOUR = {
 
 const OPEN = {
   highlight: {
-    wardrobe: [(n) => `${n} ✨`, HUMOUR.wardrobe, 'POV: satu sudut bilik, baju ada tempat. ✨'],
-    storage: [(n) => `${n} ✨`, HUMOUR.storage, 'Ada sudut yang barang dia banyak. ✨'],
-    display: [(n) => `${n} ✨`, HUMOUR.display, 'Kadang display nampak penuh. ✨'],
-    kiosk: [(n) => `${n} ✨`, HUMOUR.kiosk, 'Kaunter untuk jualan, barang nampak dari jauh. ✨'],
-    bespoke: [(n) => `${n} ✨`, HUMOUR.bespoke, 'Ada ruang yang mau piece ikut dia. ✨'],
-    general: [(n) => `${n} ✨`, HUMOUR.general, 'Satu sudut dulu, tidak perlu ubah semua sekali. ✨'],
+    wardrobe: ['POV: baju banyak, tapi ada tempat. ✨', HUMOUR.wardrobe, 'POV: satu sudut bilik, baju ada tempat. ✨'],
+    storage: ['POV: barang kecil, belum ada tempat. ✨', HUMOUR.storage, 'Ada sudut yang barang dia banyak. ✨'],
+    display: ['POV: barang penting, susah nampak. ✨', HUMOUR.display, 'Kadang display nampak penuh. ✨'],
+    kiosk: ['POV: kaunter jualan masih kosong. ✨', HUMOUR.kiosk, 'Kaunter untuk jualan, barang nampak dari jauh. ✨'],
+    bespoke: ['POV: ruang kecil, piece biasa tidak muat. ✨', HUMOUR.bespoke, 'Ada ruang yang mau piece ikut dia. ✨'],
+    general: ['POV: satu sudut, barang belum ada tempat. ✨', HUMOUR.general, 'Satu sudut dulu, tidak perlu ubah semua sekali. ✨'],
   },
   promo: {
-    wardrobe: [(n) => `${n} ✨`, 'Bilik yang baju dia banyak. 😆', 'Tempat gantung dan drawer, dalam satu piece. ✨'],
-    storage: [(n) => `${n} 🌿`, 'Barang banyak, tapi setiap satu boleh ada tempat. ✨', 'Storage yang ngam ikut apa yang kamu simpan. 😉'],
-    display: [(n) => `${n} ✨`, 'Display yang kemas, mata terus nampak. 😍', 'Barang penting, kasi dia nampak. 😉'],
-    kiosk: [(n) => `${n} ✨`, 'Kaunter custom untuk jualan kamu. ✨', 'Bukan meja kosong. 😉'],
-    bespoke: [(n) => `${n} ✨`, 'Ruang kecil pun boleh ada piece sendiri. ✨', 'Custom, ikut ruang kamu. 😍'],
-    general: [(n) => `${n} ✨`, 'Barang yang kamu guna setiap hari, patut ada tempat. ✨', 'Susun satu sudut dulu. 😉'],
+    wardrobe: ['Baju minggu ni patut ada tempat. ✨', 'Bilik yang baju dia banyak. 😆', 'Tempat gantung dan drawer, dalam satu piece. ✨'],
+    storage: ['Barang banyak, satu tempat dulu. 🌿', 'Barang banyak, tapi setiap satu boleh ada tempat. ✨', 'Storage yang ngam ikut apa yang kamu simpan. 😉'],
+    display: ['Barang penting patut nampak. ✨', 'Display yang kemas, mata terus nampak. 😍', 'Barang penting, kasi dia nampak. 😉'],
+    kiosk: ['Jualan hari ni, kaunter masih kosong. ✨', 'Kaunter custom untuk jualan kamu. ✨', 'Bukan meja kosong. 😉'],
+    bespoke: ['Ruang yang mau piece sendiri. ✨', 'Ruang kecil pun boleh ada piece sendiri. ✨', 'Custom, ikut ruang kamu. 😍'],
+    general: ['Barang harian, satu sudut dulu. ✨', 'Barang yang kamu guna setiap hari, patut ada tempat. ✨', 'Susun satu sudut dulu. 😉'],
   },
   customer: {
     wardrobe: ['Ada bilik yang baju dia banyak. ✨', 'Wardrobe yang ngam mula dari bilik kamu. 😍', 'Lain rumah, lain cara simpan baju. 😉'],
@@ -66,64 +67,64 @@ const OPEN = {
 const BODY = {
   highlight: {
     wardrobe: [
-      () => 'Ngam ni untuk simpan baju, dengan drawer untuk yang dilipat.',
+      (n) => `${n} ni ngam untuk simpan baju, dengan drawer untuk yang dilipat.`,
       (n) => `${n} ni sudah ada tempat gantung, dengan drawer sekali.`,
       (n) => `${n} ni kami buat custom, ikut cara kamu simpan.`,
     ],
     storage: [
-      () => 'Ngam ni untuk storage yang mau setiap barang ada tempat.',
+      (n) => `${n} ni ngam untuk storage yang mau setiap barang ada tempat.`,
       (n) => `${n} ni untuk ruang rumah yang barang dia banyak.`,
       (n) => `${n} ni kami buat custom, ikut apa yang kamu simpan.`,
     ],
     display: [
-      () => 'Ngam ni untuk display barang dengan kemas.',
+      (n) => `${n} ni ngam untuk display barang dengan kemas.`,
       (n) => `${n} ni kasi barang penting nampak dari jauh.`,
       (n) => `${n} ni untuk setup yang simple, barang masih nampak.`,
     ],
     kiosk: [
-      () => 'Ngam ni untuk jualan, barang nampak dari jauh.',
+      (n) => `${n} ni ngam untuk jualan, barang nampak dari jauh.`,
       (n) => `${n} ni kaunter custom, bukan meja kosong.`,
       (n) => `${n} ni kami buat untuk setup kamu.`,
     ],
     bespoke: [
-      () => 'Ngam ni untuk ruang yang piece biasa tidak muat.',
+      (n) => `${n} ni ngam untuk ruang yang piece biasa tidak muat.`,
       (n) => `${n} ni ikut ruang kamu.`,
       (n) => `${n} ni kami buat custom.`,
     ],
     general: [
-      () => 'Ngam ni untuk susun ruang, satu sudut dulu.',
+      (n) => `${n} ni ngam untuk susun ruang, satu sudut dulu.`,
       (n) => `${n} ni, barang harian ada tempat.`,
       (n) => `${n} ni kami buat ikut cara kamu.`,
     ],
   },
   promo: {
     wardrobe: [
-      () => 'Ngam ni untuk simpan baju kamu, drawer untuk yang dilipat.',
+      (n) => `${n} ni ngam untuk simpan baju kamu, drawer untuk yang dilipat.`,
       (n) => `${n} ni untuk bilik yang mau lebih kemas.`,
       (n) => `Kalau ${n} ngam dengan bilik kamu, kami bikin ikut cara kamu simpan.`,
     ],
     storage: [
-      () => 'Ngam ni untuk storage yang mau setiap barang ada tempat.',
+      (n) => `${n} ni ngam untuk storage yang mau setiap barang ada tempat.`,
       (n) => `${n} ni kami buat custom, ikut apa yang kamu simpan.`,
       (n) => `${n} ni, bukan storage yang semua rumah dapat sama.`,
     ],
     display: [
-      () => 'Ngam ni untuk display yang mau barang terus nampak.',
+      (n) => `${n} ni ngam untuk display yang mau barang terus nampak.`,
       (n) => `${n} ni kami bikin custom, ikut cara kamu susun barang.`,
       (n) => `${n} ni, bukan display yang semua ruang nampak sama.`,
     ],
     kiosk: [
-      () => 'Ngam ni untuk jualan yang mau kaunter sendiri.',
+      (n) => `${n} ni ngam untuk jualan yang mau kaunter sendiri.`,
       (n) => `${n} ni kami bikin custom.`,
       (n) => `${n} ni untuk setup kamu, barang nampak dari jauh.`,
     ],
     bespoke: [
-      () => 'Ngam ni untuk ruang yang mau piece sendiri.',
+      (n) => `${n} ni ngam untuk ruang yang mau piece sendiri.`,
       (n) => `${n} ni kami buat ikut hidup kamu.`,
       (n) => `${n} ni, kami cerita dulu baru bikin.`,
     ],
     general: [
-      () => 'Ngam ni untuk ruang yang mau lebih kemas.',
+      (n) => `${n} ni ngam untuk ruang yang mau lebih kemas.`,
       (n) => `${n} ni, satu sudut dulu sudah cukup.`,
       (n) => `${n} ni kami buat custom.`,
     ],
@@ -406,6 +407,15 @@ function clean(value = '') {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
 }
 
+export function captionDisplayName(name = '') {
+  return clean(name).split(/(\s+)/).map((part) => {
+    if (!part.trim()) return part
+    const letters = part.replace(/[^A-Za-z]/g, '')
+    if (letters.length <= 2 || letters !== letters.toUpperCase()) return part
+    return `${part.charAt(0)}${part.slice(1).toLowerCase()}`
+  }).join('')
+}
+
 export function isBlankField(value) {
   const text = clean(value)
   if (!text) return true
@@ -486,9 +496,9 @@ function designLine(name, colour, note, index) {
   if (showColour) bits.push(`warna dia ${colourText}`)
   const detail = bits.join(', ')
   const leads = [
-    `Design ni ${detail}.`,
-    `Piece ni ${detail}.`,
-    `${detail}, itu design dia.`,
+    `Design dia ${detail}.`,
+    `Piece ni, design dia ${detail}.`,
+    `Yang nampak, design dia ${detail}.`,
   ]
   return finishLine(leads[slot])
 }
@@ -541,12 +551,14 @@ export function productDetails(product = {}) {
 
 export function captionBrief({ product = null, topic = '', note = '' } = {}) {
   const record = product || {}
-  const name = readField(record.name || record.productName) || readField(topic)
+  const officialName = readField(record.name || record.productName) || readField(topic)
+  const name = captionDisplayName(officialName)
   const colour = readField(record.colour || record.color)
   const noteText = readField(note)
   const details = productDetails(record)
   return {
     name,
+    officialName,
     category: readField(record.category),
     colour,
     note: noteText,
@@ -598,7 +610,7 @@ function tiktokLines(kind, name, index) {
 
 export function generateBmCaptions({ product = null, topic = '', goal = 'highlight', note = '', variation = 0 } = {}) {
   const record = product || {}
-  const name = readField(record.name || record.productName) || readField(topic)
+  const name = captionDisplayName(readField(record.name || record.productName) || readField(topic))
   const index = ((Number(variation) || 0) % VARIATION_COUNT + VARIATION_COUNT) % VARIATION_COUNT
   const selectedGoal = CAPTION_GOALS.some((item) => item.id === goal) ? goal : 'highlight'
 

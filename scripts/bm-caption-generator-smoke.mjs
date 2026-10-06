@@ -1,8 +1,14 @@
 import fs from 'node:fs'
-import { generateBmCaptions, isBlankField } from '../src/lib/bmCaptionGenerator.js'
+import { captionDisplayName, generateBmCaptions, isBlankField } from '../src/lib/bmCaptionGenerator.js'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function bareNameOpening(text, name) {
+  const first = String(text || '').split(/\n+/).map((line) => line.trim()).filter(Boolean)[0] || ''
+  const stripped = first.replace(/\p{Extended_Pictographic}/gu, ' ').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim()
+  return stripped.toLowerCase() === String(name || '').toLowerCase()
 }
 
 const data = fs.readFileSync(new URL('../src/data.js', import.meta.url), 'utf8')
@@ -143,7 +149,9 @@ for (const product of [kaanagan, ahtam, pusma]) {
       assertDialect(output)
       assertNoBlankLeak(combined, product)
       facebookSamples.push(output.facebook)
-      assert(output.facebook.includes(product.name), 'Caption must keep the real product name.')
+      const shown = captionDisplayName(product.name)
+      assert(output.facebook.includes(shown), 'Caption must keep the product name in title case.')
+      assert(!bareNameOpening(output.facebook, shown) && !bareNameOpening(output.instagram, shown) && !bareNameOpening(output.tiktok, shown), 'A caption must not open on the bare product name.')
       assert(!output.usedFacts.includes('price'), 'Blank price must not be marked as used.')
       assert(!output.usedFacts.includes('material'), 'Blank material must not be marked as used.')
       assert(!output.usedFacts.includes('dimensions'), 'Blank dimensions must not be marked as used.')
@@ -198,6 +206,12 @@ for (const key of ['facebook', 'instagram', 'tiktok']) {
 }
 assertNoBlankLeak(`${noted.facebook}\n${noted.instagram}`, ahtam, noted.facebook)
 
+assert(captionDisplayName('AYYASH') === 'Ayyash', 'AYYASH should be written in title case.')
+assert(captionDisplayName('SUMANDAK') === 'Sumandak', 'SUMANDAK should be written in title case.')
+assert(captionDisplayName('TANAKVAGU') === 'Tanakvagu', 'TANAKVAGU should be written in title case.')
+assert(captionDisplayName('PULOUDOPUAN') === 'Puloudopuan', 'PULOUDOPUAN should be written in title case.')
+assert(captionDisplayName('AHTAM XL') === 'Ahtam XL', 'A short size token stays as written.')
+
 const ayyash = {
   name: 'AYYASH',
   category: 'Wall Rack',
@@ -210,8 +224,10 @@ for (const variation of [0, 1, 2]) {
   const named = generateBmCaptions({ product: ayyash, goal: 'highlight', variation })
   assertPlatforms(named)
   for (const key of ['facebook', 'instagram', 'tiktok']) {
-    assert(named[key].includes('AYYASH'), `${key} should mention the product name.`)
-    assert(!/AYYASH\s+Wall Rack/i.test(named[key]), `Category must not be appended after the product name in ${key}:\n${named[key]}`)
+    assert(named[key].includes('Ayyash'), `${key} should mention the product name in title case.`)
+    assert(!/\bAYYASH\b/.test(named[key]), `${key} should not keep the all-caps product name.`)
+    assert(!/Ayyash\s+Wall Rack/i.test(named[key]), `Category must not be appended after the product name in ${key}:\n${named[key]}`)
+    assert(!bareNameOpening(named[key], 'Ayyash'), `${key} should not open on the bare product name.`)
     const body = captionBody(named[key])
     assert(!body.includes('RM87') && !body.includes('Solid Upcycled Pine Wood') && !body.includes('Sealer') && !body.includes('5 ft H'), `Specs must stay out of the ${key} caption body.`)
   }

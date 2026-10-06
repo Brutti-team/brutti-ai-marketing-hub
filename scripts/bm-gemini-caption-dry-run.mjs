@@ -78,7 +78,9 @@ assertRequest(kaanaganRequest, 'KAANAGAN')
 
 assert(ayyashRequest.temperature === 0.8 && geminiTemperature(0) === 0.8, 'The first caption should use the lower temperature.')
 assert(kaanaganRequest.temperature === 1.15, 'A variation should raise the temperature.')
-assert(ayyashRequest.userText.includes('Nama produk, guna ayat ini tepat dan jangan tambah perkataan selepasnya: AYYASH'), 'AYYASH prompt should use the product name alone.')
+assert(/all capitals/i.test(ayyashRequest.systemInstruction) && /do not start with the product name/i.test(ayyashRequest.systemInstruction), 'The prompt should require title case and a scene opening.')
+assert(ayyashRequest.userText.includes('Nama produk, tulis begini dan jangan tambah perkataan selepasnya: Ayyash'), 'AYYASH prompt should ask for title case.')
+assert(ayyashRequest.userText.includes('Jangan tulis nama ini dalam huruf besar semua: AYYASH'), 'The prompt should forbid the all-caps sheet name.')
 assert(ayyashRequest.userText.includes('Kategori, jangan tulis ini selepas nama: Wall Rack'), 'AYYASH prompt should mark the category as off-limits.')
 assert(!ayyashRequest.userText.includes('AYYASH Wall Rack'), 'AYYASH prompt should not show the name with the category appended.')
 assert(/upcycled pine/i.test(ayyashRequest.userText), 'AYYASH prompt should pass the upcycled pine material as a design fact.')
@@ -97,10 +99,10 @@ assert(kaanaganRequest.userText.includes('Tondurongon') && !kaanaganRequest.user
 assert(styleExamplesForVariation(0)[0].id !== styleExamplesForVariation(2)[0].id, 'Rotated windows should start on different examples.')
 
 const ayyashModel = `FACEBOOK:
-AYYASH ✨
+POV: tuala belum ada tempat. ✨
 Ngam ni untuk susun satu sudut dulu.
-Piece ni custom, ikut ruang kamu.
-Upcycled pine, 5 ft H dan 20 in W, sealer satin. 😍
+AYYASH ni custom, ikut ruang kamu.
+Bahan dia upcycled pine dengan sealer satin, saiz dia 5 ft dan 20 in. 😍
 
 Product details:
 - Size: 9 ft
@@ -119,13 +121,14 @@ Piece ni custom, ikut ruang.
 Pine wood, 5 ft tinggi, 20 in lebar. 😍`
 const ayyashCaption = finalizeGeminiCaptions(ayyashModel, { product: ayyash, goal: 'highlight', variation: 0 })
 assert(ayyashCaption?.source === 'gemini', 'A valid model caption should be accepted.')
+assert(ayyashCaption.facebook.includes('Ayyash') && !/\bAYYASH\b/.test(ayyashCaption.facebook), 'An all-caps product name should be rewritten in title case.')
 assert(!ayyashCaption.facebook.includes('RM999') && !ayyashCaption.facebook.includes('9 ft'), 'Invented model details must be dropped.')
 assert(ayyashCaption.facebook.includes('Product details:\n\n- Size: 5 ft H × 20 in W\n- Materials: Solid Upcycled Pine Wood\n- Finishing: Sealer & Satin Coating\n- Price starts from RM87'), 'Real AYYASH details are appended in code.')
 assert(captionBrief({ product: ayyash }).details.used.includes('price'), 'Used facts should still come from the sheet.')
 
 const eunoiaModel = `FACEBOOK:
-Eunoia Kiosk ✨
-Ngam ni untuk jualan, barang nampak dari jauh.
+POV: kaunter jualan masih kosong. ✨
+Eunoia Kiosk ni ngam untuk jualan, barang nampak dari jauh.
 Piece ni custom, ikut ruang kamu.
 Tinggi dia 75cm, ikut saiz yang ada. 😍
 
@@ -145,8 +148,8 @@ assert(eunoiaCaption.facebook.includes(`Product details:\n\n- Size: ${eunoiaSize
 assert(!eunoiaCaption.facebook.includes('- Materials:') && !/bermula/i.test(eunoiaCaption.facebook), 'Blank material and the bermula prefix stay out.')
 
 const kaanaganModel = `FACEBOOK:
-KAANAGAN Open Concept Wardrobe with Drawers ✨
-Baju banyak, tapi masih boleh nampak kemas.
+POV: baju banyak, tapi belum ada tempat. ✨
+KAANAGAN Open Concept Wardrobe with Drawers ni untuk bilik ni.
 Piece ni custom, ikut bilik kamu.
 Design ni Open Concept, kaki besi, top kayu. 😍
 
@@ -167,7 +170,7 @@ assert(!kaanaganCaption.facebook.includes('Product details:'), 'A product with b
 
 assert(finalizeGeminiCaptions(`FACEBOOK:\nAYYASH ✨\nNgam ni.\nPiece ni.\n\nINSTAGRAM:\nAYYASH ✨\nNgam.\nPiece.\nLagi.\n\nTIKTOK:\nAYYASH ✨\nNgam.\nPiece.\nLagi. 😍`, { product: ayyash }) === null, 'A short caption should fall back.')
 assert(finalizeGeminiCaptions(ayyashModel.replace('susun satu sudut', 'mesej kami bah susun satu sudut'), { product: ayyash }) === null, 'The banned close should fall back.')
-assert(finalizeGeminiCaptions(ayyashModel.replace('AYYASH ✨', 'AYYASH Wall Rack ✨'), { product: ayyash }) === null, 'An appended category should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('AYYASH ni custom', 'AYYASH Wall Rack ni custom'), { product: ayyash }) === null, 'An appended category should fall back.')
 const copied = `FACEBOOK:
 AYYASH ✨
 Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
@@ -186,9 +189,11 @@ Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
 Simple space tapi terus ubah mood satu sudut.
 Nampak kemas. 😍`
 assert(finalizeGeminiCaptions(copied, { product: ayyash }) === null, 'A caption that copies a past post should fall back.')
-assert(finalizeGeminiCaptions(ayyashModel.replace('Upcycled pine, 5 ft H dan 20 in W, sealer satin.', 'Harga dia RM999, nampak simple.'), { product: ayyash }) === null, 'An invented price in the body should fall back.')
-assert(finalizeGeminiCaptions(ayyashModel.replace('5 ft H dan 20 in W', '9 ft H dan oak'), { product: ayyash }) === null, 'An invented size or material should fall back.')
-assert(finalizeGeminiCaptions(ayyashModel, { product: ayyash })?.facebook.includes('Upcycled pine'), 'A sheet material written on line 4 should be kept.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Bahan dia upcycled pine dengan sealer satin, saiz dia 5 ft dan 20 in.', 'Harga dia RM999, nampak simple.'), { product: ayyash }) === null, 'An invented price in the body should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('5 ft dan 20 in', '9 ft dan oak'), { product: ayyash }) === null, 'An invented size or material should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('POV: tuala belum ada tempat. ✨', 'Ayyash ✨'), { product: ayyash }) === null, 'A caption that opens with only the product name should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Bahan dia upcycled pine dengan sealer satin, saiz dia 5 ft dan 20 in.', 'Solid Upcycled Pine Wood, Sealer & Satin Coating, 5 ft H × 20 in W'), { product: ayyash }) === null, 'A comma-separated fact dump should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel, { product: ayyash })?.facebook.includes('upcycled pine'), 'A sheet material written as a sentence should be kept.')
 
 assert(code.includes("generate_bm_caption: () => generateBmCaption_(payload)"), 'Apps Script should route the caption action through the existing POST handler.')
 assert(code.includes("scriptProperties_().getProperty('GEMINI_API_KEY')"), 'The Gemini key should be read from Script Properties.')
@@ -200,8 +205,16 @@ assert(!/console\.(log|error|info)\(\s*apiKey/.test(code) && !/Logger\.log\(\s*a
 assert(/code === 429/.test(code) && code.includes('Gemini quota reached.'), 'Quota responses should fail softly.')
 assert(code.includes('The caption request must not include an API key.'), 'A client-supplied key should be rejected.')
 assert(code.includes('function testBmCaption()'), 'Apps Script should expose an editor test for captions.')
-assert(code.includes('SUMANDAK') && code.includes('TANAKVAGU') && code.includes('10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ'), 'The editor test should look up the named Product Library rows.')
+assert(code.includes("name: 'SUMANDAK'") && code.includes("name: 'TANAKVAGU'") && code.includes('RM717') && code.includes('RM837') && code.includes('Natural Wood'), 'The editor test should hard-code Sumandak and Tanakvagu.')
+assert(code.includes('source: GEMINI') && code.includes('source: TEMPLATE'), 'The editor test should say whether Gemini or the template produced the caption.')
 assert(!/Logger\.log\([^)\n]*apiKey/.test(code), 'The editor test must not log the Gemini key.')
+assert(/header\.code !== 401/.test(code) && code.includes("Authorization: 'Bearer ' + apiKey"), 'An AQ. key that rejects the header should retry once with Bearer only.')
+assert(code.includes('part.thought'), 'Thought parts should be skipped when reading the caption.')
+assert(/AQ\\.\[[0-9A-Za-z\\-_]/.test(code), 'Redaction should hide AQ. keys.')
+assert(/Do not start with the product name/i.test(code) && /ALL CAPITALS/.test(code) && /comma-separated/.test(code), 'The editor prompt should require a scene opening, title case, and a sentence on line 4.')
+assert(code.includes('validation: missing FACEBOOK, INSTAGRAM, or TIKTOK labels'), 'A caption without platform labels should record that validation failure.')
+assert(code.includes('line 4 dumps the sheet fields') && code.includes('opens with only the product name'), 'Template fallback should name the validation check.')
+assert(!code.includes('testBmCaptionLibrary_'), 'The editor samples should not depend on the Product Library sheet.')
 
 assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')
 assert(studio.includes('Guna template (Gemini tidak tersedia)') && studio.includes('generate_bm_caption') && studio.includes('Jana kapsyen') && studio.includes('Jana variasi lain'), 'The studio should try Gemini, then show the template note, and keep the generate buttons.')

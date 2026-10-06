@@ -135,9 +135,9 @@ Voice
 
 Shape
 - Each caption is 4 or 5 short lines. No blank line inside a caption. No title and no quotation marks around the caption.
-- Open the way the real posts open: a small scene, or occasionally "POV:". The product name may be the first line.
-- Mention the product by the exact Product Name only. Never append the category or a generic type after that name.
-- Line 4 explains the design using only the real facts in the user message: the design note, material, finishing, size, colour, and design words already in the name. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, line 4 is a neutral look-and-feel line.
+- Open on a small scene or "POV:". Do not start with the product name on its own line.
+- Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
+- Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Everyday words are fine ("upcycled pine", "warna natural"). Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, line 4 is a neutral look-and-feel line.
 - Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
 - Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
 - Facebook, Instagram, and TikTok must be three different captions. Same real facts, different opening and rhythm.
@@ -209,12 +209,13 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
       ? 'Variasi 1. Tulis kapsyen baru.'
       : `Variasi ${index + 1}. Tulis kapsyen yang lain daripada variasi sebelum ini. Tukar babak dan baris pertama.`,
     '',
-    `Nama produk, guna ayat ini tepat dan jangan tambah perkataan selepasnya: ${brief.name}`,
+    `Nama produk, tulis begini dan jangan tambah perkataan selepasnya: ${brief.name}`,
+    brief.officialName && brief.officialName !== brief.name ? `Jangan tulis nama ini dalam huruf besar semua: ${brief.officialName}` : '',
     `Kategori, jangan tulis ini selepas nama: ${none(brief.category)}`,
     `Matlamat siaran: ${goalLabel(goal)}`,
     '',
     designFacts.length
-      ? 'Fakta design untuk baris 4. Huraikan design dengan fakta ini sahaja. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga.'
+      ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah, contoh "Bahan dia upcycled pine, dengan sealer satin." Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga.'
       : 'Tiada fakta design. Baris 4 ialah pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga.',
     designFacts.join('\n'),
     '',
@@ -245,6 +246,17 @@ function stripFences(text) {
 function section(text, label) {
   const match = text.match(new RegExp(`${label}\\s*:\\s*([\\s\\S]*?)(?=\\n(?:FACEBOOK|INSTAGRAM|TIKTOK)\\s*:|$)`, 'i'))
   return match ? match[1].trim() : ''
+}
+
+function softenOfficialName(text, official, display) {
+  const source = String(official || '').split(/\s+/)
+  const shown = String(display || '').split(/\s+/)
+  return source.reduce((next, token, index) => {
+    const replacement = shown[index]
+    if (!token || !replacement || token === replacement || token.length <= 2) return next
+    if (token !== token.toUpperCase()) return next
+    return next.replace(new RegExp(`\\b${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g'), replacement)
+  }, String(text || ''))
 }
 
 function tidyLine(value) {
@@ -321,6 +333,22 @@ function leaksHiddenFact(lines, brief) {
   return materialWords.some((word) => !materialWordAllowed(word, blob))
 }
 
+function bareNameLine(line, name) {
+  const stripped = String(line || '')
+    .replace(/\p{Extended_Pictographic}/gu, ' ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+  return Boolean(name) && stripped === String(name).toLowerCase()
+}
+
+function isFactDump(line, brief) {
+  const lower = String(line || '').toLowerCase()
+  const fields = [brief.materials, brief.finishing, brief.dimensions].filter((item) => item && item.length >= 6)
+  return fields.filter((item) => lower.includes(item.toLowerCase())).length >= 2
+}
+
 function categoryAppended(lines, brief) {
   if (!brief.category) return false
   const pattern = new RegExp(`${brief.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+${brief.category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
@@ -351,6 +379,8 @@ function platformOk(lines, brief, platform) {
   const emoji = emojiCount(text)
   if (emoji < 1 || emoji > 2) return false
   if (platform === 'tiktok' && /\b(analitik|analytics|views|reach|tontonan)\b/i.test(text)) return false
+  if (/\b(sila|contact|dm)\b/i.test(text)) return false
+  if (bareNameLine(lines[0], brief.name) || isFactDump(lines[3], brief)) return false
   if (copiedStyle(lines) || leaksHiddenFact(lines, brief) || categoryAppended(lines, brief)) return false
   if (!designLineOk(lines, brief)) return false
   return true
@@ -359,7 +389,7 @@ function platformOk(lines, brief, platform) {
 export function finalizeGeminiCaptions(rawText, { product = null, topic = '', goal = 'highlight', note = '', variation = 0 } = {}) {
   const brief = captionBrief({ product, topic, note })
   if (!brief.name) return null
-  const text = stripFences(rawText)
+  const text = softenOfficialName(stripFences(rawText), brief.officialName, brief.name)
   const platforms = {
     facebook: captionLines(section(text, 'FACEBOOK')),
     instagram: captionLines(section(text, 'INSTAGRAM')),

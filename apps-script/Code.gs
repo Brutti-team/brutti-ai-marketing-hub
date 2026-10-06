@@ -430,20 +430,29 @@ function generateBmCaption_(payload) {
   var first = fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, true);
   var result = first.code === 400 ? fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, false) : first;
   if (result.code === 429) throw new Error('Gemini quota reached.');
-  if (result.code < 200 || result.code >= 300) throw new Error('Gemini request failed (' + result.code + ').');
   var text = geminiCaptionText_(result.body);
-  if (!text) throw new Error('Gemini returned an empty caption.');
+  if (result.code < 200 || result.code >= 300 || !text) throw new Error(geminiFailureDetail_(result, apiKey));
   return { text: text, model: model };
 }
 
 function fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, limitThinking) {
+  // AQ. keys authenticate with x-goog-api-key. If that is rejected, retry once
+  // with Bearer only. Sending both headers makes Gemini return HTTP 400.
+  var header = fetchGeminiCaptionOnce_(apiKey, model, systemInstruction, userText, temperature, limitThinking, false);
+  if (header.code !== 401) return header;
+  return fetchGeminiCaptionOnce_(apiKey, model, systemInstruction, userText, temperature, limitThinking, true);
+}
+
+function fetchGeminiCaptionOnce_(apiKey, model, systemInstruction, userText, temperature, limitThinking, useBearer) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
   var generationConfig = { temperature: temperature, maxOutputTokens: limitThinking ? 800 : 1600, topP: 0.95 };
   if (limitThinking) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  var headers = { 'x-goog-api-key': apiKey };
+  if (useBearer) headers = { Authorization: 'Bearer ' + apiKey };
   var options = {
     method: 'post',
     contentType: 'application/json',
-    headers: { 'x-goog-api-key': apiKey },
+    headers: headers,
     muteHttpExceptions: true,
     payload: JSON.stringify({
       systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -459,124 +468,408 @@ function fetchGeminiCaption_(apiKey, model, systemInstruction, userText, tempera
   }
   var code = response.getResponseCode();
   var raw = response.getContentText() || '';
-  if (code === 429 || /RESOURCE_EXHAUSTED|quotaExceeded/i.test(raw)) return { code: 429, body: null };
+  if (code === 429 || /RESOURCE_EXHAUSTED|quotaExceeded/i.test(raw)) return { code: 429, body: null, raw: '' };
   var body = null;
   try { body = JSON.parse(raw); } catch (ignored) { body = null; }
-  return { code: code, body: body };
+  return { code: code, body: body, raw: body ? '' : raw };
 }
 
 function geminiCaptionText_(body) {
   var candidates = body && body.candidates;
   var parts = candidates && candidates[0] && candidates[0].content && candidates[0].content.parts;
   if (!parts || !parts.length) return '';
-  return parts.map(function (part) { return part && part.text ? part.text : ''; }).join('').trim();
+  return parts.map(function (part) {
+    if (!part || part.thought || !part.text) return '';
+    return part.text;
+  }).join('').trim();
+}
+
+function geminiFailureDetail_(result, apiKey) {
+  var code = result && typeof result.code === 'number' ? result.code : 0;
+  var body = result && result.body;
+  var bits = ['HTTP ' + code];
+  var message = body && body.error && (body.error.message || body.error.status);
+  if (message) bits.push(String(message));
+  var block = body && body.promptFeedback && body.promptFeedback.blockReason;
+  if (block) bits.push('blockReason ' + block);
+  var candidate = body && body.candidates && body.candidates[0];
+  var finish = candidate && candidate.finishReason;
+  if (finish) bits.push('finishReason ' + finish);
+  if (!body && result && result.raw) bits.push(String(result.raw).replace(/\s+/g, ' ').substring(0, 160));
+  if (bits.length === 1 && code >= 200 && code < 300) bits.push('Gemini returned an empty caption.');
+  return redactGeminiSecret_(bits.join(' | '), apiKey).substring(0, 360);
 }
 
 function redactGeminiSecret_(message, apiKey) {
   var text = String(message || 'Gemini request failed.');
-  if (apiKey) text = text.split(apiKey).join('[hidden]');
-  return text.replace(/AIza[0-9A-Za-z\-_]{20,}/g, '[hidden]').replace(/key=[^&\s]+/gi, 'key=[hidden]').substring(0, 180);
+  if (apiKey) text = text.split(String(apiKey)).join('[hidden]');
+  return text
+    .replace(/AIza[0-9A-Za-z\-_]{20,}/g, '[hidden]')
+    .replace(/AQ\.[0-9A-Za-z\-_]{10,}/g, '[hidden]')
+    .replace(/key=[^&\s]+/gi, 'key=[hidden]');
 }
 
 function testBmCaption() {
-  var samples = [{
-    name: 'AYYASH',
-    category: 'Wall Rack',
-    price: 'RM87',
-    material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
-    dimensions: '5 ft H x 20 in W',
-    colour: '',
-    sourceLabel: 'hard-coded sample'
-  }];
-  var library = testBmCaptionLibrary_();
-  ['SUMANDAK', 'TANAKVAGU'].forEach(function (name) {
-    var found = testBmCaptionByName_(library, name);
-    if (found) samples.push(found);
-  });
-  if (samples.length < 2) {
-    var extra = library.filter(function (row) {
-      return String(row.name || '').toUpperCase().indexOf('AYYASH') !== 0;
-    })[0];
-    if (extra) samples.push(extra);
-  }
+  var samples = [
+    {
+      name: 'AYYASH',
+      category: 'Wall Rack',
+      price: 'RM87',
+      material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+      dimensions: '5 ft H x 20 in W',
+      colour: '',
+      sourceLabel: 'hard-coded sample'
+    },
+    {
+      name: 'TANAKVAGU',
+      category: 'Single Bed',
+      price: 'RM717',
+      material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+      dimensions: 'Standard Single (6\'3" W x 3\' D)',
+      colour: 'Natural Wood',
+      sourceLabel: 'hard-coded sample'
+    },
+    {
+      name: 'SUMANDAK',
+      category: 'Single Bed Frame',
+      price: 'RM837',
+      material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+      dimensions: 'Standard Single (6\'3" W x 3\' D)',
+      colour: 'Natural Wood',
+      sourceLabel: 'hard-coded sample'
+    }
+  ];
   samples.forEach(function (product) {
     try {
-      Logger.log('--- ' + product.name + ' (' + (product.sourceLabel || 'Product Library') + ') ---\n' + testBmCaptionOne_(product));
+      Logger.log(testBmCaptionOne_(product));
     } catch (error) {
-      var secret = scriptProperties_().getProperty('GEMINI_API_KEY');
-      Logger.log(product.name + ': ' + redactGeminiSecret_(error && error.message, secret));
+      var secret = '';
+      try { secret = scriptProperties_().getProperty('GEMINI_API_KEY') || ''; } catch (ignored) { secret = ''; }
+      Logger.log('--- ' + product.name + ' ---\nsource: TEMPLATE\nreason: ' + redactGeminiSecret_(error && error.message, secret).substring(0, 360) + '\n\n' + testBmCaptionTemplate_(product));
     }
   });
 }
 
-function testBmCaptionLibrary_() {
-  try {
-    var sheet = SpreadsheetApp.openById('10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ').getSheetByName('Product Library');
-    if (!sheet) return [];
-    return productRows_(sheet).map(function (row) {
-      row.sourceLabel = 'Product Library';
-      return row;
-    });
-  } catch (error) {
-    Logger.log('Product Library could not be read. AYYASH still runs from the hard-coded sample.');
-    return [];
-  }
-}
-
-function testBmCaptionByName_(rows, name) {
-  var target = String(name || '').toLowerCase();
-  var exact = rows.filter(function (row) { return String(row.name || '').toLowerCase() === target; })[0];
-  if (exact) return exact;
-  return rows.filter(function (row) { return String(row.name || '').toLowerCase().indexOf(target) >= 0; })[0] || null;
-}
-
 function testBmCaptionOne_(product) {
-  var request = testBmCaptionRequest_(product);
   var apiKey = scriptProperties_().getProperty('GEMINI_API_KEY');
-  if (!apiKey) return 'Gemini is not configured.';
+  var header = '--- ' + product.name + ' (' + (product.sourceLabel || 'hard-coded sample') + ') ---';
+  var template = testBmCaptionTemplate_(product);
+  if (!apiKey) return header + '\nsource: TEMPLATE\nreason: GEMINI_API_KEY is not set\n\n' + template;
+  var request = testBmCaptionRequest_(product);
   var result = fetchGeminiCaption_(apiKey, GEMINI_CAPTION_MODEL_, request.systemInstruction, request.userText, 0.8, true);
   if (result.code === 400) result = fetchGeminiCaption_(apiKey, GEMINI_CAPTION_MODEL_, request.systemInstruction, request.userText, 0.8, false);
-  if (result.code === 429) return 'Gemini quota reached.';
-  if (result.code < 200 || result.code >= 300) return 'Gemini request failed (' + result.code + ').';
+  var modelLine = 'model: ' + GEMINI_CAPTION_MODEL_;
+  var httpLine = 'http: ' + result.code;
+  if (result.code < 200 || result.code >= 300) {
+    return header + '\nsource: TEMPLATE\nreason: ' + geminiFailureDetail_(result, apiKey) + '\n' + modelLine + '\n' + httpLine + '\n\n' + template;
+  }
   var text = geminiCaptionText_(result.body);
-  if (!text) return 'Gemini returned an empty caption.';
-  return testBmCaptionFinal_(text, product);
+  if (!text) {
+    return header + '\nsource: TEMPLATE\nreason: ' + geminiFailureDetail_(result, apiKey) + '\n' + modelLine + '\n' + httpLine + '\n\n' + template;
+  }
+  var display = testBmCaptionDisplayName_(product.name);
+  var softened = testBmSoften_(text, String(product.name || ''), display);
+  var reason = testBmCaptionReject_(softened, product);
+  if (reason) {
+    var rejected = redactGeminiSecret_(softened, apiKey).replace(/\s+$/g, '').substring(0, 700);
+    return header + '\nsource: TEMPLATE\nreason: ' + reason + '\n' + modelLine + '\n' + httpLine + '\nrejected: ' + rejected + '\n\n' + template;
+  }
+  return header + '\nsource: GEMINI\n' + modelLine + '\n' + httpLine + '\n\n' + testBmCaptionFinal_(softened, product);
 }
 
 function testBmCaptionRequest_(product) {
+  var display = testBmCaptionDisplayName_(product.name);
+  var official = String(product.name || '').trim();
+  var split = testBmCaptionMaterial_(product.material);
   var facts = [];
-  if (product.material) {
-    var split = testBmCaptionMaterial_(product.material);
-    if (split.materials) facts.push('- Bahan: ' + split.materials);
-    if (split.finishing) facts.push('- Finishing: ' + split.finishing);
-  }
+  if (split.materials) facts.push('- Bahan: ' + split.materials);
+  if (split.finishing) facts.push('- Finishing: ' + split.finishing);
   if (product.dimensions) facts.push('- Saiz: ' + product.dimensions);
   if (product.colour) facts.push('- Warna: ' + product.colour);
+  var line4 = product.colour
+    ? 'Baris 4 mesti sebut warna ' + product.colour + ' dalam ayat itu.'
+    : 'Baris 4 mesti sebut bahan atau saiz dari fakta di atas, dalam satu ayat.';
   var systemInstruction = [
-    'You write one Bahasa Malaysia caption for Brutti, a Sabah custom furniture workshop.',
-    'Use Sabahan Malay. Never use the whole word nak. Use mau. Never write mesej kami bah.',
-    'Write 4 or 5 short lines, one or two emoji, and no hashtags.',
-    'Use the product name only. Do not append the category.',
-    'Line 4 explains the design using only the real facts in the user message. Do not invent any other material, size, colour, or feature.',
-    'Do not write the price. Do not copy a past caption wholesale.',
-    'Output the caption lines only.'
-  ].join(' ');
-  var userText = [
-    'Nama produk: ' + product.name,
-    product.category ? 'Kategori, jangan tulis ini selepas nama: ' + product.category : '',
-    facts.length ? 'Fakta design untuk baris 4. Guna hanya fakta ini. Jangan cipta fakta lain. Jangan tulis harga.' : 'Tiada fakta design. Baris 4 pandangan neutral. Jangan tulis harga.',
-    facts.join('\n')
-  ].filter(function (line) { return line; }).join('\n');
-  return { systemInstruction: systemInstruction, userText: userText };
+    'You write Facebook, Instagram, and TikTok captions for Brutti, a Sabah custom furniture workshop.',
+    'The voice is a friend telling a real scene, in Sabahan Malay. Short lines. Light humour. One main point.',
+    'Use ni, ngam, ja, kan, boleh, sudah, bikin, kasi, mau, tinguk, pigi, la.',
+    'Never use the whole word nak. Use mau. Never write mesej kami bah.',
+    'Do not use sila, contact, dm, tak, tau, mesej, whatsapp, hubungi, or anda. Use tidak instead of tak.',
+    'Each caption is 4 or 5 short lines. One or two emoji only. No hashtag.',
+    'Do not start with the product name on its own line. Open on a small scene or POV.',
+    'Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category.',
+    'Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message.',
+    'Do not paste the fields as a comma-separated list.',
+    'Do not invent any other material, size, colour, or feature. Do not write the price.',
+    'Do not write a Product details list.',
+    'Facebook, Instagram, and TikTok must be three different captions.',
+    'A short phrase from a style example may be reused. Never copy a whole example.',
+    'Output exactly this shape and nothing else:',
+    'FACEBOOK:',
+    'line',
+    'line',
+    'line',
+    'line',
+    'INSTAGRAM:',
+    'line',
+    'line',
+    'line',
+    'line',
+    'TIKTOK:',
+    'line',
+    'line',
+    'line',
+    'line'
+  ].join('\n');
+  var userLines = [
+    'Variasi 1. Tulis kapsyen baru.',
+    'Nama produk, tulis begini dan jangan tambah perkataan selepasnya: ' + display
+  ];
+  if (official && official !== display) userLines.push('Jangan tulis nama ini dalam huruf besar semua: ' + official);
+  userLines.push('Kategori, jangan tulis ini selepas nama: ' + (product.category || '(tiada)'));
+  userLines.push(facts.length
+    ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah, contoh "Bahan dia upcycled pine, dengan sealer satin." Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga. ' + line4
+    : 'Tiada fakta design. Baris 4 ialah pandangan neutral, tanpa bahan, saiz, atau warna baru. Jangan tulis harga.');
+  facts.forEach(function (fact) { userLines.push(fact); });
+  userLines.push('Contoh gaya. Ikut rentak sahaja. Jangan salin.');
+  userLines.push('Contoh 1\nPOV: jumpa satu cozy corner di office. 🌿\nTempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.\nSimple space tapi terus ubah mood satu sudut.\nKadang corner kecil macam ni pun cukup kasi office rasa lebih hidup. 🥰');
+  userLines.push('Contoh 2\nTondurongon. Mesti kamu tertanya kan apa bah tu maksud dia? 🤭\nTondurongon ni tempat duduk relax sambil minum-minum kupi.\nNgam ni letak di luar sambil ambil angin lagi 😆\nAmbil suasana sambil hirup kupi kannn');
+  userLines.push('Contoh 3\nPagi-pagi sudah lambat, baju yang kau cari pula entah di mana dalam almari 😩\nSebab tu kami bikin Kaanangan!\nTeda pintu mau buka-tutup. Mau cari baju, tinguk ja terus ambil.\nSenang ja kan begituu 😉');
+  return { systemInstruction: systemInstruction, userText: userLines.join('\n') };
+}
+
+function testBmCaptionDisplayName_(name) {
+  return String(name || '').replace(/\s+/g, ' ').trim().split(/(\s+)/).map(function (part) {
+    if (!part.trim()) return part;
+    var letters = part.replace(/[^A-Za-z]/g, '');
+    if (letters.length <= 2 || letters !== letters.toUpperCase()) return part;
+    return part.charAt(0) + part.slice(1).toLowerCase();
+  }).join('');
 }
 
 function testBmCaptionMaterial_(material) {
-  var text = String(material || '').trim();
+  var text = String(material || '').replace(/\s+/g, ' ').trim();
   var split = text.match(/^(.*?)\s+\bwith\b\s+(.+)$/i);
   if (split && /coating|finish|varnish|lacquer|paint|sealer/i.test(split[2])) {
     return { materials: split[1].trim(), finishing: split[2].trim() };
   }
   return { materials: text, finishing: '' };
+}
+
+function testBmSoften_(text, official, display) {
+  var source = String(official || '').split(/\s+/);
+  var shown = String(display || '').split(/\s+/);
+  var next = String(text || '').replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').replace(/\*\*/g, '');
+  source.forEach(function (token, index) {
+    var replacement = shown[index];
+    if (!token || !replacement || token === replacement || token.length <= 2) return;
+    if (token !== token.toUpperCase()) return;
+    next = next.replace(new RegExp('\\b' + token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g'), replacement);
+  });
+  return next;
+}
+
+function testBmTidy_(value) {
+  return String(value || '')
+    .replace(/\bnak\b/gi, function (word) { return word.charAt(0) === 'N' ? 'Mau' : 'mau'; })
+    .replace(/#\S+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function testBmLines_(text) {
+  return String(text || '')
+    .split(/\n\s*Product details\s*:/i)[0]
+    .split(/\n+/)
+    .map(testBmTidy_)
+    .filter(function (line) {
+      return line && !/^- (?:Size|Materials|Finishing|Price starts from)\b/i.test(line) && !/^Product details:?$/i.test(line);
+    });
+}
+
+function testBmSection_(text, label) {
+  var match = String(text || '').match(new RegExp(label + '\\s*:\\s*([\\s\\S]*?)(?=\\n(?:FACEBOOK|INSTAGRAM|TIKTOK)\\s*:|$)', 'i'));
+  return match ? testBmLines_(match[1]) : [];
+}
+
+function testBmEmojiCount_(text) {
+  var matches = String(text).match(/\p{Extended_Pictographic}/gu);
+  return matches ? matches.length : 0;
+}
+
+function testBmBareName_(line, name) {
+  var stripped = String(line || '')
+    .replace(/\p{Extended_Pictographic}/gu, ' ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return Boolean(name) && stripped === String(name).toLowerCase();
+}
+
+function testBmFactDump_(line, product) {
+  var split = testBmCaptionMaterial_(product.material);
+  var fields = [split.materials, split.finishing, String(product.dimensions || '').trim()].filter(function (item) {
+    return item && item.length >= 6;
+  });
+  var lower = String(line || '').toLowerCase();
+  return fields.filter(function (item) { return lower.indexOf(item.toLowerCase()) >= 0; }).length >= 2;
+}
+
+function testBmMaterialAllowed_(word, blob) {
+  var value = String(word || '').toLowerCase();
+  if (!value || blob.indexOf(value) >= 0) return true;
+  var translations = { kayu: ['wood', 'timber', 'pine', 'plywood', 'oak', 'teak', 'jati'], besi: ['steel', 'iron', 'metal'], kaca: ['glass'] };
+  var group = translations[value] || [];
+  if (group.filter(function (item) { return blob.indexOf(item) >= 0; }).length) return true;
+  return blob.split(/[^a-z0-9]+/).filter(function (token) { return token.length >= 4; }).filter(function (token) {
+    return value.indexOf(token) >= 0;
+  }).length > 0;
+}
+
+function testBmLeak_(lines, product) {
+  var body = lines.join('\n');
+  var split = testBmCaptionMaterial_(product.material);
+  var blob = [split.materials, split.finishing, product.dimensions, product.colour].filter(Boolean).join('\n').toLowerCase();
+  var blobCompact = blob.replace(/\s+/g, '');
+  if (/\bRM\s?\d/i.test(body) || /\b(harga|price)\b/i.test(body)) return 'includes a price';
+  var measures = body.match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || [];
+  var inventedMeasure = measures.filter(function (token) {
+    return blobCompact.indexOf(token.toLowerCase().replace(/\s+/g, '')) < 0;
+  });
+  if (inventedMeasure.length) return 'includes a size that is not on the sheet (' + inventedMeasure[0] + ')';
+  var materialWords = body.match(/\b(plywood|pine(?:wood)?|oak|wood|kayu|besi|steel|iron|glass|kaca|pallet|sealers?|varnish|lacquer|paints?|coatings?|metal|aluminium|aluminum|mdf|teak|jati|bamboo|rotan|rattan|acrylic|marble|granite|granit|satin)\b/gi) || [];
+  var invented = materialWords.filter(function (word) { return !testBmMaterialAllowed_(word, blob); });
+  if (invented.length) return 'includes a material that is not on the sheet (' + invented[0] + ')';
+  return '';
+}
+
+function testBmDesignOk_(lines, product) {
+  var line = String(lines[3] || '').toLowerCase();
+  var compact = line.replace(/\s+/g, '');
+  var colour = String(product.colour || '').trim().toLowerCase();
+  if (colour) return line.indexOf(colour) >= 0;
+  var split = testBmCaptionMaterial_(product.material);
+  var words = (split.materials + ' ' + split.finishing).toLowerCase().split(/[^a-z0-9]+/).filter(function (word) {
+    return word.length >= 4;
+  });
+  var measures = String(product.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || [];
+  if (!words.length && !measures.length) return true;
+  if (measures.filter(function (token) { return compact.indexOf(token.toLowerCase().replace(/\s+/g, '')) >= 0; }).length) return true;
+  return words.filter(function (word) { return line.indexOf(word) >= 0; }).length > 0;
+}
+
+function testBmCategoryAppended_(lines, product, display) {
+  var category = String(product.category || '').trim();
+  if (!category || !display) return false;
+  var escape = function (value) { return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+  return new RegExp(escape(display) + '\\s+' + escape(category) + '\\b', 'i').test(lines.join('\n'));
+}
+
+function testBmCopied_(lines) {
+  var body = lines.join(' ').toLowerCase();
+  var blocks = [
+    [
+      'tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.',
+      'simple space tapi terus ubah mood satu sudut.'
+    ],
+    [
+      'pagi-pagi sudah lambat, baju yang kau cari pula entah di mana dalam almari',
+      'teda pintu mau buka-tutup. mau cari baju, tinguk ja terus ambil.'
+    ]
+  ];
+  for (var b = 0; b < blocks.length; b += 1) {
+    var hits = blocks[b].filter(function (line) { return line.length >= 36 && body.indexOf(line) >= 0; }).length;
+    if (hits >= 2) return true;
+  }
+  return false;
+}
+
+function testBmPlatformReason_(lines, product, display, label) {
+  if (lines.length < 4 || lines.length > 5) return 'validation: ' + label + ' has ' + lines.length + ' lines, need 4 or 5';
+  var text = lines.join('\n');
+  if (/#/.test(text)) return 'validation: ' + label + ' contains a hashtag';
+  if (/mesej kami bah/i.test(text)) return 'validation: ' + label + ' contains mesej kami bah';
+  if (/\bnak\b/i.test(text)) return 'validation: ' + label + ' contains nak';
+  if (text.indexOf(display) < 0) return 'validation: ' + label + ' does not mention ' + display;
+  var official = String(product.name || '').trim();
+  if (official && official === official.toUpperCase() && official.length > 2 && new RegExp('\\b' + official.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(text)) {
+    return 'validation: ' + label + ' still writes the product name in ALL CAPITALS';
+  }
+  var emoji = testBmEmojiCount_(text);
+  if (emoji < 1 || emoji > 2) return 'validation: ' + label + ' has ' + emoji + ' emoji, need 1 or 2';
+  if (/\b(sila|contact|dm)\b/i.test(text)) return 'validation: ' + label + ' uses sila, contact, or dm';
+  if (testBmBareName_(lines[0], display)) return 'validation: ' + label + ' opens with only the product name';
+  if (testBmFactDump_(lines[3], product)) return 'validation: ' + label + ' line 4 dumps the sheet fields';
+  if (testBmCategoryAppended_(lines, product, display)) return 'validation: ' + label + ' appends the category to the product name';
+  var leak = testBmLeak_(lines, product);
+  if (leak) return 'validation: ' + label + ' ' + leak;
+  if (!testBmDesignOk_(lines, product)) return 'validation: ' + label + ' line 4 does not describe the sheet design in a sentence';
+  if (testBmCopied_(lines)) return 'validation: ' + label + ' copies a past post';
+  return '';
+}
+
+function testBmNorm_(lines) {
+  return lines.join(' ').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function testBmCaptionReject_(text, product) {
+  var display = testBmCaptionDisplayName_(product.name);
+  var facebook = testBmSection_(text, 'FACEBOOK');
+  var instagram = testBmSection_(text, 'INSTAGRAM');
+  var tiktok = testBmSection_(text, 'TIKTOK');
+  if (!facebook.length || !instagram.length || !tiktok.length) return 'validation: missing FACEBOOK, INSTAGRAM, or TIKTOK labels';
+  var reason = testBmPlatformReason_(facebook, product, display, 'FACEBOOK')
+    || testBmPlatformReason_(instagram, product, display, 'INSTAGRAM')
+    || testBmPlatformReason_(tiktok, product, display, 'TIKTOK');
+  if (reason) return reason;
+  var norms = [testBmNorm_(facebook), testBmNorm_(instagram), testBmNorm_(tiktok)];
+  if (norms[0] === norms[1] || norms[0] === norms[2] || norms[1] === norms[2]) return 'validation: Facebook, Instagram, and TikTok are not different';
+  return '';
+}
+
+function testBmDesignSentence_(product) {
+  var split = testBmCaptionMaterial_(product.material);
+  var colour = String(product.colour || '').trim();
+  var materialBits = String(split.materials || '').toLowerCase().split(/[^a-z0-9]+/).filter(function (word) {
+    return word && word !== 'solid' && word.length >= 4;
+  }).slice(0, 2);
+  var finishBits = String(split.finishing || '').toLowerCase().split(/[^a-z0-9]+/).filter(function (word) {
+    return word && word !== 'coating' && word !== 'finish' && word.length >= 4;
+  }).slice(0, 2);
+  if (colour && materialBits.length) return 'Bahan dia ' + materialBits.join(' ') + ', warna dia ' + colour + '.';
+  if (colour) return 'Warna dia ' + colour + '.';
+  if (materialBits.length && finishBits.length) return 'Bahan dia ' + materialBits.join(' ') + ', dengan ' + finishBits.join(' ') + '.';
+  if (materialBits.length) return 'Bahan dia ' + materialBits.join(' ') + '.';
+  return 'Nampak simple, dan kemas.';
+}
+
+function testBmCaptionTemplate_(product) {
+  var name = testBmCaptionDisplayName_(product.name);
+  var design = testBmDesignSentence_(product);
+  var bed = /bed|katil/i.test(String(product.category || ''));
+  var facebook;
+  var instagram;
+  var tiktok;
+  if (product.name === 'SUMANDAK') {
+    facebook = ['POV: bilik tetamu, katil belum ada. ✨', name + ' ni ngam untuk bilik tetamu.', 'Piece ni custom, ikut ruang.', design + ' 😍'];
+    instagram = ['Kadang bilik kecil pun boleh ada katil yang ngam. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design + ' 😉'];
+    tiktok = ['POV: satu bilik, ruang masih ada. ✨', name + ' ni.', 'Ngam untuk tetamu yang singgah.', design];
+  } else if (product.name === 'TANAKVAGU') {
+    facebook = ['POV: bilik yang mau nampak simple. ✨', name + ' ni ngam untuk satu orang.', 'Piece ni custom, ikut ruang.', design + ' 😍'];
+    instagram = ['Ada bilik yang katil dia belum kemas. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design + ' 😉'];
+    tiktok = ['POV: malam ni, katil sudah siap. ✨', name + ' ni.', 'Ngam untuk bilik yang mau simple.', design];
+  } else if (bed) {
+    facebook = ['POV: bilik tetamu, katil belum ada. ✨', name + ' ni ngam untuk bilik yang mau simple.', 'Piece ni custom, ikut ruang.', design + ' 😍'];
+    instagram = ['Kadang bilik kecil pun boleh ada katil yang ngam. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design + ' 😉'];
+    tiktok = ['POV: satu bilik, satu katil yang kemas. ✨', name + ' ni.', 'Ngam untuk ruang yang mau simple.', design];
+  } else {
+    facebook = ['POV: barang kecil, belum ada tempat. ✨', name + ' ni ngam untuk susun satu sudut.', 'Setiap barang, satu tempat.', design + ' 😍'];
+    instagram = ['Ada sudut yang barang dia banyak. 🌿', name + ' ni, barang harian ada tempat.', 'Ruang rumah lebih kemas.', design + ' 😉'];
+    tiktok = ['Satu sudut dulu, tidak perlu ubah semua. ✨', name + ' ni.', 'Barang kecil pun kena ada tempat.', design];
+  }
+  var body = ['FACEBOOK:', facebook.join('\n'), 'INSTAGRAM:', instagram.join('\n'), 'TIKTOK:', tiktok.join('\n')].join('\n');
+  return testBmCaptionFinal_(body, product);
 }
 
 function testBmCaptionFinal_(text, product) {
