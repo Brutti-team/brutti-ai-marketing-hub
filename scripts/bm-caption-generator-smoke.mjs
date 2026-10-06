@@ -171,7 +171,7 @@ for (const product of [kaanagan, ahtam, pusma]) {
 }
 
 const sampleBlob = facebookSamples.join('\n')
-assert(/\bPOV:/.test(sampleBlob), 'Some captions should open the way recent Brutti posts do, with POV.')
+assert(!/\bPOV\b/i.test(sampleBlob), 'Captions must not open with POV.')
 assert(/\bjaaa\b/.test(sampleBlob) && /\bteda\b/.test(sampleBlob) && /\bngam\b/.test(sampleBlob) && /\bkasi\b/.test(sampleBlob), 'Phrase banks should use the dialect words from recent Brutti posts.')
 assert(/[🌿✨😍🥰]/u.test(sampleBlob), 'A caption should carry the light emoji recent posts use at line ends.')
 assert(!sampleBlob.includes('#'), 'Facebook captions must not contain hashtags.')

@@ -568,7 +568,7 @@ function testBmCaptionOne_(product) {
       return header + '\nsource: TEMPLATE\nreason: ' + (first.reason || nameGap) + ' | stricter retry ' + geminiFailureDetail_(second.result, apiKey) + '\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + first.result.code + '\n\n' + template;
     }
     var repaired = testBmInsertName_(second.softened, product);
-    var after = testBmCaptionReject_(repaired, product);
+    var after = testBmHardReject_(repaired, product);
     if (!after) chosen = { result: second.result, softened: repaired, reason: '' };
     else {
       var rejected = redactGeminiSecret_(second.softened, apiKey).replace(/\s+$/g, '').substring(0, 4000);
@@ -586,7 +586,7 @@ function testBmCaptionRead_(apiKey, product, strict) {
   var text = geminiCaptionText_(result.body);
   if (!text) return { transport: true, result: result, reason: '', softened: '' };
   var display = testBmCaptionDisplayName_(product.name);
-  var softened = testBmSoften_(text, String(product.name || ''), display);
+  var softened = testBmRepairPov_(testBmSoften_(text, String(product.name || ''), display));
   var reason = testBmCaptionReject_(softened, product);
   return { transport: false, result: result, reason: reason || '', softened: softened };
 }
@@ -627,7 +627,7 @@ function testBmCaptionRequest_(product, strict) {
   if (product.dimensions) facts.push('- Saiz: ' + product.dimensions);
   if (product.colour) facts.push('- Warna: ' + product.colour);
   var line4 = facts.length
-    ? 'Baris 4 ialah satu ayat Sabah yang lain untuk Facebook, Instagram, dan TikTok. Jangan ulang ayat yang sama. Jangan mula semua dengan "Bahan dia". Satu ayat boleh pasal rasa atau kemasan, satu pasal tona atau warna, satu pasal saiz yang muat. Guna sudut itu hanya jika fakta dia ada di bawah. Jangan cipta fakta. Jangan tulis harga. Jangan guna perkataan bah.'
+    ? 'Baris 4 ialah satu ayat Sabah yang lain untuk Facebook, Instagram, dan TikTok. Jangan ulang ayat yang sama. Jangan mula semua dengan "Bahan dia". Satu ayat boleh pasal rasa atau kemasan, satu pasal tona atau warna, satu pasal saiz yang muat. Saiz boleh dalam angka atau perkataan, seperti lima kaki atau dua puluh inci. Guna sudut itu hanya jika fakta dia ada di bawah. Jangan cipta fakta atau dakwaan seperti dirancang khas. Jangan guna zohor. Jangan tulis harga. Jangan guna perkataan bah.'
     : 'Tiada fakta design. Tiga baris 4 mesti lain, pandangan neutral, tanpa bahan, saiz, atau warna baru. Jangan tulis harga. Jangan guna perkataan bah.';
   var systemInstruction = [
     'You write Facebook, Instagram, and TikTok captions for Brutti, a Sabah custom furniture workshop.',
@@ -639,14 +639,14 @@ function testBmCaptionRequest_(product, strict) {
     'Do not use odd phrases such as kepala-otak.',
     'Do not use sila, contact, dm, tak, tau, mesej, whatsapp, hubungi, or anda. Use tidak instead of tak.',
     'Each caption is 4 or 5 short lines. One or two emoji only. No hashtag.',
-    'Do not start with the product name on its own line. Line 1 is a short curiosity hook: a question, a surprising or relatable tease, an open loop, or POV with a twist. About 12 words or fewer. Do not open with a long flat scene.',
-    'Real hook openers from Brutti posts, for rhythm only: POV: jumpa satu cozy corner di office. | Kadang healing tidak perlu jauh-jauh pun. | Pallet lama tidak semestinya jadi waste. | Kek yang sedap patut nampak dari jauh lagi | Kalau tinguk sekali nampak macam kaunter biasa ja kan',
+    'Do not start with the product name on its own line. Line 1 is a short curiosity hook: a question, a surprising or relatable tease, or an open loop. About 12 words or fewer. Do not open with a long flat scene. Never start line 1 with POV.',
+    'Real hook openers from Brutti posts, for rhythm only: Kadang healing tidak perlu jauh-jauh pun. | Pallet lama tidak semestinya jadi waste. | Kek yang sedap patut nampak dari jauh lagi | Kalau tinguk sekali nampak macam kaunter biasa ja kan',
     'Mention the product by the title-case name in the user message, exactly once in each caption. Never write that name in ALL CAPITALS. Never append the category.',
     'Use each size, material, finishing, and colour fact at most once in a caption. Do not repeat the same idea on two lines, such as kemas.',
-    'Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Everyday words and any word order are fine, such as kayu pine upcycled or standard single.',
+    'Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Everyday words and any word order are fine, such as kayu pine upcycled or standard single. A size may be digits or words, such as lima kaki or dua puluh inci.',
     'Facebook, Instagram, and TikTok must not share the same line 4.',
     'Do not paste the fields as a comma-separated list.',
-    'Do not invent any other material, size, colour, or feature. Do not write the price.',
+    'Do not invent any other material, size, colour, feature, or claim such as dirancang khas. Do not use odd words such as zohor. Do not write the price.',
     'Do not write a Product details list.',
     'Facebook, Instagram, and TikTok must be three different captions.',
     'A short phrase from a style example may be reused. Never copy a whole example.',
@@ -675,7 +675,7 @@ function testBmCaptionRequest_(product, strict) {
   ];
   if (official && official !== display) userLines.push('Jangan tulis nama ini dalam huruf besar semua: ' + official);
   userLines.push('Kategori, jangan tulis ini selepas nama: ' + (product.category || '(tiada)'));
-  userLines.push('Baris 1 setiap platform mesti hook pendek, kira-kira 12 patah kata: soalan, tease, open loop, atau POV dengan twist. Jangan ayat panjang yang rata.');
+  userLines.push('Baris 1 setiap platform mesti hook pendek, kira-kira 12 patah kata: soalan, tease, atau open loop. Jangan ayat panjang yang rata. Jangan mula dengan POV.');
   userLines.push('Nama produk sekali saja. Setiap fakta saiz, bahan, finishing, dan warna sekali saja. Jangan ulang idea yang sama, contohnya kemas.');
   userLines.push(line4);
   facts.forEach(function (fact) { userLines.push(fact); });
@@ -687,16 +687,17 @@ function testBmCaptionRequest_(product, strict) {
     userLines.push('Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah.');
     userLines.push('Nama produk mesti disebut sekali saja dalam setiap kapsyen: ' + display + '. Kalau belum ada, letak dalam baris 2 atau 3, dan buang sebutan yang berulang.');
     userLines.push('Jangan ulang saiz, bahan, finishing, atau warna pada dua baris. Jangan ulang idea yang sama, contohnya kemas.');
-    userLines.push('Baris 1 mesti hook pendek, bukan ayat panjang yang rata.');
+    userLines.push('Baris 1 mesti hook pendek, soalan, tease, atau open loop, bukan ayat panjang yang rata. Jangan mula dengan POV.');
+    userLines.push('Kalau baris design belum sebut fakta helaian, masukkan satu fakta sebenar. Saiz boleh disebut lima kaki atau dua puluh inci, atau dalam angka.');
+    userLines.push('Jangan cipta dakwaan seperti dirancang khas. Jangan guna perkataan pelik seperti zohor.');
     userLines.push('Jangan guna frasa pelik seperti kepala-otak.');
     userLines.push('Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan, contoh kayu pine upcycled atau standard single.');
     userLines.push('Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.');
   }
   userLines.push('Contoh gaya. Ikut rentak sahaja. Jangan salin. Jangan guna bah.');
-  userLines.push('Contoh 1\nPOV: jumpa satu cozy corner di office. 🌿\nTempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.\nSimple space tapi terus ubah mood satu sudut.\nKadang corner kecil macam ni pun cukup kasi office rasa lebih hidup. 🥰');
+  userLines.push('Contoh 1\nJumpa satu cozy corner di office. 🌿\nTempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.\nSimple space tapi terus ubah mood satu sudut.\nKadang corner kecil macam ni pun cukup kasi office rasa lebih hidup. 🥰');
   userLines.push('Contoh 2\nTondurongon. Mesti kamu tertanya kan apa tu maksud dia? 🤭\nTondurongon ni tempat duduk relax sambil minum-minum kupi.\nNgam ni letak di luar sambil ambil angin lagi 😆\nAmbil suasana sambil hirup kupi kannn');
   userLines.push('Hook dari pos sebenar. Ikut rentak pendek ini sahaja.');
-  userLines.push('POV: jumpa satu cozy corner di office. 🌿');
   userLines.push('Kadang healing tidak perlu jauh-jauh pun.');
   userLines.push('Pallet lama tidak semestinya jadi waste.');
   userLines.push('Kek yang sedap patut nampak dari jauh lagi 😋');
@@ -837,6 +838,7 @@ function testBmDesignOk_(lines, product) {
   var compact = window.replace(/\s+/g, '');
   if (colour && window.indexOf(colour) >= 0) return true;
   if (keys.filter(function (word) { return window.indexOf(word) >= 0; }).length) return true;
+  if (testBmSizeSaid_(window, product.dimensions)) return true;
   return measures.filter(function (token) { return compact.indexOf(token.toLowerCase().replace(/\s+/g, '')) >= 0; }).length > 0;
 }
 
@@ -979,6 +981,77 @@ function testBmNorm_(lines) {
   return lines.join(' ').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function testBmStripPov_(line) {
+  var raw = String(line || '').trim();
+  var next = raw.replace(/^\s*pov\b\s*:?\s*/i, '').trim();
+  if (!next || next === raw) return raw;
+  return next.charAt(0).toUpperCase() + next.slice(1);
+}
+
+function testBmRepairPov_(text) {
+  return String(text || '').replace(/(FACEBOOK|INSTAGRAM|TIKTOK)\s*:\s*([^\n]*)/gi, function (full, label, line) {
+    return label.toUpperCase() + ':\n' + testBmStripPov_(line);
+  });
+}
+
+function testBmMalayNumber_(value) {
+  var n = parseInt(value, 10);
+  if (!/^\d+$/.test(String(value)) || n < 0 || n > 99) return '';
+  var ones = ['kosong', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'lapan', 'sembilan'];
+  if (n < 10) return ones[n];
+  if (n === 10) return 'sepuluh';
+  if (n === 11) return 'sebelas';
+  if (n < 20) return ones[n - 10] + ' belas';
+  var tens = ['', '', 'dua puluh', 'tiga puluh', 'empat puluh', 'lima puluh', 'enam puluh', 'tujuh puluh', 'lapan puluh', 'sembilan puluh'];
+  var rest = n % 10;
+  return tens[Math.floor(n / 10)] + (rest ? ' ' + ones[rest] : '');
+}
+
+function testBmSizeSaid_(windowText, dimensions) {
+  var windowLower = String(windowText || '').toLowerCase();
+  var compact = windowLower.replace(/\s+/g, '');
+  var pattern = /(\d+(?:[.,]\d+)?)\s*(ft|in|cm|mm)\b/gi;
+  var match;
+  var source = String(dimensions || '');
+  while ((match = pattern.exec(source))) {
+    var digits = match[1];
+    var unit = match[2].toLowerCase();
+    var words = unit === 'ft' ? ['ft', 'kaki'] : unit === 'in' ? ['in', 'inci'] : unit === 'cm' ? ['cm', 'sentimeter'] : ['mm', 'milimeter'];
+    var malay = /^\d+$/.test(digits) ? testBmMalayNumber_(digits) : '';
+    for (var i = 0; i < words.length; i += 1) {
+      var phrases = [digits + ' ' + words[i], digits + words[i]];
+      if (malay) phrases.push(malay + ' ' + words[i]);
+      for (var p = 0; p < phrases.length; p += 1) {
+        if (windowLower.indexOf(phrases[p]) >= 0 || compact.indexOf(phrases[p].replace(/\s+/g, '')) >= 0) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function testBmHardReject_(text, product) {
+  var facebook = testBmSection_(text, 'FACEBOOK');
+  var instagram = testBmSection_(text, 'INSTAGRAM');
+  var tiktok = testBmSection_(text, 'TIKTOK');
+  if (!facebook.length || !instagram.length || !tiktok.length) return 'validation: missing FACEBOOK, INSTAGRAM, or TIKTOK labels';
+  var blocks = [['FACEBOOK', facebook], ['INSTAGRAM', instagram], ['TIKTOK', tiktok]];
+  for (var i = 0; i < blocks.length; i += 1) {
+    var label = blocks[i][0];
+    var lines = blocks[i][1];
+    var body = lines.join('\n');
+    if (/#/.test(body)) return 'validation: ' + label + ' contains a hashtag';
+    if (/mesej kami bah/i.test(body)) return 'validation: ' + label + ' contains mesej kami bah';
+    if (/\bnak\b/i.test(body)) return 'validation: ' + label + ' contains nak';
+    if (/\bbah\b/i.test(body)) return 'validation: ' + label + ' uses bah';
+    if (/kepala-otak/i.test(body)) return 'validation: ' + label + ' uses kepala-otak';
+    var stiff = testBmStiff_(body);
+    if (stiff) return 'validation: ' + label + ' ' + stiff;
+    if (/\bRM\s?\d/i.test(body) || /\b(harga|price)\b/i.test(body)) return 'validation: ' + label + ' includes a price';
+    if (testBmCopied_(lines)) return 'validation: ' + label + ' copies a past post';
+  }
+  return '';
+}
+
 function testBmCaptionReject_(text, product) {
   var display = testBmCaptionDisplayName_(product.name);
   var facebook = testBmSection_(text, 'FACEBOOK');
@@ -1037,7 +1110,7 @@ function testBmCaptionTemplate_(product) {
   var bank = testBmDesignSentences_(product);
   var shift = product.name === 'SUMANDAK' ? 2 : product.name === 'TANAKVAGU' ? 1 : 0;
   var design = [0, 1, 2].map(function (offset) { return bank[(offset + shift) % 3]; });
-  var facebook = ['POV: barang kecil, letak mana? ✨', name + ' ni.', 'Satu sudut dulu.', design[0] + ' 😍'];
+  var facebook = ['Barang kecil, letak mana? ✨', name + ' ni.', 'Satu sudut dulu.', design[0] + ' 😍'];
   var instagram = ['Kalau tinguk sekali, biasa ja kan? 🌿', name + ' ni.', 'Fungsi dia jelas.', design[1] + ' 😉'];
   var tiktok = ['Letak mana pula barang kecil ni? ✨', name + ' ni.', 'Satu piece, satu kerja.', design[2]];
   var body = ['FACEBOOK:', facebook.join('\n'), '', 'INSTAGRAM:', instagram.join('\n'), '', 'TIKTOK:', tiktok.join('\n')].join('\n');

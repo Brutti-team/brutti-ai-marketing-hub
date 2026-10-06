@@ -122,7 +122,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
         if (data && data.text && !output) {
           const retry = buildGeminiCaptionRequest({ ...input, strict: true })
           const retryData = retry ? await callMarketingApi('generate_bm_caption', { request: retry }) : null
-          output = retryData && retryData.text ? finalizeGeminiCaptions(retryData.text, input) : null
+          output = retryData && retryData.text ? finalizeGeminiCaptions(retryData.text, { ...input, allowSoft: true }) : null
         }
       }
     } catch {

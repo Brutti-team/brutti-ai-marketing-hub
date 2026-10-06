@@ -1,6 +1,6 @@
 // Local Bahasa Malaysia captions for Content Studio. No network, no paid model.
 // Voice: Brutti Soul Master, checked against Brutti's own Sep–Oct 2026 posts.
-// Captions open on a short scene or POV, not on the bare product name.
+// Captions open on a short question, tease, or open loop, never on POV, and never on the bare product name.
 // A name that is stored in capitals is written in title case, such as Ayyash.
 // Dialect that actually shows up: ni, ngam, ja, kan, sudah, boleh, bikin, kasi,
 // tinguk, mau, and only rarely teda, jaaa. Never bah. Never mahu, diperbuat
@@ -24,12 +24,12 @@ const HUMOUR = {
 
 const OPEN = {
   highlight: {
-    wardrobe: ['POV: baju banyak, tapi ada tempat. ✨', HUMOUR.wardrobe, 'POV: satu sudut bilik, baju ada tempat. ✨'],
-    storage: ['POV: barang kecil, belum ada tempat. ✨', HUMOUR.storage, 'Ada sudut yang barang dia banyak. ✨'],
-    display: ['POV: barang penting, susah nampak. ✨', HUMOUR.display, 'Kadang display nampak penuh. ✨'],
-    kiosk: ['POV: kaunter jualan masih kosong. ✨', HUMOUR.kiosk, 'Kaunter untuk jualan, barang nampak dari jauh. ✨'],
-    bespoke: ['POV: ruang kecil, piece biasa tidak muat. ✨', HUMOUR.bespoke, 'Ada ruang yang mau piece ikut dia. ✨'],
-    general: ['POV: satu sudut, barang belum ada tempat. ✨', HUMOUR.general, 'Satu sudut dulu, tidak perlu ubah semua sekali. ✨'],
+    wardrobe: ['Baju banyak, tapi ada tempat kan? ✨', HUMOUR.wardrobe, 'Satu sudut bilik, baju ada tempat kan? ✨'],
+    storage: ['Barang kecil, belum ada tempat kan? ✨', HUMOUR.storage, 'Ada sudut yang barang dia banyak. ✨'],
+    display: ['Barang penting, susah nampak kan? ✨', HUMOUR.display, 'Kadang display nampak penuh. ✨'],
+    kiosk: ['Kaunter jualan masih kosong kan? ✨', HUMOUR.kiosk, 'Kaunter untuk jualan, barang nampak dari jauh. ✨'],
+    bespoke: ['Ruang kecil, piece biasa tidak muat kan? ✨', HUMOUR.bespoke, 'Ada ruang yang mau piece ikut dia. ✨'],
+    general: ['Barang belum ada tempat kan? ✨', HUMOUR.general, 'Satu sudut dulu, tidak perlu ubah semua sekali. ✨'],
   },
   promo: {
     wardrobe: ['Baju minggu ni patut ada tempat. ✨', 'Bilik yang baju dia banyak. 😆', 'Tempat gantung dan drawer, dalam satu piece. ✨'],

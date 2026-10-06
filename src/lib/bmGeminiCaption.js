@@ -11,7 +11,7 @@ const STYLE_EXAMPLES = [
   {
     id: 'pov-corner',
     lines: [
-      'POV: jumpa satu cozy corner di office. 🌿',
+      'Jumpa satu cozy corner di office. 🌿',
       'Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.',
       'Simple space tapi terus ubah mood satu sudut.',
       'Kadang corner kecil macam ni pun cukup kasi office rasa lebih hidup. 🥰',
@@ -122,7 +122,6 @@ const STYLE_EXAMPLES = [
 ]
 
 const HOOK_OPENERS = [
-  'POV: jumpa satu cozy corner di office. 🌿',
   'Kadang healing tidak perlu jauh-jauh pun.',
   'Pallet lama tidak semestinya jadi waste.',
   'Kek yang sedap patut nampak dari jauh lagi 😋',
@@ -139,19 +138,20 @@ Voice
 - Never use the whole word "nak". Use "mau". Never write "mahu".
 - Never write the phrase "mesej kami bah".
 - Do not use these stiff words: diperbuat daripada, reka bentuk, bersama, selepas.
-- Do not use odd phrases such as "kepala-otak".
+- Do not use odd phrases such as "kepala-otak". Do not use odd words such as "zohor".
+- Do not invent claims that are not in the sheet, such as "dirancang khas".
 - Do not use these words: tak, tau, mesej, whatsapp, sia, antam, jak, nda, katalog, kontena, penat, pelanggan, kedai, laci, paparan, storan, dm, inbox, hubungi, roger, sila, anda. Use "tidak" instead of "tak".
 - Do not paste founder biography, salaries, the pandemic story, or wallet stories into a product caption.
 - One or two emoji only, at the end of a line. No hashtag.
 
 Shape
 - Each caption is 4 or 5 short lines. No blank line inside a caption. No title and no quotation marks around the caption.
-- Line 1 is a short curiosity hook that makes someone keep reading: a question, a surprising or relatable tease, an open loop, or "POV:" with a twist. About 12 words or fewer. Do not open with a long flat scene. Do not start with the product name on its own line.
+- Line 1 is a short curiosity hook that makes someone keep reading: a question, a surprising or relatable tease, or an open loop. About 12 words or fewer. Do not open with a long flat scene. Never start line 1 with POV. Do not start with the product name on its own line.
 - Real hook openers from Brutti posts, for rhythm only: ${HOOK_OPENERS.join(' | ')}
 - Mention the product by the title-case name in the user message, exactly once in each caption. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
 - Use each size, material, finishing, and colour fact at most once in a caption. Do not repeat the same idea on two lines, such as writing "kemas" twice.
 - Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Facebook, Instagram, and TikTok must not share the same line 4.
-- Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Everyday words and any word order are fine, such as "kayu pine upcycled" or "standard single". Do not start every line 4 with "Bahan dia".
+- Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Everyday words and any word order are fine, such as "kayu pine upcycled" or "standard single". A size may be digits or words, such as "lima kaki" or "dua puluh inci". Do not start every line 4 with "Bahan dia".
 - Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, each line 4 is a different neutral look-and-feel line.
 - Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
 - Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
@@ -206,8 +206,15 @@ function dropBah(text) {
   return String(text || '').replace(/\bbah\b/gi, ' ').replace(/[ ]{2,}/g, ' ').replace(/[ ]+([,!.?])/g, '$1').trim()
 }
 
+function stripPov(line) {
+  const raw = String(line || '').trim()
+  const next = raw.replace(/^\s*pov\b\s*:?\s*/i, '').trim()
+  if (!next || next === raw) return raw
+  return next.charAt(0).toUpperCase() + next.slice(1)
+}
+
 function exampleBlock(examples) {
-  return examples.map((example, index) => `Contoh ${index + 1}\n${example.lines.map(dropBah).join('\n')}`).join('\n\n')
+  return examples.map((example, index) => `Contoh ${index + 1}\n${example.lines.map((line) => stripPov(dropBah(line))).join('\n')}`).join('\n\n')
 }
 
 export function buildGeminiCaptionRequest({ product = null, topic = '', goal = 'highlight', note = '', variation = 0, strict = false } = {}) {
@@ -230,17 +237,17 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
     '',
     `Nama produk, tulis begini dan jangan tambah perkataan selepasnya: ${brief.name}`,
     'Sebut nama itu sekali saja dalam setiap kapsyen. Jangan ulang nama. Setiap fakta saiz, bahan, finishing, dan warna sekali saja, jangan pada dua baris. Jangan ulang idea yang sama, contohnya kemas.',
-    'Baris 1 mesti hook pendek, kira-kira 12 patah kata: soalan, tease, open loop, atau POV dengan twist. Jangan ayat panjang yang rata.',
+    'Baris 1 mesti hook pendek, kira-kira 12 patah kata: soalan, tease, atau open loop. Jangan ayat panjang yang rata. Jangan mula dengan POV.',
     brief.officialName && brief.officialName !== brief.name ? `Jangan tulis nama ini dalam huruf besar semua: ${brief.officialName}` : '',
     `Kategori, jangan tulis ini selepas nama: ${none(brief.category)}`,
     `Matlamat siaran: ${goalLabel(goal)}`,
     '',
     designFacts.length
-      ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah yang lain untuk Facebook, Instagram, dan TikTok. Jangan ulang ayat yang sama. Jangan mula semua dengan "Bahan dia". Satu ayat boleh pasal rasa atau kemasan, satu pasal tona atau warna, satu pasal saiz yang muat. Guna sudut itu hanya jika fakta dia ada di bawah. Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga. Jangan guna perkataan bah.'
+      ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah yang lain untuk Facebook, Instagram, dan TikTok. Jangan ulang ayat yang sama. Jangan mula semua dengan "Bahan dia". Satu ayat boleh pasal rasa atau kemasan, satu pasal tona atau warna, satu pasal saiz yang muat. Saiz boleh dalam angka atau perkataan, seperti lima kaki atau dua puluh inci. Guna sudut itu hanya jika fakta dia ada di bawah. Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, fungsi, atau dakwaan lain seperti dirancang khas. Jangan guna perkataan pelik seperti zohor. Jangan tulis harga. Jangan guna perkataan bah.'
       : 'Tiada fakta design. Tiga baris 4 mesti lain, pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga. Jangan guna perkataan bah.',
     designFacts.join('\n'),
     strict
-      ? `Cubaan semula. Kapsyen tadi ditolak. Nama produk mesti disebut sekali saja dalam setiap kapsyen: ${brief.name}. Kalau belum ada, letak dalam baris 2 atau 3, dan buang sebutan yang berulang. Jangan ulang saiz, bahan, finishing, atau warna pada dua baris. Jangan ulang idea yang sama, contohnya kemas. Baris 1 mesti hook pendek, bukan ayat panjang yang rata. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, selepas, atau kepala-otak. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.`
+      ? `Cubaan semula. Kapsyen tadi ditolak. Nama produk mesti disebut sekali saja dalam setiap kapsyen: ${brief.name}. Kalau belum ada, letak dalam baris 2 atau 3, dan buang sebutan yang berulang. Jangan ulang saiz, bahan, finishing, atau warna pada dua baris. Jangan ulang idea yang sama, contohnya kemas. Baris 1 mesti hook pendek, soalan, tease, atau open loop, bukan ayat panjang yang rata, dan jangan mula dengan POV. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, selepas, kepala-otak, atau zohor. Jangan cipta dakwaan seperti dirancang khas. Guna mau. Baris 4 sebut satu fakta helaian dalam ayat biasa. Saiz boleh dalam angka atau perkataan, seperti lima kaki atau dua puluh inci. Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.`
       : '',
     '',
     'Contoh gaya dari pos Brutti. Ikut rentak sahaja. Jangan salin. Jangan pindahkan harga, material, stok, nama artisan, atau nama client dari contoh ke produk ini.',
@@ -406,6 +413,33 @@ function designFactWords(brief) {
   return [...words]
 }
 
+function malayNumber(value) {
+  const n = Number(value)
+  if (!Number.isInteger(n) || n < 0 || n > 99) return ''
+  const ones = ['kosong', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'lapan', 'sembilan']
+  if (n < 10) return ones[n]
+  if (n === 10) return 'sepuluh'
+  if (n === 11) return 'sebelas'
+  if (n < 20) return `${ones[n - 10]} belas`
+  const tens = ['', '', 'dua puluh', 'tiga puluh', 'empat puluh', 'lima puluh', 'enam puluh', 'tujuh puluh', 'lapan puluh', 'sembilan puluh']
+  const rest = n % 10
+  return `${tens[Math.floor(n / 10)]}${rest ? ` ${ones[rest]}` : ''}`
+}
+
+function sizeSaid(windowText, dimensions) {
+  const lower = String(windowText || '').toLowerCase()
+  const compact = lower.replace(/\s+/g, '')
+  const units = { ft: ['ft', 'kaki'], in: ['in', 'inci'], cm: ['cm', 'sentimeter'], mm: ['mm', 'milimeter'] }
+  for (const match of String(dimensions || '').matchAll(/(\d+(?:[.,]\d+)?)\s*(ft|in|cm|mm)\b/gi)) {
+    const digits = match[1]
+    const words = units[match[2].toLowerCase()] || [match[2].toLowerCase()]
+    const malay = /^\d+$/.test(digits) ? malayNumber(digits) : ''
+    const phrases = words.flatMap((word) => [`${digits} ${word}`, `${digits}${word}`, ...(malay ? [`${malay} ${word}`] : [])])
+    if (phrases.some((phrase) => lower.includes(phrase) || compact.includes(phrase.replace(/\s+/g, '')))) return true
+  }
+  return false
+}
+
 function designLineOk(lines, brief) {
   const facts = designFactWords(brief)
   const measures = String(brief.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []
@@ -416,6 +450,7 @@ function designLineOk(lines, brief) {
   if (brief.note && window.includes(String(brief.note).toLowerCase())) return true
   if (brief.colour && window.includes(String(brief.colour).toLowerCase())) return true
   if (facts.some((word) => window.includes(word))) return true
+  if (sizeSaid(window, brief.dimensions)) return true
   return measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))
 }
 
@@ -479,39 +514,61 @@ function withProductName(lines, name) {
   return next
 }
 
-function platformOk(lines, brief, platform) {
-  if (lines.length < 4 || lines.length > 5) return false
-  const text = lines.join('\n')
-  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text) || /\bbah\b/i.test(text) || /kepala-otak/i.test(text)) return false
-  if (/\bdiperbuat daripada\b|\breka bentuk\b|\bbersama\b|\bselepas\b/i.test(text)) return false
-  if (!text.includes(brief.name)) return false
-  const emoji = emojiCount(text)
-  if (emoji < 1 || emoji > 2) return false
-  if (platform === 'tiktok' && /\b(analitik|analytics|views|reach|tontonan)\b/i.test(text)) return false
-  if (/\b(sila|contact|dm)\b/i.test(text)) return false
-  if (bareNameLine(lines[0], brief.name) || isFactDump(lines[3], brief)) return false
-  if (wordCount(lines[0]) > 12 || nameHits(text, brief.name) > 1 || repeatedFact(lines, brief)) return false
-  if (copiedStyle(lines) || leaksHiddenFact(lines, brief) || categoryAppended(lines, brief)) return false
-  if (!designLineOk(lines, brief)) return false
-  return true
+function priceLeak(lines, brief) {
+  const body = lines.join('\n')
+  if (/\bRM\s?\d/i.test(body) && !/\bRM\s?\d/i.test(brief.note || '')) return true
+  if (/\b(harga|price)\b/i.test(body) && !/\b(harga|price)\b/i.test(brief.note || '')) return true
+  return false
 }
 
-export function finalizeGeminiCaptions(rawText, { product = null, topic = '', goal = 'highlight', note = '', variation = 0 } = {}) {
+function hardPlatform(lines, brief) {
+  if (!lines.length) return true
+  const text = lines.join('\n')
+  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text) || /\bbah\b/i.test(text) || /kepala-otak/i.test(text)) return true
+  if (/\bdiperbuat daripada\b|\breka bentuk\b|\bbersama\b|\bselepas\b/i.test(text)) return true
+  if (priceLeak(lines, brief) || copiedStyle(lines)) return true
+  return false
+}
+
+function softPlatform(lines, brief, platform) {
+  const text = lines.join('\n')
+  if (lines.length < 4 || lines.length > 5 || !text.includes(brief.name)) return true
+  const emoji = emojiCount(text)
+  if (emoji < 1 || emoji > 2) return true
+  if (platform === 'tiktok' && /\b(analitik|analytics|views|reach|tontonan)\b/i.test(text)) return true
+  if (/\b(sila|contact|dm)\b/i.test(text)) return true
+  if (bareNameLine(lines[0], brief.name) || isFactDump(lines[3], brief)) return true
+  if (wordCount(lines[0]) > 12 || nameHits(text, brief.name) > 1 || repeatedFact(lines, brief)) return true
+  if ((leaksHiddenFact(lines, brief) && !priceLeak(lines, brief)) || categoryAppended(lines, brief)) return true
+  if (!designLineOk(lines, brief)) return true
+  return false
+}
+
+function repairPlatform(lines, name) {
+  const next = lines.slice()
+  if (next.length) next[0] = stripPov(next[0])
+  return withProductName(next, name)
+}
+
+export function finalizeGeminiCaptions(rawText, { product = null, topic = '', goal = 'highlight', note = '', variation = 0, allowSoft = false } = {}) {
   const brief = captionBrief({ product, topic, note })
   if (!brief.name) return null
   const text = softenOfficialName(stripFences(rawText), brief.officialName, brief.name)
   const platforms = {
-    facebook: withProductName(captionLines(section(text, 'FACEBOOK')), brief.name),
-    instagram: withProductName(captionLines(section(text, 'INSTAGRAM')), brief.name),
-    tiktok: withProductName(captionLines(section(text, 'TIKTOK')), brief.name),
+    facebook: repairPlatform(captionLines(section(text, 'FACEBOOK')), brief.name),
+    instagram: repairPlatform(captionLines(section(text, 'INSTAGRAM')), brief.name),
+    tiktok: repairPlatform(captionLines(section(text, 'TIKTOK')), brief.name),
   }
-  if (!platformOk(platforms.facebook, brief, 'facebook')) return null
-  if (!platformOk(platforms.instagram, brief, 'instagram')) return null
-  if (!platformOk(platforms.tiktok, brief, 'tiktok')) return null
+  const hard = hardPlatform(platforms.facebook, brief) || hardPlatform(platforms.instagram, brief) || hardPlatform(platforms.tiktok, brief)
+  if (hard) return null
   const unique = new Set([norm(platforms.facebook.join(' ')), norm(platforms.instagram.join(' ')), norm(platforms.tiktok.join(' '))])
-  if (unique.size < 3) return null
   const designKeys = new Set([platforms.facebook[3], platforms.instagram[3], platforms.tiktok[3]].map(norm))
-  if (designKeys.size < 3) return null
+  const soft = softPlatform(platforms.facebook, brief, 'facebook')
+    || softPlatform(platforms.instagram, brief, 'instagram')
+    || softPlatform(platforms.tiktok, brief, 'tiktok')
+    || unique.size < 3
+    || designKeys.size < 3
+  if (soft && !allowSoft) return null
   const details = brief.details.text
   const join = (lines) => (details ? `${lines.join('\n')}\n\n${details}` : lines.join('\n'))
   const index = variationIndex(variation)
