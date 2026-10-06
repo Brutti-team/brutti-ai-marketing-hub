@@ -137,8 +137,8 @@ Shape
 - Each caption is 4 or 5 short lines. No blank line inside a caption. No title and no quotation marks around the caption.
 - Open the way the real posts open: a small scene, or occasionally "POV:". The product name may be the first line.
 - Mention the product by the exact Product Name only. Never append the category or a generic type after that name.
-- Line 4 explains the design. Use only the design facts in the user message. If those facts are empty, line 4 is a neutral look-and-feel line with no material, size, shape, feature, colour, or price.
-- Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names.
+- Line 4 explains the design using only the real facts in the user message: the design note, material, finishing, size, colour, and design words already in the name. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, line 4 is a neutral look-and-feel line.
+- Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
 - Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
 - Facebook, Instagram, and TikTok must be three different captions. Same real facts, different opening and rhythm.
 - TikTok must not mention analytics, views, reach, or tontonan.
@@ -197,10 +197,13 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
   const index = variationIndex(variation)
   const examples = styleExamplesForVariation(index)
   const designFacts = [
-    `- Nota design: ${none(brief.note)}`,
-    `- Perkataan design yang sudah ada dalam nama: ${brief.descriptors.length ? brief.descriptors.join(', ') : '(tiada)'}`,
-    `- Warna: ${none(brief.colour)}`,
-  ].join('\n')
+    brief.note ? `- Nota design: ${brief.note}` : '',
+    brief.materials ? `- Bahan: ${brief.materials}` : '',
+    brief.finishing ? `- Finishing: ${brief.finishing}` : '',
+    brief.dimensions ? `- Saiz: ${brief.dimensions}` : '',
+    brief.colour ? `- Warna: ${brief.colour}` : '',
+    brief.descriptors.length ? `- Perkataan design yang sudah ada dalam nama: ${brief.descriptors.join(', ')}` : '',
+  ].filter(Boolean)
   const userText = [
     index === 0
       ? 'Variasi 1. Tulis kapsyen baru.'
@@ -210,11 +213,10 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
     `Kategori, jangan tulis ini selepas nama: ${none(brief.category)}`,
     `Matlamat siaran: ${goalLabel(goal)}`,
     '',
-    'Fakta design untuk baris 4 sahaja. Jangan cipta fakta lain. Jangan tulis harga, saiz, atau material dalam kapsyen.',
-    designFacts,
-    brief.note || brief.descriptors.length || brief.colour
-      ? 'Baris 4 mesti guna fakta design di atas. Jangan tambah bahan, saiz, atau fungsi yang tiada dalam senarai itu.'
-      : 'Semua fakta design kosong. Baris 4 ialah pandangan neutral, tanpa bahan, saiz, bentuk, atau fungsi baru.',
+    designFacts.length
+      ? 'Fakta design untuk baris 4. Huraikan design dengan fakta ini sahaja. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga.'
+      : 'Tiada fakta design. Baris 4 ialah pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga.',
+    designFacts.join('\n'),
     '',
     'Contoh gaya dari pos Brutti. Ikut rentak sahaja. Jangan salin. Jangan pindahkan harga, material, stok, nama artisan, atau nama client dari contoh ke produk ini.',
     '',
@@ -287,17 +289,36 @@ function emojiCount(text) {
   return (String(text).match(/\p{Extended_Pictographic}/gu) || []).length
 }
 
+function allowedFactBlob(brief) {
+  return [brief.note, brief.materials, brief.finishing, brief.dimensions, brief.colour, ...(brief.descriptors || [])]
+    .filter(Boolean)
+    .join('\n')
+    .toLowerCase()
+}
+
+function materialWordAllowed(word, blob) {
+  const value = String(word || '').toLowerCase()
+  if (!value) return true
+  if (blob.includes(value)) return true
+  const translations = {
+    kayu: ['wood', 'timber', 'pine', 'plywood', 'oak', 'teak', 'jati'],
+    besi: ['steel', 'iron', 'metal'],
+    kaca: ['glass'],
+  }
+  if ((translations[value] || []).some((item) => blob.includes(item))) return true
+  return blob.split(/[^a-z0-9]+/).filter((token) => token.length >= 4).some((token) => value.includes(token))
+}
+
 function leaksHiddenFact(lines, brief) {
   const body = lines.join('\n')
-  const note = brief.note.toLowerCase()
-  const allowedNumber = (token) => note.includes(token.toLowerCase())
+  const blob = allowedFactBlob(brief)
+  const blobCompact = blob.replace(/\s+/g, '')
   if (/\bRM\s?\d/i.test(body) && !/\bRM\s?\d/i.test(brief.note)) return true
   if (/\b(harga|price)\b/i.test(body) && !/\b(harga|price)\b/i.test(brief.note)) return true
   const measures = body.match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []
-  if (measures.some((token) => !allowedNumber(token))) return true
-  const material = brief.details.text.match(/^- Materials:\s*(.+)$/m)?.[1] || ''
-  if (material && material.length >= 8 && body.toLowerCase().includes(material.toLowerCase()) && !note.includes(material.toLowerCase())) return true
-  return false
+  if (measures.some((token) => !blobCompact.includes(token.toLowerCase().replace(/\s+/g, '')))) return true
+  const materialWords = body.match(/\b(plywood|pine(?:wood)?|oak|wood|kayu|besi|steel|iron|glass|kaca|pallet|sealers?|varnish|lacquer|paints?|coatings?|metal|aluminium|aluminum|mdf|teak|jati|bamboo|rotan|rattan|acrylic|marble|granite|granit|satin)\b/gi) || []
+  return materialWords.some((word) => !materialWordAllowed(word, blob))
 }
 
 function categoryAppended(lines, brief) {
@@ -307,12 +328,19 @@ function categoryAppended(lines, brief) {
 }
 
 function designLineOk(lines, brief) {
-  const line = lines[3] || ''
-  const lower = line.toLowerCase()
-  if (brief.note) return lower.includes(brief.note.toLowerCase())
-  if (brief.descriptors.length) return brief.descriptors.some((item) => lower.includes(item.toLowerCase()))
-  if (brief.colour) return lower.includes(brief.colour.toLowerCase())
-  return true
+  const line = (lines[3] || '').toLowerCase()
+  const compact = line.replace(/\s+/g, '')
+  if (brief.note) return line.includes(brief.note.toLowerCase())
+  if (brief.descriptors.length) return brief.descriptors.some((item) => line.includes(item.toLowerCase()))
+  if (brief.colour) return line.includes(brief.colour.toLowerCase())
+  const words = `${brief.materials || ''} ${brief.finishing || ''}`
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word.length >= 4)
+  const measures = String(brief.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []
+  if (!words.length && !measures.length) return true
+  if (measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))) return true
+  return words.some((word) => line.includes(word))
 }
 
 function platformOk(lines, brief, platform) {

@@ -530,7 +530,13 @@ export function productDetails(product = {}) {
   if (price) used.push('price')
   if (materials || finishing) used.push('material')
   if (dimensions) used.push('dimensions')
-  return { text: lines.length ? `Product details:\n\n${lines.join('\n')}` : '', used }
+  return {
+    text: lines.length ? `Product details:\n\n${lines.join('\n')}` : '',
+    used,
+    materials,
+    finishing,
+    dimensions,
+  }
 }
 
 export function captionBrief({ product = null, topic = '', note = '' } = {}) {
@@ -538,13 +544,17 @@ export function captionBrief({ product = null, topic = '', note = '' } = {}) {
   const name = readField(record.name || record.productName) || readField(topic)
   const colour = readField(record.colour || record.color)
   const noteText = readField(note)
+  const details = productDetails(record)
   return {
     name,
     category: readField(record.category),
     colour,
     note: noteText,
     descriptors: designDescriptors(name),
-    details: productDetails(record),
+    materials: details.materials,
+    finishing: details.finishing,
+    dimensions: details.dimensions,
+    details,
   }
 }
 

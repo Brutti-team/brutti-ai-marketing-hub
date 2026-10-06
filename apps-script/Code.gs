@@ -478,6 +478,120 @@ function redactGeminiSecret_(message, apiKey) {
   return text.replace(/AIza[0-9A-Za-z\-_]{20,}/g, '[hidden]').replace(/key=[^&\s]+/gi, 'key=[hidden]').substring(0, 180);
 }
 
+function testBmCaption() {
+  var samples = [{
+    name: 'AYYASH',
+    category: 'Wall Rack',
+    price: 'RM87',
+    material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+    dimensions: '5 ft H x 20 in W',
+    colour: '',
+    sourceLabel: 'hard-coded sample'
+  }];
+  var library = testBmCaptionLibrary_();
+  ['SUMANDAK', 'TANAKVAGU'].forEach(function (name) {
+    var found = testBmCaptionByName_(library, name);
+    if (found) samples.push(found);
+  });
+  if (samples.length < 2) {
+    var extra = library.filter(function (row) {
+      return String(row.name || '').toUpperCase().indexOf('AYYASH') !== 0;
+    })[0];
+    if (extra) samples.push(extra);
+  }
+  samples.forEach(function (product) {
+    try {
+      Logger.log('--- ' + product.name + ' (' + (product.sourceLabel || 'Product Library') + ') ---\n' + testBmCaptionOne_(product));
+    } catch (error) {
+      var secret = scriptProperties_().getProperty('GEMINI_API_KEY');
+      Logger.log(product.name + ': ' + redactGeminiSecret_(error && error.message, secret));
+    }
+  });
+}
+
+function testBmCaptionLibrary_() {
+  try {
+    var sheet = SpreadsheetApp.openById('10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ').getSheetByName('Product Library');
+    if (!sheet) return [];
+    return productRows_(sheet).map(function (row) {
+      row.sourceLabel = 'Product Library';
+      return row;
+    });
+  } catch (error) {
+    Logger.log('Product Library could not be read. AYYASH still runs from the hard-coded sample.');
+    return [];
+  }
+}
+
+function testBmCaptionByName_(rows, name) {
+  var target = String(name || '').toLowerCase();
+  var exact = rows.filter(function (row) { return String(row.name || '').toLowerCase() === target; })[0];
+  if (exact) return exact;
+  return rows.filter(function (row) { return String(row.name || '').toLowerCase().indexOf(target) >= 0; })[0] || null;
+}
+
+function testBmCaptionOne_(product) {
+  var request = testBmCaptionRequest_(product);
+  var apiKey = scriptProperties_().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return 'Gemini is not configured.';
+  var result = fetchGeminiCaption_(apiKey, GEMINI_CAPTION_MODEL_, request.systemInstruction, request.userText, 0.8, true);
+  if (result.code === 400) result = fetchGeminiCaption_(apiKey, GEMINI_CAPTION_MODEL_, request.systemInstruction, request.userText, 0.8, false);
+  if (result.code === 429) return 'Gemini quota reached.';
+  if (result.code < 200 || result.code >= 300) return 'Gemini request failed (' + result.code + ').';
+  var text = geminiCaptionText_(result.body);
+  if (!text) return 'Gemini returned an empty caption.';
+  return testBmCaptionFinal_(text, product);
+}
+
+function testBmCaptionRequest_(product) {
+  var facts = [];
+  if (product.material) {
+    var split = testBmCaptionMaterial_(product.material);
+    if (split.materials) facts.push('- Bahan: ' + split.materials);
+    if (split.finishing) facts.push('- Finishing: ' + split.finishing);
+  }
+  if (product.dimensions) facts.push('- Saiz: ' + product.dimensions);
+  if (product.colour) facts.push('- Warna: ' + product.colour);
+  var systemInstruction = [
+    'You write one Bahasa Malaysia caption for Brutti, a Sabah custom furniture workshop.',
+    'Use Sabahan Malay. Never use the whole word nak. Use mau. Never write mesej kami bah.',
+    'Write 4 or 5 short lines, one or two emoji, and no hashtags.',
+    'Use the product name only. Do not append the category.',
+    'Line 4 explains the design using only the real facts in the user message. Do not invent any other material, size, colour, or feature.',
+    'Do not write the price. Do not copy a past caption wholesale.',
+    'Output the caption lines only.'
+  ].join(' ');
+  var userText = [
+    'Nama produk: ' + product.name,
+    product.category ? 'Kategori, jangan tulis ini selepas nama: ' + product.category : '',
+    facts.length ? 'Fakta design untuk baris 4. Guna hanya fakta ini. Jangan cipta fakta lain. Jangan tulis harga.' : 'Tiada fakta design. Baris 4 pandangan neutral. Jangan tulis harga.',
+    facts.join('\n')
+  ].filter(function (line) { return line; }).join('\n');
+  return { systemInstruction: systemInstruction, userText: userText };
+}
+
+function testBmCaptionMaterial_(material) {
+  var text = String(material || '').trim();
+  var split = text.match(/^(.*?)\s+\bwith\b\s+(.+)$/i);
+  if (split && /coating|finish|varnish|lacquer|paint|sealer/i.test(split[2])) {
+    return { materials: split[1].trim(), finishing: split[2].trim() };
+  }
+  return { materials: text, finishing: '' };
+}
+
+function testBmCaptionFinal_(text, product) {
+  var body = String(text || '').split(/\n\s*Product details\s*:/i)[0].trim();
+  var split = testBmCaptionMaterial_(product.material);
+  var lines = [];
+  if (product.dimensions) lines.push('- Size: ' + String(product.dimensions).trim());
+  if (split.materials) lines.push('- Materials: ' + split.materials);
+  if (split.finishing) lines.push('- Finishing: ' + split.finishing);
+  var price = String(product.price || '').trim().replace(/^(?:(?:harga|price)\s+)?(?:bermula(?:\s+dari)?|starts?\s+from|from)\s+/i, '');
+  if (price) lines.push('- Price starts from ' + price);
+  if (!lines.length) return body;
+  return body + '\n\nProduct details:\n\n' + lines.join('\n');
+}
+
 function doPost(e) {
   try {
     const request = JSON.parse((e && e.postData && e.postData.contents) || '{}');

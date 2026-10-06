@@ -60,7 +60,7 @@ function assertRequest(request, label) {
   assert(request.generationConfig.maxOutputTokens === 800, `${label} should cap output tokens.`)
   assert(request.generationConfig.thinkingConfig.thinkingBudget === 0, `${label} should disable thinking on the free tier.`)
   assert(request.userText.includes('jangan tulis ini selepas nama'), `${label} should tell the model not to append the category.`)
-  assert(!/\b(RM\s?\d|Sealer|5 ft|75cm|bermula)\b/i.test(request.userText), `${label} prompt must not hand price, size, or finishing to the model.`)
+  assert(!/\bRM\s?\d/i.test(request.userText) && !/bermula/i.test(request.userText), `${label} prompt must not hand the price to the model.`)
 }
 
 const ayyashRequest = buildGeminiCaptionRequest({ product: ayyash, goal: 'highlight', variation: 0 })
@@ -81,9 +81,14 @@ assert(kaanaganRequest.temperature === 1.15, 'A variation should raise the tempe
 assert(ayyashRequest.userText.includes('Nama produk, guna ayat ini tepat dan jangan tambah perkataan selepasnya: AYYASH'), 'AYYASH prompt should use the product name alone.')
 assert(ayyashRequest.userText.includes('Kategori, jangan tulis ini selepas nama: Wall Rack'), 'AYYASH prompt should mark the category as off-limits.')
 assert(!ayyashRequest.userText.includes('AYYASH Wall Rack'), 'AYYASH prompt should not show the name with the category appended.')
+assert(/upcycled pine/i.test(ayyashRequest.userText), 'AYYASH prompt should pass the upcycled pine material as a design fact.')
+assert(ayyashRequest.userText.includes('5 ft') && /20\s*in/i.test(ayyashRequest.userText), 'AYYASH prompt should pass 5 ft x 20 in as a design fact.')
+assert(/sealer\s*&\s*satin coating/i.test(ayyashRequest.userText), 'AYYASH finishing should be passed as a design fact.')
+assert(!ayyashRequest.userText.includes('RM87'), 'AYYASH price stays out of the prompt.')
 assert(eunoiaRequest.userText.includes('Eunoia Kiosk'), 'Eunoia prompt should use the full product name.')
 assert(eunoiaRequest.userText.includes('Kategori, jangan tulis ini selepas nama: Kiosk'), 'Eunoia prompt should mark Kiosk as the category.')
-assert(!eunoiaRequest.userText.includes(eunoiaSize) && !eunoiaRequest.userText.includes('RM487'), 'Eunoia price and size stay out of the prompt.')
+assert(eunoiaRequest.userText.includes(eunoiaSize), 'Eunoia size should be passed as a design fact.')
+assert(!eunoiaRequest.userText.includes('RM487'), 'Eunoia price stays out of the prompt.')
 assert(kaanaganRequest.userText.includes('kaki besi, top kayu'), 'The design note should be a line-4 fact.')
 assert(kaanaganRequest.userText.includes('Open Concept'), 'A design word already in the name should be a line-4 fact.')
 assert(kaanaganRequest.userText.includes('Variasi 3'), 'Variation 2 should ask for a third, different caption.')
@@ -95,7 +100,7 @@ const ayyashModel = `FACEBOOK:
 AYYASH ✨
 Ngam ni untuk susun satu sudut dulu.
 Piece ni custom, ikut ruang kamu.
-Nampak simple, dan kemas. 😍
+Upcycled pine, 5 ft H dan 20 in W, sealer satin. 😍
 
 Product details:
 - Size: 9 ft
@@ -105,20 +110,37 @@ INSTAGRAM:
 Satu sudut dulu, AYYASH. ✨
 Ngam ni untuk barang kecil yang selalu cari tempat.
 Piece ni custom.
-Nampak simple, tapi ada kerja. 😉
+Bahan dia upcycled pine, saiz 5 ft dan 20 in. 😉
 
 TIKTOK:
 AYYASH di satu sudut. ✨
 Ngam untuk susun barang kamu.
 Piece ni custom, ikut ruang.
-Senang mata nampak, dan kemas. 😍`
+Pine wood, 5 ft tinggi, 20 in lebar. 😍`
 const ayyashCaption = finalizeGeminiCaptions(ayyashModel, { product: ayyash, goal: 'highlight', variation: 0 })
 assert(ayyashCaption?.source === 'gemini', 'A valid model caption should be accepted.')
 assert(!ayyashCaption.facebook.includes('RM999') && !ayyashCaption.facebook.includes('9 ft'), 'Invented model details must be dropped.')
 assert(ayyashCaption.facebook.includes('Product details:\n\n- Size: 5 ft H × 20 in W\n- Materials: Solid Upcycled Pine Wood\n- Finishing: Sealer & Satin Coating\n- Price starts from RM87'), 'Real AYYASH details are appended in code.')
 assert(captionBrief({ product: ayyash }).details.used.includes('price'), 'Used facts should still come from the sheet.')
 
-const eunoiaCaption = finalizeGeminiCaptions(ayyashModel.replaceAll('AYYASH', 'Eunoia Kiosk'), { product: eunoia, goal: 'highlight', variation: 0 })
+const eunoiaModel = `FACEBOOK:
+Eunoia Kiosk ✨
+Ngam ni untuk jualan, barang nampak dari jauh.
+Piece ni custom, ikut ruang kamu.
+Tinggi dia 75cm, ikut saiz yang ada. 😍
+
+INSTAGRAM:
+Eunoia Kiosk untuk jualan. ✨
+Ngam ni untuk barang nampak dari jauh.
+Piece ni custom.
+Saiz dia 75cm tinggi. 😉
+
+TIKTOK:
+Eunoia Kiosk di luar. ✨
+Ngam untuk jualan kamu.
+Piece ni custom, ikut ruang.
+75cm, itu saiz dia. 😍`
+const eunoiaCaption = finalizeGeminiCaptions(eunoiaModel, { product: eunoia, goal: 'highlight', variation: 0 })
 assert(eunoiaCaption.facebook.includes(`Product details:\n\n- Size: ${eunoiaSize}\n- Price starts from RM487`), 'Eunoia details should keep the stored size and one price lead-in.')
 assert(!eunoiaCaption.facebook.includes('- Materials:') && !/bermula/i.test(eunoiaCaption.facebook), 'Blank material and the bermula prefix stay out.')
 
@@ -164,7 +186,9 @@ Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
 Simple space tapi terus ubah mood satu sudut.
 Nampak kemas. 😍`
 assert(finalizeGeminiCaptions(copied, { product: ayyash }) === null, 'A caption that copies a past post should fall back.')
-assert(finalizeGeminiCaptions(ayyashModel.replace('Nampak simple, dan kemas.', 'Harga dia RM999, nampak simple.'), { product: ayyash }) === null, 'An invented price in the body should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Upcycled pine, 5 ft H dan 20 in W, sealer satin.', 'Harga dia RM999, nampak simple.'), { product: ayyash }) === null, 'An invented price in the body should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('5 ft H dan 20 in W', '9 ft H dan oak'), { product: ayyash }) === null, 'An invented size or material should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel, { product: ayyash })?.facebook.includes('Upcycled pine'), 'A sheet material written on line 4 should be kept.')
 
 assert(code.includes("generate_bm_caption: () => generateBmCaption_(payload)"), 'Apps Script should route the caption action through the existing POST handler.')
 assert(code.includes("scriptProperties_().getProperty('GEMINI_API_KEY')"), 'The Gemini key should be read from Script Properties.')
@@ -175,6 +199,9 @@ assert(!/AIza[0-9A-Za-z_-]{20,}/.test(code), 'Apps Script must not contain a har
 assert(!/console\.(log|error|info)\(\s*apiKey/.test(code) && !/Logger\.log\(\s*apiKey/.test(code), 'Apps Script must not log the Gemini key.')
 assert(/code === 429/.test(code) && code.includes('Gemini quota reached.'), 'Quota responses should fail softly.')
 assert(code.includes('The caption request must not include an API key.'), 'A client-supplied key should be rejected.')
+assert(code.includes('function testBmCaption()'), 'Apps Script should expose an editor test for captions.')
+assert(code.includes('SUMANDAK') && code.includes('TANAKVAGU') && code.includes('10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ'), 'The editor test should look up the named Product Library rows.')
+assert(!/Logger\.log\([^)\n]*apiKey/.test(code), 'The editor test must not log the Gemini key.')
 
 assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')
 assert(studio.includes('Guna template (Gemini tidak tersedia)') && studio.includes('generate_bm_caption') && studio.includes('Jana kapsyen') && studio.includes('Jana variasi lain'), 'The studio should try Gemini, then show the template note, and keep the generate buttons.')
