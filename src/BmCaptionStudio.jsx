@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { CAPTION_GOALS, generateBmCaptions, isBlankField } from './lib/bmCaptionGenerator'
+import { buildGeminiCaptionRequest, finalizeGeminiCaptions } from './lib/bmGeminiCaption'
+import { callMarketingApi } from './lib/googleWorkspace'
 import './bm-caption-studio.css'
 
 const NO_PRODUCT = ''
@@ -91,26 +93,39 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [showTikTok, setShowTikTok] = useState(false)
   const [variation, setVariation] = useState(0)
   const [result, setResult] = useState(null)
+  const [busy, setBusy] = useState(false)
 
   const product = productOptions.find((item) => optionValue(item) === productId) || null
 
   const clearResult = () => setResult(null)
 
-  const run = (nextVariation) => {
+  const run = async (nextVariation) => {
+    if (busy) return
     if (!product && !topic.trim()) {
       toast('Pilih produk atau tulis topik dahulu.')
       return
     }
-    const output = generateBmCaptions({
+    const input = {
       product,
       topic: product ? '' : topic,
       goal,
       note,
       variation: nextVariation,
-    })
+    }
+    setBusy(true)
+    let output = null
+    try {
+      const request = buildGeminiCaptionRequest(input)
+      const data = request ? await callMarketingApi('generate_bm_caption', { request }) : null
+      output = data ? finalizeGeminiCaptions(data.text, input) : null
+    } catch {
+      output = null
+    }
+    if (!output) output = { ...generateBmCaptions(input), source: 'template' }
     setVariation(output.variation)
     setResult(output)
-    toast(nextVariation === 0 ? 'Kapsyen dijana dalam pelayar. Tiada AI berbayar.' : 'Variasi lain sudah dijana.')
+    setBusy(false)
+    if (output.source !== 'template') toast(nextVariation === 0 ? 'Kapsyen dijana.' : 'Variasi lain sudah dijana.')
   }
 
   const updateDraft = (field) => (event) => {
@@ -174,16 +189,17 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </label>
 
           <div className="bm-caption-actions">
-            <button className="button primary" type="submit">Jana kapsyen</button>
-            <button className="button secondary" type="button" onClick={() => run(result ? variation + 1 : 1)}>Jana variasi lain</button>
+            <button className="button primary" type="submit" disabled={busy}>{busy ? 'Sedang menjana…' : 'Jana kapsyen'}</button>
+            <button className="button secondary" type="button" disabled={busy} onClick={() => run(result ? variation + 1 : 1)}>Jana variasi lain</button>
           </div>
-          <p className="bm-caption-disclaimer">Penjana ini guna templat dalam pelayar. Tiada panggilan AI. Semak kapsyen sebelum disiarkan. Medan kosong tidak diisi dengan angka atau dakwaan baru.</p>
+          <p className="bm-caption-disclaimer">Penjana cuba Gemini percuma dahulu. Jika Gemini tidak tersedia, templat dalam pelayar digunakan. Semak kapsyen sebelum disiarkan. Medan kosong tidak diisi dengan angka atau dakwaan baru.</p>
         </form>
 
         <section className="bm-caption-results" aria-live="polite">
           <div className="bm-caption-results-head">
             <span className="eyebrow">HASIL BAHASA MALAYSIA</span>
             <strong>{result ? `Variasi ${result.variation + 1}` : 'Belum dijana'}</strong>
+            {result?.source === 'template' ? <p className="bm-caption-fallback">Guna template (Gemini tidak tersedia)</p> : null}
           </div>
           {result ? (
             <>

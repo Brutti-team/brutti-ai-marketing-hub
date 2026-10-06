@@ -516,7 +516,7 @@ function splitMaterial(material) {
   return { materials: text, finishing: '' }
 }
 
-function productDetails(product = {}) {
+export function productDetails(product = {}) {
   const dimensions = readField(product.dimensions || product.dimension)
   const material = readField(product.material)
   const price = readField(product.price)
@@ -531,6 +531,21 @@ function productDetails(product = {}) {
   if (materials || finishing) used.push('material')
   if (dimensions) used.push('dimensions')
   return { text: lines.length ? `Product details:\n\n${lines.join('\n')}` : '', used }
+}
+
+export function captionBrief({ product = null, topic = '', note = '' } = {}) {
+  const record = product || {}
+  const name = readField(record.name || record.productName) || readField(topic)
+  const colour = readField(record.colour || record.color)
+  const noteText = readField(note)
+  return {
+    name,
+    category: readField(record.category),
+    colour,
+    note: noteText,
+    descriptors: designDescriptors(name),
+    details: productDetails(record),
+  }
 }
 
 function line(value, name) {

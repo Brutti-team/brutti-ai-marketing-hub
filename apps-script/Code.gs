@@ -405,6 +405,79 @@ function styleSignals_(message) {
     practical: /\b(tips?|cara|senang|boleh|guna|pilih|ruang|fungsi)\b/i.test(text)
   };
 }
+// Free-tier Gemini caption proxy. The browser never receives GEMINI_API_KEY.
+// Redeploy this file as a new version of the existing web app; keep the same URL.
+var GEMINI_CAPTION_MODEL_ = 'gemini-3.5-flash-lite';
+
+function generateBmCaption_(payload) {
+  var request = payload && payload.request;
+  if (!request || typeof request !== 'object') throw new Error('Gemini caption request is incomplete.');
+  var forbidden = ['apiKey', 'api_key', 'key', 'geminiApiKey', 'GEMINI_API_KEY'];
+  for (var i = 0; i < forbidden.length; i += 1) {
+    if (request[forbidden[i]]) throw new Error('The caption request must not include an API key.');
+  }
+  var model = String(request.model || '');
+  if (model !== GEMINI_CAPTION_MODEL_) throw new Error('Unsupported caption model.');
+  var systemInstruction = String(request.systemInstruction || '').trim();
+  var userText = String(request.userText || '').trim();
+  if (!systemInstruction || !userText) throw new Error('Gemini caption request is incomplete.');
+  if (systemInstruction.length > 20000 || userText.length > 14000) throw new Error('Gemini caption request is too large.');
+  var apiKey = scriptProperties_().getProperty('GEMINI_API_KEY');
+  if (!apiKey) throw new Error('Gemini is not configured.');
+  var temperature = Number(request.temperature);
+  if (!isFinite(temperature)) temperature = 0.8;
+  temperature = Math.max(0.2, Math.min(1.2, temperature));
+  var first = fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, true);
+  var result = first.code === 400 ? fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, false) : first;
+  if (result.code === 429) throw new Error('Gemini quota reached.');
+  if (result.code < 200 || result.code >= 300) throw new Error('Gemini request failed (' + result.code + ').');
+  var text = geminiCaptionText_(result.body);
+  if (!text) throw new Error('Gemini returned an empty caption.');
+  return { text: text, model: model };
+}
+
+function fetchGeminiCaption_(apiKey, model, systemInstruction, userText, temperature, limitThinking) {
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+  var generationConfig = { temperature: temperature, maxOutputTokens: limitThinking ? 800 : 1600, topP: 0.95 };
+  if (limitThinking) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  var options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-goog-api-key': apiKey },
+    muteHttpExceptions: true,
+    payload: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: userText }] }],
+      generationConfig: generationConfig
+    })
+  };
+  var response;
+  try {
+    response = UrlFetchApp.fetch(url, options);
+  } catch (error) {
+    throw new Error(redactGeminiSecret_(error && error.message, apiKey));
+  }
+  var code = response.getResponseCode();
+  var raw = response.getContentText() || '';
+  if (code === 429 || /RESOURCE_EXHAUSTED|quotaExceeded/i.test(raw)) return { code: 429, body: null };
+  var body = null;
+  try { body = JSON.parse(raw); } catch (ignored) { body = null; }
+  return { code: code, body: body };
+}
+
+function geminiCaptionText_(body) {
+  var candidates = body && body.candidates;
+  var parts = candidates && candidates[0] && candidates[0].content && candidates[0].content.parts;
+  if (!parts || !parts.length) return '';
+  return parts.map(function (part) { return part && part.text ? part.text : ''; }).join('').trim();
+}
+
+function redactGeminiSecret_(message, apiKey) {
+  var text = String(message || 'Gemini request failed.');
+  if (apiKey) text = text.split(apiKey).join('[hidden]');
+  return text.replace(/AIza[0-9A-Za-z\-_]{20,}/g, '[hidden]').replace(/key=[^&\s]+/gi, 'key=[hidden]').substring(0, 180);
+}
+
 function doPost(e) {
   try {
     const request = JSON.parse((e && e.postData && e.postData.contents) || '{}');
@@ -430,7 +503,8 @@ function doPost(e) {
       sync_notion_planner: syncNotionPlanner_,
       sync_meta_insights: syncMetaInsights,
       check_meta_token_health: checkMetaTokenHealth,
-      publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); }
+      publish_meta: () => { throw new Error('Facebook publishing is currently deferred. Keep approved content in BRUTTI and publish manually when Meta access is ready.'); },
+      generate_bm_caption: () => generateBmCaption_(payload)
     };
     if (!handlers[action]) throw new Error('Unsupported action: ' + action);
     return json_({ ok: true, data: handlers[action]() });

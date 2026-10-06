@@ -1,0 +1,203 @@
+import fs from 'node:fs'
+import { captionBrief } from '../src/lib/bmCaptionGenerator.js'
+import {
+  GEMINI_MODEL,
+  buildGeminiCaptionRequest,
+  finalizeGeminiCaptions,
+  geminiTemperature,
+  styleExamplesForVariation,
+} from '../src/lib/bmGeminiCaption.js'
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message)
+}
+
+const code = fs.readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8')
+const readme = fs.readFileSync(new URL('../README.md', import.meta.url), 'utf8')
+const studio = fs.readFileSync(new URL('../src/BmCaptionStudio.jsx', import.meta.url), 'utf8')
+
+const ayyash = {
+  name: 'AYYASH',
+  category: 'Wall Rack',
+  price: 'RM87',
+  material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+  dimensions: '5 ft H × 20 in W',
+  colour: '',
+}
+const eunoiaSize = '3’ lebar x 1.5’ depth x 75cm height'
+const eunoia = {
+  name: 'Eunoia Kiosk',
+  category: 'Kiosk',
+  price: 'bermula RM487',
+  dimensions: eunoiaSize,
+  material: '',
+  colour: '',
+}
+const kaanagan = {
+  name: 'KAANAGAN Open Concept Wardrobe with Drawers',
+  category: 'Wardrobe',
+  price: '',
+  material: '',
+  dimensions: '',
+  colour: '',
+}
+
+function assertRequest(request, label) {
+  assert(request, `${label} should build a request.`)
+  assert(request.model === GEMINI_MODEL, `${label} model should be the free-tier model.`)
+  assert(request.model === 'gemini-3.5-flash-lite', `${label} should pin gemini-3.5-flash-lite.`)
+  assert(!('apiKey' in request) && !('GEMINI_API_KEY' in request) && !/AIza[0-9A-Za-z_-]{20,}/.test(JSON.stringify(request)), `${label} must not carry an API key.`)
+  assert(request.systemInstruction.includes('Brutti Soul Master'), `${label} system prompt should name Brutti Soul Master.`)
+  assert(/never use the whole word "nak"/i.test(request.systemInstruction), `${label} system prompt should ban nak.`)
+  assert(request.systemInstruction.includes('mesej kami bah'), `${label} system prompt should ban the stiff close.`)
+  assert(/4 or 5 short lines/i.test(request.systemInstruction), `${label} system prompt should require 4 or 5 lines.`)
+  assert(/no hashtag/i.test(request.systemInstruction), `${label} system prompt should ban hashtags.`)
+  assert(/never append the category/i.test(request.systemInstruction), `${label} system prompt should keep the product name only.`)
+  assert(/line 4 explains the design/i.test(request.systemInstruction), `${label} system prompt should put design on line 4.`)
+  assert(/do not write a product details list/i.test(request.systemInstruction), `${label} system prompt should leave the details list to the app.`)
+  assert((request.userText.match(/^Contoh \d+$/gm) || []).length === 8, `${label} should seed 8 style examples.`)
+  assert(request.generationConfig.temperature === request.temperature, `${label} temperature should match the generation config.`)
+  assert(request.generationConfig.maxOutputTokens === 800, `${label} should cap output tokens.`)
+  assert(request.generationConfig.thinkingConfig.thinkingBudget === 0, `${label} should disable thinking on the free tier.`)
+  assert(request.userText.includes('jangan tulis ini selepas nama'), `${label} should tell the model not to append the category.`)
+  assert(!/\b(RM\s?\d|Sealer|5 ft|75cm|bermula)\b/i.test(request.userText), `${label} prompt must not hand price, size, or finishing to the model.`)
+}
+
+const ayyashRequest = buildGeminiCaptionRequest({ product: ayyash, goal: 'highlight', variation: 0 })
+const eunoiaRequest = buildGeminiCaptionRequest({ product: eunoia, goal: 'highlight', variation: 0 })
+const kaanaganRequest = buildGeminiCaptionRequest({
+  product: kaanagan,
+  goal: 'highlight',
+  note: 'kaki besi, top kayu',
+  variation: 2,
+})
+
+assertRequest(ayyashRequest, 'AYYASH')
+assertRequest(eunoiaRequest, 'Eunoia')
+assertRequest(kaanaganRequest, 'KAANAGAN')
+
+assert(ayyashRequest.temperature === 0.8 && geminiTemperature(0) === 0.8, 'The first caption should use the lower temperature.')
+assert(kaanaganRequest.temperature === 1.15, 'A variation should raise the temperature.')
+assert(ayyashRequest.userText.includes('Nama produk, guna ayat ini tepat dan jangan tambah perkataan selepasnya: AYYASH'), 'AYYASH prompt should use the product name alone.')
+assert(ayyashRequest.userText.includes('Kategori, jangan tulis ini selepas nama: Wall Rack'), 'AYYASH prompt should mark the category as off-limits.')
+assert(!ayyashRequest.userText.includes('AYYASH Wall Rack'), 'AYYASH prompt should not show the name with the category appended.')
+assert(eunoiaRequest.userText.includes('Eunoia Kiosk'), 'Eunoia prompt should use the full product name.')
+assert(eunoiaRequest.userText.includes('Kategori, jangan tulis ini selepas nama: Kiosk'), 'Eunoia prompt should mark Kiosk as the category.')
+assert(!eunoiaRequest.userText.includes(eunoiaSize) && !eunoiaRequest.userText.includes('RM487'), 'Eunoia price and size stay out of the prompt.')
+assert(kaanaganRequest.userText.includes('kaki besi, top kayu'), 'The design note should be a line-4 fact.')
+assert(kaanaganRequest.userText.includes('Open Concept'), 'A design word already in the name should be a line-4 fact.')
+assert(kaanaganRequest.userText.includes('Variasi 3'), 'Variation 2 should ask for a third, different caption.')
+assert(ayyashRequest.userText.includes('2-in-1 Pallet Bench') && !ayyashRequest.userText.includes('Tondurongon'), 'Variation 0 should use the first example window.')
+assert(kaanaganRequest.userText.includes('Tondurongon') && !kaanaganRequest.userText.includes('2-in-1 Pallet Bench'), 'A later variation should rotate the example window.')
+assert(styleExamplesForVariation(0)[0].id !== styleExamplesForVariation(2)[0].id, 'Rotated windows should start on different examples.')
+
+const ayyashModel = `FACEBOOK:
+AYYASH ✨
+Ngam ni untuk susun satu sudut dulu.
+Piece ni custom, ikut ruang kamu.
+Nampak simple, dan kemas. 😍
+
+Product details:
+- Size: 9 ft
+- Price starts from RM999
+
+INSTAGRAM:
+Satu sudut dulu, AYYASH. ✨
+Ngam ni untuk barang kecil yang selalu cari tempat.
+Piece ni custom.
+Nampak simple, tapi ada kerja. 😉
+
+TIKTOK:
+AYYASH di satu sudut. ✨
+Ngam untuk susun barang kamu.
+Piece ni custom, ikut ruang.
+Senang mata nampak, dan kemas. 😍`
+const ayyashCaption = finalizeGeminiCaptions(ayyashModel, { product: ayyash, goal: 'highlight', variation: 0 })
+assert(ayyashCaption?.source === 'gemini', 'A valid model caption should be accepted.')
+assert(!ayyashCaption.facebook.includes('RM999') && !ayyashCaption.facebook.includes('9 ft'), 'Invented model details must be dropped.')
+assert(ayyashCaption.facebook.includes('Product details:\n\n- Size: 5 ft H × 20 in W\n- Materials: Solid Upcycled Pine Wood\n- Finishing: Sealer & Satin Coating\n- Price starts from RM87'), 'Real AYYASH details are appended in code.')
+assert(captionBrief({ product: ayyash }).details.used.includes('price'), 'Used facts should still come from the sheet.')
+
+const eunoiaCaption = finalizeGeminiCaptions(ayyashModel.replaceAll('AYYASH', 'Eunoia Kiosk'), { product: eunoia, goal: 'highlight', variation: 0 })
+assert(eunoiaCaption.facebook.includes(`Product details:\n\n- Size: ${eunoiaSize}\n- Price starts from RM487`), 'Eunoia details should keep the stored size and one price lead-in.')
+assert(!eunoiaCaption.facebook.includes('- Materials:') && !/bermula/i.test(eunoiaCaption.facebook), 'Blank material and the bermula prefix stay out.')
+
+const kaanaganModel = `FACEBOOK:
+KAANAGAN Open Concept Wardrobe with Drawers ✨
+Baju banyak, tapi masih boleh nampak kemas.
+Piece ni custom, ikut bilik kamu.
+Design ni Open Concept, kaki besi, top kayu. 😍
+
+INSTAGRAM:
+Pagi ni baju ada tempat, KAANAGAN Open Concept Wardrobe with Drawers. ✨
+Ngam untuk bilik yang mau nampak kemas.
+Piece ni custom.
+Piece ni Open Concept, kaki besi, top kayu. 😉
+
+TIKTOK:
+KAANAGAN Open Concept Wardrobe with Drawers di bilik. ✨
+Ngam untuk susun baju kamu.
+Piece ni custom, ikut ruang.
+kaki besi, top kayu, itu design dia. 😍`
+const kaanaganCaption = finalizeGeminiCaptions(kaanaganModel, { product: kaanagan, note: 'kaki besi, top kayu', variation: 2 })
+assert(kaanaganCaption?.variation === 2 && kaanaganCaption.facebook.includes('kaki besi, top kayu'), 'The design note should survive on the accepted caption.')
+assert(!kaanaganCaption.facebook.includes('Product details:'), 'A product with blank sheet fields should not gain a details block.')
+
+assert(finalizeGeminiCaptions(`FACEBOOK:\nAYYASH ✨\nNgam ni.\nPiece ni.\n\nINSTAGRAM:\nAYYASH ✨\nNgam.\nPiece.\nLagi.\n\nTIKTOK:\nAYYASH ✨\nNgam.\nPiece.\nLagi. 😍`, { product: ayyash }) === null, 'A short caption should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('susun satu sudut', 'mesej kami bah susun satu sudut'), { product: ayyash }) === null, 'The banned close should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('AYYASH ✨', 'AYYASH Wall Rack ✨'), { product: ayyash }) === null, 'An appended category should fall back.')
+const copied = `FACEBOOK:
+AYYASH ✨
+Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
+Simple space tapi terus ubah mood satu sudut.
+Nampak simple, dan kemas. 😍
+
+INSTAGRAM:
+AYYASH di office. ✨
+Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
+Simple space tapi terus ubah mood satu sudut.
+Nampak simple. 😉
+
+TIKTOK:
+AYYASH sekali. ✨
+Tempat singgah sekejap untuk duduk, rehat dan sambung kerja balik.
+Simple space tapi terus ubah mood satu sudut.
+Nampak kemas. 😍`
+assert(finalizeGeminiCaptions(copied, { product: ayyash }) === null, 'A caption that copies a past post should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Nampak simple, dan kemas.', 'Harga dia RM999, nampak simple.'), { product: ayyash }) === null, 'An invented price in the body should fall back.')
+
+assert(code.includes("generate_bm_caption: () => generateBmCaption_(payload)"), 'Apps Script should route the caption action through the existing POST handler.')
+assert(code.includes("scriptProperties_().getProperty('GEMINI_API_KEY')"), 'The Gemini key should be read from Script Properties.')
+assert(code.includes("'x-goog-api-key': apiKey"), 'The key should travel in a header, not the query string.')
+assert(code.includes(`var GEMINI_CAPTION_MODEL_ = '${GEMINI_MODEL}'`) && code.includes('model !== GEMINI_CAPTION_MODEL_'), 'Apps Script should whitelist the same free-tier model.')
+assert(!/generateContent\?/.test(code), 'The Gemini URL should not carry a query string.')
+assert(!/AIza[0-9A-Za-z_-]{20,}/.test(code), 'Apps Script must not contain a hard-coded key.')
+assert(!/console\.(log|error|info)\(\s*apiKey/.test(code) && !/Logger\.log\(\s*apiKey/.test(code), 'Apps Script must not log the Gemini key.')
+assert(/code === 429/.test(code) && code.includes('Gemini quota reached.'), 'Quota responses should fail softly.')
+assert(code.includes('The caption request must not include an API key.'), 'A client-supplied key should be rejected.')
+
+assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')
+assert(studio.includes('Guna template (Gemini tidak tersedia)') && studio.includes('generate_bm_caption') && studio.includes('Jana kapsyen') && studio.includes('Jana variasi lain'), 'The studio should try Gemini, then show the template note, and keep the generate buttons.')
+
+function outline(request) {
+  const name = request.userText.match(/selepasnya: (.+)/)?.[1] || ''
+  const examples = request.userText.match(/^Contoh \d+$/gm) || []
+  return {
+    model: request.model,
+    temperature: request.temperature,
+    maxOutputTokens: request.generationConfig.maxOutputTokens,
+    thinkingBudget: request.generationConfig.thinkingConfig.thinkingBudget,
+    apiKey: null,
+    system: 'Brutti Soul Master + Sabahan Malay rules + 4-5 lines + name only + line 4 design + no invented facts + FACEBOOK/INSTAGRAM/TIKTOK labels',
+    user: request.userText.split('\n').filter((line) => line.startsWith('Variasi') || line.startsWith('Nama produk') || line.startsWith('Kategori') || line.startsWith('Matlamat') || line.startsWith('- ') || line.startsWith('Semua fakta') || line.startsWith('Baris 4') || line.startsWith('Contoh ')),
+    exampleCount: examples.length,
+    product: name,
+  }
+}
+
+console.log(JSON.stringify({
+  ayyash: outline(ayyashRequest),
+  eunoia: outline(eunoiaRequest),
+  kaanagan: outline(kaanaganRequest),
+}, null, 2))
+console.log('PASS: Gemini caption request is built without a key, and invalid model text falls back before the details list is trusted.')
