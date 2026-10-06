@@ -3,7 +3,8 @@
 // Captions open on a short scene or POV, not on the bare product name.
 // A name that is stored in capitals is written in title case, such as Ayyash.
 // Dialect that actually shows up: ni, ngam, ja, kan, sudah, boleh, bikin, kasi,
-// tinguk, mau, and only rarely bah, teda, jaaa. mau stands where a stiff
+// tinguk, mau, and only rarely teda, jaaa. Never bah. Never mahu, diperbuat
+// daripada, reka bentuk, bersama, or selepas. mau stands where a stiff
 // synonym would have been. Closes are a soft observation or a function line.
 // Emoji, if any, sits at the end of a line. No hashtags. No copied post.
 // No borrowed facts. No invented Dusun gloss.
@@ -56,7 +57,7 @@ const OPEN = {
   },
   tips: {
     wardrobe: ['Baju untuk gantung, dan baju untuk drawer. ✨', 'Baju yang kamu guna minggu ni, letak di tempat yang senang. 😍', 'Yang sudah lama tidak kamu ambil, keluar dulu. 😉'],
-    storage: ['Letak barang yang sama, bersama. ✨', 'Barang harian, letak di tempat yang senang sampai. 😍', 'Satu jenis, satu tempat. 😉'],
+    storage: ['Letak barang yang sama, satu tempat. ✨', 'Barang harian, letak di tempat yang senang sampai. 😍', 'Satu jenis, satu tempat. 😉'],
     display: ['Barang yang kamu selalu cari, kasi dia nampak. ✨', 'Kadang display nampak penuh. 😍', 'Barang penting, kasi nampak dari jauh. 😉'],
     kiosk: ['Barang patut nampak dari jauh. ✨', 'Susun dulu barang jualan, baru bawa keluar. 😍', 'Setup simple, barang masih nampak. 😉'],
     bespoke: ['Cerita apa yang mau muat. ✨', 'Bawa gambar ruang bila mau cerita. 😍', 'Hari biasa ruang tu, itu yang kami ikut. 😉'],
@@ -200,14 +201,14 @@ const BODY = {
       (n) => `${n} ni lebih kemas bila yang lama tidak kamu ambil, keluar dulu.`,
     ],
     storage: [
-      (n) => `Barang yang sama, letak bersama dalam ${n} ni.`,
+      (n) => `Barang yang sama, letak dalam ${n} ni.`,
       (n) => `Dalam ${n} ni, barang harian di tempat yang senang.`,
       (n) => `${n} ni lebih senang bila satu jenis ada satu tempat.`,
     ],
     display: [
       (n) => `Dalam ${n} ni, bagi ruang sikit supaya display lebih kemas.`,
       (n) => `${n} ni, barang penting kasi nampak dari jauh.`,
-      (n) => `Pada ${n} ni, satu barang dulu. Yang lain boleh duduk bersama.`,
+      (n) => `Pada ${n} ni, satu barang dulu. Yang lain boleh duduk sekali.`,
     ],
     kiosk: [
       (n) => `Pada ${n} ni, barang patut nampak dari jauh.`,
@@ -328,7 +329,7 @@ const IG_OPEN = {
   },
   tips: {
     wardrobe: ['Baju gantung, baju drawer. ✨', 'Baju minggu ni, tempat yang senang. 😍', 'Yang lama, keluar dulu. 😉'],
-    storage: ['Barang yang sama, bersama. ✨', 'Barang harian, tempat yang senang. 😍', 'Satu jenis, satu tempat. 😉'],
+    storage: ['Barang yang sama, satu tempat. ✨', 'Barang harian, tempat yang senang. 😍', 'Satu jenis, satu tempat. 😉'],
     display: ['Yang kamu selalu cari, kasi nampak. ✨', 'Kadang nampak penuh. 😍', 'Penting, nampak dari jauh. 😉'],
     kiosk: ['Patut nampak dari jauh. ✨', 'Susun dulu, baru bawa keluar. 😍', 'Setup simple. 😉'],
     bespoke: ['Cerita apa yang mau muat. ✨', 'Bawa gambar ruang. 😍', 'Hari biasa yang kami ikut. 😉'],
@@ -458,6 +459,10 @@ const NEUTRAL_LOOK = [
   'Nampak simple, tapi ada kerja. 😉',
   'Piece ni simple, senang mata nampak. ✨',
 ]
+
+function dropBah(text) {
+  return String(text || '').replace(/\bbah\b/gi, ' ').replace(/[ ]{2,}/g, ' ').replace(/[ ]+([,!.?])/g, '$1')
+}
 
 function finishLine(text) {
   const value = clean(text)
@@ -627,11 +632,10 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
 
   const kind = kindFrom(name, readField(record.category))
   const colour = readField(record.colour || record.color)
-  const design = designLine(name, colour, note, index)
   const details = productDetails(record)
-  const facebook = attach(facebookLines(selectedGoal, kind, name, index), design, details.text)
-  const instagram = attach(instagramLines(selectedGoal, kind, name, index), design, details.text)
-  const tiktok = attach(tiktokLines(kind, name, index), design, details.text)
+  const facebook = dropBah(attach(facebookLines(selectedGoal, kind, name, index), designLine(name, colour, note, index), details.text))
+  const instagram = dropBah(attach(instagramLines(selectedGoal, kind, name, index), designLine(name, colour, note, index + 1), details.text))
+  const tiktok = dropBah(attach(tiktokLines(kind, name, index), designLine(name, colour, note, index + 2), details.text))
 
   return {
     facebook,

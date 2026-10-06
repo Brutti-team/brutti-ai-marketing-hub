@@ -96,6 +96,13 @@ assert(kaanaganRequest.userText.includes('Open Concept'), 'A design word already
 assert(kaanaganRequest.userText.includes('Variasi 3'), 'Variation 2 should ask for a third, different caption.')
 assert(ayyashRequest.userText.includes('2-in-1 Pallet Bench') && !ayyashRequest.userText.includes('Tondurongon'), 'Variation 0 should use the first example window.')
 assert(kaanaganRequest.userText.includes('Tondurongon') && !kaanaganRequest.userText.includes('2-in-1 Pallet Bench'), 'A later variation should rotate the example window.')
+assert(/never use the whole word "bah"/i.test(ayyashRequest.systemInstruction), 'The prompt should ban the word bah.')
+assert(/diperbuat daripada/i.test(ayyashRequest.systemInstruction) && /reka bentuk/i.test(ayyashRequest.systemInstruction) && /\bbersama\b/i.test(ayyashRequest.systemInstruction) && /\bselepas\b/i.test(ayyashRequest.systemInstruction), 'The prompt should ban stiff standard Malay.')
+assert(/must not share the same line 4/i.test(ayyashRequest.systemInstruction), 'The prompt should require a different line 4 on each platform.')
+assert(!/\bbah\b/i.test(kaanaganRequest.userText.split('Contoh gaya')[1] || ''), 'Style examples sent to Gemini should not teach bah.')
+const strictRequest = buildGeminiCaptionRequest({ product: ayyash, goal: 'highlight', variation: 0, strict: true })
+assert(strictRequest.userText.includes('Cubaan semula') && !strictRequest.userText.includes('RM87'), 'A rejected caption should retry once with a stricter reminder and still no price.')
+assert(!ayyashRequest.userText.includes('Cubaan semula'), 'The first request should not already be the retry reminder.')
 assert(styleExamplesForVariation(0)[0].id !== styleExamplesForVariation(2)[0].id, 'Rotated windows should start on different examples.')
 
 const ayyashModel = `FACEBOOK:
@@ -170,6 +177,13 @@ assert(!kaanaganCaption.facebook.includes('Product details:'), 'A product with b
 
 assert(finalizeGeminiCaptions(`FACEBOOK:\nAYYASH ✨\nNgam ni.\nPiece ni.\n\nINSTAGRAM:\nAYYASH ✨\nNgam.\nPiece.\nLagi.\n\nTIKTOK:\nAYYASH ✨\nNgam.\nPiece.\nLagi. 😍`, { product: ayyash }) === null, 'A short caption should fall back.')
 assert(finalizeGeminiCaptions(ayyashModel.replace('susun satu sudut', 'mesej kami bah susun satu sudut'), { product: ayyash }) === null, 'The banned close should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Ngam ni', 'Ngam ni bah'), { product: ayyash }) === null, 'The word bah should fall back.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('AYYASH ni custom, ikut ruang kamu.', 'AYYASH ni diperbuat daripada kayu.'), { product: ayyash }) === null, 'Stiff standard Malay should fall back.')
+const sameLine = ayyashModel
+  .replace('Bahan dia upcycled pine dengan sealer satin, saiz dia 5 ft dan 20 in.', 'Sealer satin dia nampak licin.')
+  .replace('Bahan dia upcycled pine, saiz 5 ft dan 20 in.', 'Sealer satin dia nampak licin.')
+  .replace('Pine wood, 5 ft tinggi, 20 in lebar.', 'Sealer satin dia nampak licin.')
+assert(finalizeGeminiCaptions(sameLine, { product: ayyash }) === null, 'Identical line 4 should fall back.')
 assert(finalizeGeminiCaptions(ayyashModel.replace('AYYASH ni custom', 'AYYASH Wall Rack ni custom'), { product: ayyash }) === null, 'An appended category should fall back.')
 const copied = `FACEBOOK:
 AYYASH ✨
@@ -215,6 +229,10 @@ assert(/Do not start with the product name/i.test(code) && /ALL CAPITALS/.test(c
 assert(code.includes('validation: missing FACEBOOK, INSTAGRAM, or TIKTOK labels'), 'A caption without platform labels should record that validation failure.')
 assert(code.includes('line 4 dumps the sheet fields') && code.includes('opens with only the product name'), 'Template fallback should name the validation check.')
 assert(!code.includes('testBmCaptionLibrary_'), 'The editor samples should not depend on the Product Library sheet.')
+assert(code.includes('Never use the whole word bah') && code.includes('Cubaan semula') && code.includes('after one stricter retry'), 'The editor test should ban bah and retry once before the template.')
+assert(code.includes('function testBmSeparatePlatforms_') && code.includes('\\n\\n$1'), 'The editor log should put a blank line before each platform label.')
+assert(code.includes('line 4 is the same on more than one platform'), 'The editor test should reject an identical line 4.')
+assert(studio.includes('strict: true'), 'A failed Gemini caption should retry once before the template.')
 
 assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')
 assert(studio.includes('Guna template (Gemini tidak tersedia)') && studio.includes('generate_bm_caption') && studio.includes('Jana kapsyen') && studio.includes('Jana variasi lain'), 'The studio should try Gemini, then show the template note, and keep the generate buttons.')

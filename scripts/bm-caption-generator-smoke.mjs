@@ -61,8 +61,9 @@ function assertNatural(text) {
   }
 }
 
-// Recent Brutti posts and Soul: loghat shows up as bah, teda, ngam, kasi, ni, tinguk, jaaa.
-const soulDialect = /\b(bah|teda|ngam|kasi|jaaa|ni|tinguk|bikin)\b/i
+// Recent Brutti posts and Soul: loghat shows up as teda, ngam, kasi, ni, tinguk, jaaa.
+// bah is banned. Michelle says it reads as unnatural.
+const soulDialect = /\b(teda|ngam|kasi|jaaa|ni|tinguk|bikin|mau)\b/i
 
 function nonEmptyLines(text) {
   return String(text).split('\n').map((line) => line.trim()).filter(Boolean)
@@ -128,10 +129,14 @@ function assertPlatforms(output) {
     assert(lines.length >= 4 && lines.length <= 5, `${key} caption body must be 4 to 5 non-empty lines, got ${lines.length}:\n${output[key]}`)
     assert(!output[key].includes('#'), `${key} must not contain a hashtag:\n${output[key]}`)
     assert(!/\bnak\b/i.test(output[key]), `Banned whole word nak in ${key}:\n${output[key]}`)
+    assert(!/\bbah\b/i.test(output[key]), `Banned whole word bah in ${key}:\n${output[key]}`)
+    assert(!/\b(mahu|bersama|selepas)\b|diperbuat daripada|reka bentuk/i.test(output[key]), `Stiff Malay in ${key}:\n${output[key]}`)
     assert(!/mesej kami bah/i.test(output[key]), `Banned close in ${key}:\n${output[key]}`)
     assert(!/Price starts from\s+(?:starts from|bermula|price starts from)/i.test(output[key]), `Doubled price lead-in in ${key}:\n${output[key]}`)
     assert(!/^-\s*(?:Size|Materials|Finishing):\s*$/m.test(output[key]), `Blank product-detail line in ${key}:\n${output[key]}`)
   }
+  const fourth = ['facebook', 'instagram', 'tiktok'].map((key) => bodyLines(output[key])[3])
+  assert(new Set(fourth).size === 3, `Line 4 must differ across Facebook, Instagram, and TikTok:\n${fourth.join(' | ')}`)
 }
 
 const kaanagan = fallbackProduct('KAANAGAN Open Concept Wardrobe with Drawers')

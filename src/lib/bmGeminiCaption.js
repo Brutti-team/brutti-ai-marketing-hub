@@ -126,9 +126,11 @@ const SYSTEM_INSTRUCTION = `You write Facebook, Instagram, and TikTok captions f
 Voice
 - Sabahan Malay, short lines, one thought each. Light humour. One main point. First person "kami" when it fits.
 - Words that belong in this voice: ni, ngam, ja, kan, boleh, sudah, bikin, kasi, tinguk, mau, pigi, la, piece, custom, simple, client, display, drawer, storage, Team, ruang, bilik, nampak, senang, kemas, tempat, barang.
-- bah and teda are rare. Use at most one of them, and not in every caption.
-- Never use the whole word "nak". Use "mau".
+- Never use the whole word "bah". It sounds unnatural.
+- teda is rare. Use at most one, and not in every caption.
+- Never use the whole word "nak". Use "mau". Never write "mahu".
 - Never write the phrase "mesej kami bah".
+- Do not use these stiff words: diperbuat daripada, reka bentuk, bersama, selepas.
 - Do not use these words: tak, tau, mesej, whatsapp, sia, antam, jak, nda, katalog, kontena, penat, pelanggan, kedai, laci, paparan, storan, dm, inbox, hubungi, roger, sila, anda. Use "tidak" instead of "tak".
 - Do not paste founder biography, salaries, the pandemic story, or wallet stories into a product caption.
 - One or two emoji only, at the end of a line. No hashtag.
@@ -137,7 +139,9 @@ Shape
 - Each caption is 4 or 5 short lines. No blank line inside a caption. No title and no quotation marks around the caption.
 - Open on a small scene or "POV:". Do not start with the product name on its own line.
 - Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
-- Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Everyday words are fine ("upcycled pine", "warna natural"). Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, line 4 is a neutral look-and-feel line.
+- Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Facebook, Instagram, and TikTok must not share the same line 4.
+- Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Do not start every line 4 with "Bahan dia".
+- Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, each line 4 is a different neutral look-and-feel line.
 - Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
 - Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
 - Facebook, Instagram, and TikTok must be three different captions. Same real facts, different opening and rhythm.
@@ -187,11 +191,15 @@ function none(value) {
   return value ? value : '(tiada)'
 }
 
-function exampleBlock(examples) {
-  return examples.map((example, index) => `Contoh ${index + 1}\n${example.lines.join('\n')}`).join('\n\n')
+function dropBah(text) {
+  return String(text || '').replace(/\bbah\b/gi, ' ').replace(/[ ]{2,}/g, ' ').replace(/[ ]+([,!.?])/g, '$1').trim()
 }
 
-export function buildGeminiCaptionRequest({ product = null, topic = '', goal = 'highlight', note = '', variation = 0 } = {}) {
+function exampleBlock(examples) {
+  return examples.map((example, index) => `Contoh ${index + 1}\n${example.lines.map(dropBah).join('\n')}`).join('\n\n')
+}
+
+export function buildGeminiCaptionRequest({ product = null, topic = '', goal = 'highlight', note = '', variation = 0, strict = false } = {}) {
   const brief = captionBrief({ product, topic, note })
   if (!brief.name) return null
   const index = variationIndex(variation)
@@ -215,9 +223,12 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
     `Matlamat siaran: ${goalLabel(goal)}`,
     '',
     designFacts.length
-      ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah, contoh "Bahan dia upcycled pine, dengan sealer satin." Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga.'
-      : 'Tiada fakta design. Baris 4 ialah pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga.',
+      ? 'Fakta design untuk baris 4. Tulis satu ayat Sabah yang lain untuk Facebook, Instagram, dan TikTok. Jangan ulang ayat yang sama. Jangan mula semua dengan "Bahan dia". Satu ayat boleh pasal rasa atau kemasan, satu pasal tona atau warna, satu pasal saiz yang muat. Guna sudut itu hanya jika fakta dia ada di bawah. Jangan tampal fakta sebagai senarai. Jangan cipta bahan, saiz, warna, finishing, atau fungsi lain. Jangan tulis harga. Jangan guna perkataan bah.'
+      : 'Tiada fakta design. Tiga baris 4 mesti lain, pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga. Jangan guna perkataan bah.',
     designFacts.join('\n'),
+    strict
+      ? 'Cubaan semula. Kapsyen tadi ditolak. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, atau selepas. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.'
+      : '',
     '',
     'Contoh gaya dari pos Brutti. Ikut rentak sahaja. Jangan salin. Jangan pindahkan harga, material, stok, nama artisan, atau nama client dari contoh ke produk ini.',
     '',
@@ -262,6 +273,7 @@ function softenOfficialName(text, official, display) {
 function tidyLine(value) {
   return String(value || '')
     .replace(/\bnak\b/gi, (word) => (word[0] === 'N' ? 'Mau' : 'mau'))
+    .replace(/\bmahu\b/gi, (word) => (word[0] === 'M' ? 'Mau' : 'mau'))
     .replace(/#\S+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -358,15 +370,18 @@ function categoryAppended(lines, brief) {
 function designLineOk(lines, brief) {
   const line = (lines[3] || '').toLowerCase()
   const compact = line.replace(/\s+/g, '')
-  if (brief.note) return line.includes(brief.note.toLowerCase())
-  if (brief.descriptors.length) return brief.descriptors.some((item) => line.includes(item.toLowerCase()))
-  if (brief.colour) return line.includes(brief.colour.toLowerCase())
+  if (brief.note && line.includes(brief.note.toLowerCase())) return true
+  if ((brief.descriptors || []).some((item) => line.includes(item.toLowerCase()))) return true
+  if (brief.colour && line.includes(brief.colour.toLowerCase())) return true
+  const dimensions = String(brief.dimensions || '').toLowerCase()
+  if (dimensions.length >= 4 && line.includes(dimensions)) return true
   const words = `${brief.materials || ''} ${brief.finishing || ''}`
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((word) => word.length >= 4)
   const measures = String(brief.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []
-  if (!words.length && !measures.length) return true
+  const hasFact = Boolean(brief.note || (brief.descriptors || []).length || brief.colour || words.length || measures.length || dimensions)
+  if (!hasFact) return true
   if (measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))) return true
   return words.some((word) => line.includes(word))
 }
@@ -374,7 +389,8 @@ function designLineOk(lines, brief) {
 function platformOk(lines, brief, platform) {
   if (lines.length < 4 || lines.length > 5) return false
   const text = lines.join('\n')
-  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text)) return false
+  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text) || /\bbah\b/i.test(text)) return false
+  if (/\bdiperbuat daripada\b|\breka bentuk\b|\bbersama\b|\bselepas\b/i.test(text)) return false
   if (!text.includes(brief.name)) return false
   const emoji = emojiCount(text)
   if (emoji < 1 || emoji > 2) return false
@@ -400,6 +416,8 @@ export function finalizeGeminiCaptions(rawText, { product = null, topic = '', go
   if (!platformOk(platforms.tiktok, brief, 'tiktok')) return null
   const unique = new Set([norm(platforms.facebook.join(' ')), norm(platforms.instagram.join(' ')), norm(platforms.tiktok.join(' '))])
   if (unique.size < 3) return null
+  const designKeys = new Set([platforms.facebook[3], platforms.instagram[3], platforms.tiktok[3]].map(norm))
+  if (designKeys.size < 3) return null
   const details = brief.details.text
   const join = (lines) => (details ? `${lines.join('\n')}\n\n${details}` : lines.join('\n'))
   const index = variationIndex(variation)
