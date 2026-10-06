@@ -445,7 +445,7 @@ function fetchGeminiCaption_(apiKey, model, systemInstruction, userText, tempera
 
 function fetchGeminiCaptionOnce_(apiKey, model, systemInstruction, userText, temperature, limitThinking, useBearer) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
-  var generationConfig = { temperature: temperature, maxOutputTokens: limitThinking ? 800 : 1600, topP: 0.95 };
+  var generationConfig = { temperature: temperature, maxOutputTokens: 2048, topP: 0.95 };
   if (limitThinking) generationConfig.thinkingConfig = { thinkingBudget: 0 };
   var headers = { 'x-goog-api-key': apiKey };
   if (useBearer) headers = { Authorization: 'Bearer ' + apiKey };
@@ -560,15 +560,19 @@ function testBmCaptionOne_(product) {
     return header + '\nsource: TEMPLATE\nreason: ' + geminiFailureDetail_(first.result, apiKey) + '\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + first.result.code + '\n\n' + template;
   }
   var chosen = first;
-  if (first.reason) {
+  var nameGap = testBmMissingName_(first.softened, product);
+  if (!first.reason && nameGap) chosen = { result: first.result, softened: testBmInsertName_(first.softened, product), reason: '' };
+  else if (first.reason) {
     var second = testBmCaptionRead_(apiKey, product, true);
     if (second.transport) {
-      return header + '\nsource: TEMPLATE\nreason: ' + first.reason + ' | stricter retry ' + geminiFailureDetail_(second.result, apiKey) + '\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + first.result.code + '\n\n' + template;
+      return header + '\nsource: TEMPLATE\nreason: ' + (first.reason || nameGap) + ' | stricter retry ' + geminiFailureDetail_(second.result, apiKey) + '\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + first.result.code + '\n\n' + template;
     }
-    if (!second.reason) chosen = second;
+    var repaired = testBmInsertName_(second.softened, product);
+    var after = testBmCaptionReject_(repaired, product);
+    if (!after) chosen = { result: second.result, softened: repaired, reason: '' };
     else {
-      var rejected = redactGeminiSecret_(second.softened, apiKey).replace(/\s+$/g, '').substring(0, 700);
-      return header + '\nsource: TEMPLATE\nreason: ' + second.reason + ' (after one stricter retry)\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + second.result.code + '\nrejected: ' + rejected + '\n\n' + template;
+      var rejected = redactGeminiSecret_(second.softened, apiKey).replace(/\s+$/g, '').substring(0, 4000);
+      return header + '\nsource: TEMPLATE\nreason: ' + after + ' (after one stricter retry)\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + second.result.code + '\nrejected: ' + rejected + '\n\n' + template;
     }
   }
   return header + '\nsource: GEMINI\nmodel: ' + GEMINI_CAPTION_MODEL_ + '\nhttp: ' + chosen.result.code + '\n\n' + testBmCaptionFinal_(chosen.softened, product);
@@ -585,6 +589,32 @@ function testBmCaptionRead_(apiKey, product, strict) {
   var softened = testBmSoften_(text, String(product.name || ''), display);
   var reason = testBmCaptionReject_(softened, product);
   return { transport: false, result: result, reason: reason || '', softened: softened };
+}
+
+function testBmMissingName_(text, product) {
+  var display = testBmCaptionDisplayName_(product.name);
+  var labels = ['FACEBOOK', 'INSTAGRAM', 'TIKTOK'];
+  for (var i = 0; i < labels.length; i += 1) {
+    var lines = testBmSection_(text, labels[i]);
+    if (lines.length && lines.join('\n').indexOf(display) < 0) return 'validation: ' + labels[i] + ' does not mention ' + display;
+  }
+  return '';
+}
+
+function testBmInsertName_(text, product) {
+  var display = testBmCaptionDisplayName_(product.name);
+  var facebook = testBmSection_(text, 'FACEBOOK');
+  var instagram = testBmSection_(text, 'INSTAGRAM');
+  var tiktok = testBmSection_(text, 'TIKTOK');
+  if (!facebook.length || !instagram.length || !tiktok.length) return text;
+  function fix(lines) {
+    if (!display || lines.join('\n').indexOf(display) >= 0) return lines;
+    var copy = lines.slice();
+    var slot = copy.length >= 2 ? 1 : 0;
+    copy[slot] = display + ' ni. ' + copy[slot];
+    return copy;
+  }
+  return ['FACEBOOK:', fix(facebook).join('\n'), '', 'INSTAGRAM:', fix(instagram).join('\n'), '', 'TIKTOK:', fix(tiktok).join('\n')].join('\n');
 }
 
 function testBmCaptionRequest_(product, strict) {
@@ -606,11 +636,12 @@ function testBmCaptionRequest_(product, strict) {
     'Never use the whole word bah. It sounds unnatural.',
     'Never use the whole word nak. Use mau. Never write mahu. Never write mesej kami bah.',
     'Do not use diperbuat daripada, reka bentuk, bersama, or selepas.',
+    'Do not use odd phrases such as kepala-otak.',
     'Do not use sila, contact, dm, tak, tau, mesej, whatsapp, hubungi, or anda. Use tidak instead of tak.',
     'Each caption is 4 or 5 short lines. One or two emoji only. No hashtag.',
     'Do not start with the product name on its own line. Open on a small scene or POV.',
     'Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category.',
-    'Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message.',
+    'Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Everyday words and any word order are fine, such as kayu pine upcycled or standard single.',
     'Facebook, Instagram, and TikTok must not share the same line 4.',
     'Do not paste the fields as a comma-separated list.',
     'Do not invent any other material, size, colour, or feature. Do not write the price.',
@@ -650,6 +681,9 @@ function testBmCaptionRequest_(product, strict) {
     userLines.push('Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, atau selepas. Guna mau.');
     userLines.push('Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza.');
     userLines.push('Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah.');
+    userLines.push('Nama produk mesti disebut dalam setiap kapsyen: ' + display + '. Kalau belum ada, letak dalam baris 2 atau 3.');
+    userLines.push('Jangan guna frasa pelik seperti kepala-otak.');
+    userLines.push('Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan, contoh kayu pine upcycled atau standard single.');
     userLines.push('Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.');
   }
   userLines.push('Contoh gaya. Ikut rentak sahaja. Jangan salin. Jangan guna bah.');
@@ -766,22 +800,32 @@ function testBmLeak_(lines, product) {
   return '';
 }
 
-function testBmDesignOk_(lines, product) {
-  var line = String(lines[3] || '').toLowerCase();
-  var compact = line.replace(/\s+/g, '');
-  var colour = String(product.colour || '').trim().toLowerCase();
-  var dimensions = String(product.dimensions || '').trim().toLowerCase();
-  if (colour && line.indexOf(colour) >= 0) return true;
-  if (dimensions.length >= 4 && line.indexOf(dimensions) >= 0) return true;
+function testBmFactWords_(product) {
   var split = testBmCaptionMaterial_(product.material);
-  var words = (split.materials + ' ' + split.finishing).toLowerCase().split(/[^a-z0-9]+/).filter(function (word) {
-    return word.length >= 4;
+  var blob = [split.materials, split.finishing, product.colour, product.dimensions].filter(Boolean).join(' ');
+  var stop = { with: 1, from: 1, and: 1, the: 1, yang: 1, untuk: 1, atau: 1 };
+  var words = {};
+  blob.toLowerCase().split(/[^a-z0-9]+/).forEach(function (word) {
+    if (word.length >= 4 && !stop[word]) words[word] = 1;
   });
+  if (/wood|timber|pine|plywood|oak|teak|jati/i.test(blob)) words.kayu = 1;
+  if (/\bkayu\b/i.test(blob)) words.wood = 1;
+  if (/steel|iron|metal|\bbesi\b/i.test(blob)) words.besi = 1;
+  if (/glass|\bkaca\b/i.test(blob)) words.kaca = 1;
+  return words;
+}
+
+function testBmDesignOk_(lines, product) {
+  var words = testBmFactWords_(product);
+  var keys = Object.keys(words);
   var measures = String(product.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || [];
-  var hasFact = Boolean(colour || words.length || measures.length || dimensions);
-  if (!hasFact) return true;
-  if (measures.filter(function (token) { return compact.indexOf(token.toLowerCase().replace(/\s+/g, '')) >= 0; }).length) return true;
-  return words.filter(function (word) { return line.indexOf(word) >= 0; }).length > 0;
+  var colour = String(product.colour || '').trim().toLowerCase();
+  if (!keys.length && !measures.length && !colour) return true;
+  var window = lines.slice(2, 5).join('\n').toLowerCase();
+  var compact = window.replace(/\s+/g, '');
+  if (colour && window.indexOf(colour) >= 0) return true;
+  if (keys.filter(function (word) { return window.indexOf(word) >= 0; }).length) return true;
+  return measures.filter(function (token) { return compact.indexOf(token.toLowerCase().replace(/\s+/g, '')) >= 0; }).length > 0;
 }
 
 function testBmCategoryAppended_(lines, product, display) {
@@ -819,7 +863,7 @@ function testBmStiff_(text) {
   if (/\breka bentuk\b/i.test(text)) return 'uses reka bentuk';
   if (/\bbersama\b/i.test(text)) return 'uses bersama';
   if (/\bselepas\b/i.test(text)) return 'uses selepas';
-  if (/\bmahu\b/i.test(text)) return 'uses mahu';
+  if (/kepala-otak/i.test(text)) return 'uses kepala-otak';
   return '';
 }
 
@@ -830,9 +874,9 @@ function testBmPlatformReason_(lines, product, display, label) {
   if (/mesej kami bah/i.test(text)) return 'validation: ' + label + ' contains mesej kami bah';
   if (/\bnak\b/i.test(text)) return 'validation: ' + label + ' contains nak';
   if (/\bbah\b/i.test(text)) return 'validation: ' + label + ' uses bah';
+  if (/kepala-otak/i.test(text)) return 'validation: ' + label + ' uses kepala-otak';
   var stiff = testBmStiff_(text);
   if (stiff) return 'validation: ' + label + ' ' + stiff;
-  if (text.indexOf(display) < 0) return 'validation: ' + label + ' does not mention ' + display;
   var official = String(product.name || '').trim();
   if (official && official === official.toUpperCase() && official.length > 2 && new RegExp('\\b' + official.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(text)) {
     return 'validation: ' + label + ' still writes the product name in ALL CAPITALS';
@@ -887,16 +931,18 @@ function testBmDesignSentences_(product) {
   }).slice(0, 2);
   var material = materialBits.join(' ');
   var finish = finishBits.join(' ');
-  var room = product.name === 'SUMANDAK' ? 'bilik tetamu' : product.name === 'TANAKVAGU' ? 'bilik ni' : 'sudut ni';
+  var sizeWords = String(size || '').toLowerCase().split(/[^a-z0-9]+/).filter(function (word) {
+    return word.length >= 4;
+  }).slice(0, 3).join(' ');
+  var sizeBits = (String(size || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []).join(' dan ') || sizeWords;
   var sentences = [];
-  if (finish) testBmPushUnique_(sentences, 'Kemasan ' + finish + ' dia, nampak licin untuk ' + room + '.');
-  if (colour) testBmPushUnique_(sentences, 'Tona dia ' + colour + ', ngam untuk ' + room + '.');
-  else if (material) testBmPushUnique_(sentences, material + ' dia nampak simple, ngam untuk ' + room + '.');
-  if (size) testBmPushUnique_(sentences, 'Saiz dia ' + size + ', muat untuk ' + room + '.');
+  if (finish) testBmPushUnique_(sentences, 'Kemasan ' + finish + ' dia, nampak licin.');
+  if (colour) testBmPushUnique_(sentences, 'Tona dia ' + colour + ', nampak hangat.');
+  else if (material) testBmPushUnique_(sentences, material + ' dia nampak simple.');
+  if (sizeBits) testBmPushUnique_(sentences, 'Saiz ' + sizeBits + ' dia, nampak muat.');
   if (colour) testBmPushUnique_(sentences, 'Warna ' + colour + ' dia senang mata nampak.');
   if (finish) testBmPushUnique_(sentences, 'Sentuhan ' + finish + ' dia nampak licin.');
   if (material) testBmPushUnique_(sentences, material + ' dia, nampak kemas.');
-  if (size) testBmPushUnique_(sentences, 'Muat dia ' + size + ', untuk ruang tu.');
   if (!sentences.length) {
     testBmPushUnique_(sentences, 'Nampak simple, dan kemas.');
     testBmPushUnique_(sentences, 'Piece ni simple, senang mata nampak.');
@@ -910,27 +956,9 @@ function testBmCaptionTemplate_(product) {
   var bank = testBmDesignSentences_(product);
   var shift = product.name === 'SUMANDAK' ? 2 : product.name === 'TANAKVAGU' ? 1 : 0;
   var design = [0, 1, 2].map(function (offset) { return bank[(offset + shift) % 3]; });
-  var bed = /bed|katil/i.test(String(product.category || ''));
-  var facebook;
-  var instagram;
-  var tiktok;
-  if (product.name === 'SUMANDAK') {
-    facebook = ['POV: bilik tetamu, katil belum ada. ✨', name + ' ni ngam untuk bilik tetamu.', 'Piece ni custom, ikut ruang.', design[0] + ' 😍'];
-    instagram = ['Kadang bilik kecil pun boleh ada katil yang ngam. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design[1] + ' 😉'];
-    tiktok = ['POV: satu bilik, ruang masih ada. ✨', name + ' ni.', 'Ngam untuk tetamu yang singgah.', design[2]];
-  } else if (product.name === 'TANAKVAGU') {
-    facebook = ['POV: bilik yang mau nampak simple. ✨', name + ' ni ngam untuk satu orang.', 'Piece ni custom, ikut ruang.', design[0] + ' 😍'];
-    instagram = ['Ada bilik yang katil dia belum kemas. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design[1] + ' 😉'];
-    tiktok = ['POV: malam ni, katil sudah siap. ✨', name + ' ni.', 'Ngam untuk bilik yang mau simple.', design[2]];
-  } else if (bed) {
-    facebook = ['POV: bilik tetamu, katil belum ada. ✨', name + ' ni ngam untuk bilik yang mau simple.', 'Piece ni custom, ikut ruang.', design[0] + ' 😍'];
-    instagram = ['Kadang bilik kecil pun boleh ada katil yang ngam. 🌿', name + ' ni untuk rehat.', 'Custom, ikut bilik kamu.', design[1] + ' 😉'];
-    tiktok = ['POV: satu bilik, satu katil yang kemas. ✨', name + ' ni.', 'Ngam untuk ruang yang mau simple.', design[2]];
-  } else {
-    facebook = ['POV: barang kecil, belum ada tempat. ✨', name + ' ni ngam untuk susun satu sudut.', 'Setiap barang, satu tempat.', design[0] + ' 😍'];
-    instagram = ['Ada sudut yang barang dia banyak. 🌿', name + ' ni, barang harian ada tempat.', 'Ruang rumah lebih kemas.', design[1] + ' 😉'];
-    tiktok = ['Satu sudut dulu, tidak perlu ubah semua. ✨', name + ' ni.', 'Barang kecil pun kena ada tempat.', design[2]];
-  }
+  var facebook = ['POV: nampak simple dari jauh. ✨', name + ' ni.', 'Senang mata nampak.', design[0] + ' 😍'];
+  var instagram = ['Ada piece yang baru siap. 🌿', name + ' ni, nampak kemas.', 'Satu piece, fungsi dia jelas.', design[1] + ' 😉'];
+  var tiktok = ['Nampak sekali, terus ngam. ✨', name + ' ni.', 'Senang mata nampak.', design[2]];
   var body = ['FACEBOOK:', facebook.join('\n'), '', 'INSTAGRAM:', instagram.join('\n'), '', 'TIKTOK:', tiktok.join('\n')].join('\n');
   return testBmCaptionFinal_(body, product);
 }

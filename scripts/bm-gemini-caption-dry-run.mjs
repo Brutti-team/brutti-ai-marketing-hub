@@ -57,7 +57,7 @@ function assertRequest(request, label) {
   assert(/do not write a product details list/i.test(request.systemInstruction), `${label} system prompt should leave the details list to the app.`)
   assert((request.userText.match(/^Contoh \d+$/gm) || []).length === 8, `${label} should seed 8 style examples.`)
   assert(request.generationConfig.temperature === request.temperature, `${label} temperature should match the generation config.`)
-  assert(request.generationConfig.maxOutputTokens === 800, `${label} should cap output tokens.`)
+  assert(request.generationConfig.maxOutputTokens === 2048, `${label} should leave enough tokens for three full captions.`)
   assert(request.generationConfig.thinkingConfig.thinkingBudget === 0, `${label} should disable thinking on the free tier.`)
   assert(request.userText.includes('jangan tulis ini selepas nama'), `${label} should tell the model not to append the category.`)
   assert(!/\bRM\s?\d/i.test(request.userText) && !/bermula/i.test(request.userText), `${label} prompt must not hand the price to the model.`)
@@ -208,6 +208,37 @@ assert(finalizeGeminiCaptions(ayyashModel.replace('5 ft dan 20 in', '9 ft dan oa
 assert(finalizeGeminiCaptions(ayyashModel.replace('POV: tuala belum ada tempat. ✨', 'Ayyash ✨'), { product: ayyash }) === null, 'A caption that opens with only the product name should fall back.')
 assert(finalizeGeminiCaptions(ayyashModel.replace('Bahan dia upcycled pine dengan sealer satin, saiz dia 5 ft dan 20 in.', 'Solid Upcycled Pine Wood, Sealer & Satin Coating, 5 ft H × 20 in W'), { product: ayyash }) === null, 'A comma-separated fact dump should fall back.')
 assert(finalizeGeminiCaptions(ayyashModel, { product: ayyash })?.facebook.includes('upcycled pine'), 'A sheet material written as a sentence should be kept.')
+const mahuCaption = finalizeGeminiCaptions(ayyashModel.replaceAll('Ngam ni', 'Mahu ni'), { product: ayyash })
+assert(mahuCaption && !/\bmahu\b/i.test(mahuCaption.facebook) && /\bmau\b/i.test(mahuCaption.facebook), 'Mahu should be rewritten to mau.')
+assert(finalizeGeminiCaptions(ayyashModel.replace('Ngam ni', 'Ngam kepala-otak'), { product: ayyash }) === null, 'An odd phrase such as kepala-otak should fall back.')
+const tanakvagu = {
+  name: 'TANAKVAGU',
+  category: 'Single Bed',
+  price: 'RM717',
+  material: 'Solid Upcycled Pine Wood with Sealer & Satin Coating',
+  dimensions: 'Standard Single (6\'3" W x 3\' D)',
+  colour: 'Natural Wood',
+}
+const tanakModel = `FACEBOOK:
+POV: malam ni nampak kemas. ✨
+Ada piece yang baru siap.
+Kayu pine upcycled solid dia nampak cantik sangat di bilik.
+Saiz standard single ni muat ngam untuk ruang yang tidak begitu luas. 😍
+
+INSTAGRAM:
+Nampak simple dari jauh. 🌿
+Ada piece lain yang kemas.
+Kayu dia upcycled pine.
+Warna natural wood dia nampak hangat. 😉
+
+TIKTOK:
+Nampak sekali terus ngam. ✨
+Piece ni untuk rehat.
+Sealer satin dia nampak licin.
+Saiz standard single, muat untuk seorang. 😍`
+const tanakCaption = finalizeGeminiCaptions(tanakModel, { product: tanakvagu })
+assert(tanakCaption?.facebook.includes('Tanakvagu') && tanakCaption.facebook.includes('standard single'), 'A real size said in everyday words should be kept, and a missing name should be inserted.')
+assert(!/\bbah\b/i.test(tanakCaption.facebook), 'The repaired caption should not add bah.')
 
 assert(code.includes("generate_bm_caption: () => generateBmCaption_(payload)"), 'Apps Script should route the caption action through the existing POST handler.')
 assert(code.includes("scriptProperties_().getProperty('GEMINI_API_KEY')"), 'The Gemini key should be read from Script Properties.')
@@ -232,6 +263,9 @@ assert(!code.includes('testBmCaptionLibrary_'), 'The editor samples should not d
 assert(code.includes('Never use the whole word bah') && code.includes('Cubaan semula') && code.includes('after one stricter retry'), 'The editor test should ban bah and retry once before the template.')
 assert(code.includes('function testBmSeparatePlatforms_') && code.includes('\\n\\n$1'), 'The editor log should put a blank line before each platform label.')
 assert(code.includes('line 4 is the same on more than one platform'), 'The editor test should reject an identical line 4.')
+assert(code.includes('maxOutputTokens: 2048'), 'The editor call should allow enough tokens for the full caption.')
+assert(code.includes('kepala-otak'), 'The editor prompt should ban odd phrases such as kepala-otak.')
+assert(!code.includes('bilik tetamu') && !code.includes('ikut ruang'), 'The editor template should not invent a room or a custom fit.')
 assert(studio.includes('strict: true'), 'A failed Gemini caption should retry once before the template.')
 
 assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')

@@ -131,6 +131,7 @@ Voice
 - Never use the whole word "nak". Use "mau". Never write "mahu".
 - Never write the phrase "mesej kami bah".
 - Do not use these stiff words: diperbuat daripada, reka bentuk, bersama, selepas.
+- Do not use odd phrases such as "kepala-otak".
 - Do not use these words: tak, tau, mesej, whatsapp, sia, antam, jak, nda, katalog, kontena, penat, pelanggan, kedai, laci, paparan, storan, dm, inbox, hubungi, roger, sila, anda. Use "tidak" instead of "tak".
 - Do not paste founder biography, salaries, the pandemic story, or wallet stories into a product caption.
 - One or two emoji only, at the end of a line. No hashtag.
@@ -140,7 +141,7 @@ Shape
 - Open on a small scene or "POV:". Do not start with the product name on its own line.
 - Mention the product by the title-case name in the user message. Never write that name in ALL CAPITALS. Never append the category or a generic type after the name.
 - Line 4 explains the design in one natural Sabah sentence, using only the real facts in the user message. Facebook, Instagram, and TikTok must not share the same line 4.
-- Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Do not start every line 4 with "Bahan dia".
+- Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Everyday words and any word order are fine, such as "kayu pine upcycled" or "standard single". Do not start every line 4 with "Bahan dia".
 - Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, each line 4 is a different neutral look-and-feel line.
 - Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
 - Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
@@ -227,7 +228,7 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
       : 'Tiada fakta design. Tiga baris 4 mesti lain, pandangan neutral, tanpa bahan, saiz, bentuk, warna, atau fungsi baru. Jangan tulis harga. Jangan guna perkataan bah.',
     designFacts.join('\n'),
     strict
-      ? 'Cubaan semula. Kapsyen tadi ditolak. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, atau selepas. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.'
+      ? `Cubaan semula. Kapsyen tadi ditolak. Nama produk mesti disebut dalam setiap kapsyen: ${brief.name}. Kalau belum ada, letak dalam baris 2 atau 3. Jangan guna perkataan bah, langsung. Jangan guna diperbuat daripada, mahu, reka bentuk, bersama, selepas, atau kepala-otak. Guna mau. Baris 4 Facebook, Instagram, dan TikTok mesti tiga ayat berbeza. Fakta boleh disebut dalam ayat biasa, apa-apa susunan perkataan. Kekal 4 atau 5 baris, nama dalam title case, tanpa hashtag, tanpa nak, tanpa mesej kami bah. Letak satu baris kosong sebelum INSTAGRAM: dan sebelum TIKTOK:.`
       : '',
     '',
     'Contoh gaya dari pos Brutti. Ikut rentak sahaja. Jangan salin. Jangan pindahkan harga, material, stok, nama artisan, atau nama client dari contoh ke produk ini.',
@@ -243,7 +244,7 @@ export function buildGeminiCaptionRequest({ product = null, topic = '', goal = '
     temperature,
     generationConfig: {
       temperature,
-      maxOutputTokens: 800,
+      maxOutputTokens: 2048,
       topP: 0.95,
       thinkingConfig: { thinkingBudget: 0 },
     },
@@ -367,29 +368,57 @@ function categoryAppended(lines, brief) {
   return pattern.test(lines.join('\n'))
 }
 
-function designLineOk(lines, brief) {
-  const line = (lines[3] || '').toLowerCase()
-  const compact = line.replace(/\s+/g, '')
-  if (brief.note && line.includes(brief.note.toLowerCase())) return true
-  if ((brief.descriptors || []).some((item) => line.includes(item.toLowerCase()))) return true
-  if (brief.colour && line.includes(brief.colour.toLowerCase())) return true
-  const dimensions = String(brief.dimensions || '').toLowerCase()
-  if (dimensions.length >= 4 && line.includes(dimensions)) return true
-  const words = `${brief.materials || ''} ${brief.finishing || ''}`
+const FACT_STOP = new Set(['with', 'from', 'and', 'the', 'yang', 'untuk', 'atau', 'this', 'that'])
+
+function factTokens(value) {
+  return String(value || '')
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter((word) => word.length >= 4)
+    .filter((word) => word.length >= 4 && !FACT_STOP.has(word))
+}
+
+function designFactWords(brief) {
+  const words = new Set([
+    ...factTokens(brief.materials),
+    ...factTokens(brief.finishing),
+    ...factTokens(brief.colour),
+    ...factTokens(brief.dimensions),
+    ...factTokens(brief.note),
+    ...(brief.descriptors || []).flatMap((item) => factTokens(item)),
+  ])
+  const blob = `${brief.materials || ''} ${brief.finishing || ''} ${brief.note || ''}`.toLowerCase()
+  if (/wood|timber|pine|plywood|oak|teak|jati/.test(blob)) words.add('kayu')
+  if (/\bkayu\b/.test(blob)) words.add('wood')
+  if (/steel|iron|metal|\bbesi\b/.test(blob)) words.add('besi')
+  if (/glass|\bkaca\b/.test(blob)) words.add('kaca')
+  return [...words]
+}
+
+function designLineOk(lines, brief) {
+  const facts = designFactWords(brief)
   const measures = String(brief.dimensions || '').match(/\d+(?:[.,]\d+)?\s*(?:cm|mm|ft|in)\b/gi) || []
-  const hasFact = Boolean(brief.note || (brief.descriptors || []).length || brief.colour || words.length || measures.length || dimensions)
+  const hasFact = Boolean(facts.length || measures.length || brief.note || brief.colour)
   if (!hasFact) return true
-  if (measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))) return true
-  return words.some((word) => line.includes(word))
+  const window = lines.slice(2, 5).join('\n').toLowerCase()
+  const compact = window.replace(/\s+/g, '')
+  if (brief.note && window.includes(String(brief.note).toLowerCase())) return true
+  if (brief.colour && window.includes(String(brief.colour).toLowerCase())) return true
+  if (facts.some((word) => window.includes(word))) return true
+  return measures.some((token) => compact.includes(token.toLowerCase().replace(/\s+/g, '')))
+}
+
+function withProductName(lines, name) {
+  if (!name || lines.join('\n').includes(name)) return lines
+  const next = lines.slice()
+  const slot = next.length >= 2 ? 1 : 0
+  next[slot] = `${name} ni. ${next[slot] || ''}`.trim()
+  return next
 }
 
 function platformOk(lines, brief, platform) {
   if (lines.length < 4 || lines.length > 5) return false
   const text = lines.join('\n')
-  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text) || /\bbah\b/i.test(text)) return false
+  if (/#/.test(text) || /mesej kami bah/i.test(text) || /\bnak\b/i.test(text) || /\bbah\b/i.test(text) || /kepala-otak/i.test(text)) return false
   if (/\bdiperbuat daripada\b|\breka bentuk\b|\bbersama\b|\bselepas\b/i.test(text)) return false
   if (!text.includes(brief.name)) return false
   const emoji = emojiCount(text)
@@ -407,9 +436,9 @@ export function finalizeGeminiCaptions(rawText, { product = null, topic = '', go
   if (!brief.name) return null
   const text = softenOfficialName(stripFences(rawText), brief.officialName, brief.name)
   const platforms = {
-    facebook: captionLines(section(text, 'FACEBOOK')),
-    instagram: captionLines(section(text, 'INSTAGRAM')),
-    tiktok: captionLines(section(text, 'TIKTOK')),
+    facebook: withProductName(captionLines(section(text, 'FACEBOOK')), brief.name),
+    instagram: withProductName(captionLines(section(text, 'INSTAGRAM')), brief.name),
+    tiktok: withProductName(captionLines(section(text, 'TIKTOK')), brief.name),
   }
   if (!platformOk(platforms.facebook, brief, 'facebook')) return null
   if (!platformOk(platforms.instagram, brief, 'instagram')) return null
