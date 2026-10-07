@@ -353,12 +353,12 @@ function translateDocument(language) {
   while (walker.nextNode()) nodes.push(walker.currentNode)
   nodes.forEach((node) => {
     const parent = node.parentElement
-    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content]')) return
+    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content], .bm-caption-studio')) return
     const next = replaceText(node.nodeValue || '', dictionary, language)
     if (next !== node.nodeValue) node.nodeValue = next
   })
   document.querySelectorAll('[placeholder], [aria-label], [title]').forEach((element) => {
-    if (element.closest('.app-language-control')) return
+    if (element.closest('.app-language-control, .bm-caption-studio')) return
     ;['placeholder', 'aria-label', 'title'].forEach((attribute) => {
       const value = element.getAttribute(attribute)
       if (!value) return

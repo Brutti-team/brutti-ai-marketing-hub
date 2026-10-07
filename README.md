@@ -13,7 +13,7 @@ The GitHub Pages website is an installable Progressive Web App (PWA). It keeps t
 
 ## Free AI Assist Mode
 
-The production website does not call a paid AI API and does not require staff to open a separate AI platform. Penjana Kapsyen may call Google Gemini on the free tier through Apps Script. Leave billing off on that Google project. If the key is missing, the free quota is used up, or the call fails, the same tab falls back to the local template generator and shows `Guna template (Gemini tidak tersedia)`. The browser never receives the Gemini key. The rest of the site stays a no-cost assisted workflow:
+The production website does not call a paid AI API and does not require staff to open a separate AI platform. The caption generator may call Google Gemini on the free tier through Apps Script. Leave billing off on that Google project. If the key is missing, the free quota is used up, or the call fails, the same tab falls back to the local template generator and shows `Using template (Gemini unavailable)`. The browser never receives the Gemini key. The rest of the site stays a no-cost assisted workflow:
 
 - generate a structured Facebook draft from BRUTTI templates and verified facts
 - polish rough Bahasa Melayu wording into a clearer Brutti-style direction before caption generation, with one-click undo

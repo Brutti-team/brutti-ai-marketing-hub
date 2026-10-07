@@ -276,7 +276,7 @@ assert(!generateBmCaptions({ variation: 0 }).facebook, 'Missing product and topi
 
 assert(!/\b(fetch|openai|supabase|generativelanguage|api\.openai)\b/i.test(engine), 'The caption generator must stay local.')
 assert(engine.includes('HUMOUR') && engine.includes('Product details:'), 'Phrase banks and the product details block should live in the generator.')
-assert(app.includes('BmCaptionStudio') && app.includes('Penjana Kapsyen') && app.includes("useState('caption')"), 'Content Studio should open on the Malay caption generator.')
+assert(app.includes('BmCaptionStudio') && app.includes('Caption generator') && app.includes("useState('caption')"), 'Content Studio should open on the caption generator.')
 assert(posts.includes('meta-post-list') && posts.includes('meta-post-drawer'), 'The locked Post List and its side panel must stay in place.')
 assert(packageJson.includes('quality:bm-caption'), 'The check script must call the caption smoke test.')
 
