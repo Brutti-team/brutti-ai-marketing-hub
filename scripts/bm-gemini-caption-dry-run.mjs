@@ -136,7 +136,7 @@ assert(ayyashCaption?.source === 'gemini', 'A valid model caption should be acce
 assert(ayyashCaption.facebook.startsWith('Tuala') && !/^POV\b/i.test(ayyashCaption.facebook), 'A POV opener should be stripped and the next word capitalized.')
 assert(ayyashCaption.facebook.includes('Ayyash') && !/\bAYYASH\b/.test(ayyashCaption.facebook), 'An all-caps product name should be rewritten in title case.')
 assert(!ayyashCaption.facebook.includes('RM999') && !ayyashCaption.facebook.includes('9 ft'), 'Invented model details must be dropped.')
-assert(ayyashCaption.facebook.includes('Product details:\n\n- Size: 5 ft H × 20 in W\n- Materials: Solid Upcycled Pine Wood\n- Finishing: Sealer & Satin Coating\n- Price starts from RM87'), 'Real AYYASH details are appended in code.')
+assert(ayyashCaption.facebook.includes('Product Details:\n• Size: 5 ft H × 20 in W\n• Materials: Solid Upcycled Pine Wood\n• Finishing: Sealer & Satin Coating\n• Price starts from RM87'), 'Real AYYASH details are appended in code.')
 assert(captionBrief({ product: ayyash }).details.used.includes('price'), 'Used facts should still come from the sheet.')
 
 const eunoiaModel = `FACEBOOK:
@@ -157,8 +157,8 @@ Ngam untuk jualan kamu.
 Piece ni custom, ikut ruang.
 75cm, itu saiz dia. 😍`
 const eunoiaCaption = finalizeGeminiCaptions(eunoiaModel, { product: eunoia, goal: 'highlight', variation: 0 })
-assert(eunoiaCaption.facebook.includes(`Product details:\n\n- Size: ${eunoiaSize}\n- Price starts from RM487`), 'Eunoia details should keep the stored size and one price lead-in.')
-assert(!eunoiaCaption.facebook.includes('- Materials:') && !/bermula/i.test(eunoiaCaption.facebook), 'Blank material and the bermula prefix stay out.')
+assert(eunoiaCaption.facebook.includes(`Product Details:\n• Size: ${eunoiaSize}\n• Price starts from RM487`), 'Eunoia details should keep the stored size and one price lead-in.')
+assert(!eunoiaCaption.facebook.includes('• Materials:') && !/bermula/i.test(eunoiaCaption.facebook), 'Blank material and the bermula prefix stay out.')
 
 const kaanaganModel = `FACEBOOK:
 POV: baju banyak, tapi belum ada tempat. ✨
@@ -179,7 +179,7 @@ Piece ni custom, ikut ruang.
 kaki besi, top kayu, itu design dia. 😍`
 const kaanaganCaption = finalizeGeminiCaptions(kaanaganModel, { product: kaanagan, note: 'kaki besi, top kayu', variation: 2 })
 assert(kaanaganCaption?.variation === 2 && kaanaganCaption.facebook.includes('kaki besi, top kayu'), 'The design note should survive on the accepted caption.')
-assert(!kaanaganCaption.facebook.includes('Product details:'), 'A product with blank sheet fields should not gain a details block.')
+assert(!kaanaganCaption.facebook.includes('Product Details:'), 'A product with blank sheet fields should not gain a details block.')
 
 assert(finalizeGeminiCaptions(`FACEBOOK:\nAYYASH ✨\nNgam ni.\nPiece ni.\n\nINSTAGRAM:\nAYYASH ✨\nNgam.\nPiece.\nLagi.\n\nTIKTOK:\nAYYASH ✨\nNgam.\nPiece.\nLagi. 😍`, { product: ayyash }) === null, 'A short caption should ask for one retry.')
 assert(finalizeGeminiCaptions(`FACEBOOK:\nAYYASH ✨\nNgam ni.\nPiece ni.\n\nINSTAGRAM:\nAYYASH ✨\nNgam.\nPiece.\nLagi.\n\nTIKTOK:\nAYYASH ✨\nNgam.\nPiece.\nLagi. 😍`, { product: ayyash, allowSoft: true })?.source === 'gemini', 'A short caption should stay Gemini after the retry.')
@@ -282,6 +282,7 @@ assert(code.includes('Never use the whole word bah') && code.includes('Cubaan se
 assert(code.includes('function testBmSeparatePlatforms_') && code.includes('\\n\\n$1'), 'The editor log should put a blank line before each platform label.')
 assert(code.includes('line 4 is the same on more than one platform'), 'The editor test should reject an identical line 4.')
 assert(code.includes('maxOutputTokens: 2048'), 'The editor call should allow enough tokens for the full caption.')
+assert(code.includes("body + '\\n\\nProduct Details:\\n'") && code.includes("'• Size: '") && code.includes("'• Materials: '") && code.includes("'• Finishing: '") && code.includes("'• Price starts from '") && code.includes('only\\b'), 'The editor test should append Product Details as bullets and drop a trailing only.')
 assert(code.includes('kepala-otak'), 'The editor prompt should ban odd phrases such as kepala-otak.')
 assert(!code.includes('bilik tetamu') && !code.includes('ikut ruang'), 'The editor template should not invent a room or a custom fit.')
 assert(studio.includes('strict: true'), 'A failed Gemini caption should retry once before the template.')
