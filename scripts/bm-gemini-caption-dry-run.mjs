@@ -287,7 +287,7 @@ assert(!code.includes('bilik tetamu') && !code.includes('ikut ruang'), 'The edit
 assert(studio.includes('strict: true'), 'A failed Gemini caption should retry once before the template.')
 
 assert(readme.includes('GEMINI_API_KEY') && /billing disabled/i.test(readme) && /do not enable billing/i.test(readme), 'README should say where the key goes and that billing stays off.')
-assert(studio.includes('Guna template (Gemini tidak tersedia)') && studio.includes('generate_bm_caption') && studio.includes('Jana kapsyen') && studio.includes('Jana variasi lain'), 'The studio should try Gemini, then show the template note, and keep the generate buttons.')
+assert(studio.includes('Using template (Gemini unavailable)') && studio.includes('generate_bm_caption') && studio.includes('Generate caption') && studio.includes('Generate another variation') && studio.includes('Topic (if no product)') && studio.includes("topic: product ? '' : topic") && studio.includes('productDetails'), 'The studio should try Gemini, then show the template note, hide the topic when a product is selected, and keep the generate buttons.')
 
 function outline(request) {
   const name = request.userText.match(/selepasnya: (.+)/)?.[1] || ''
