@@ -13,7 +13,7 @@ The GitHub Pages website is an installable Progressive Web App (PWA). It keeps t
 
 ## Free AI Assist Mode
 
-The production website does not call a paid AI API and does not require staff to open a separate AI platform. Instead it provides a no-cost assisted workflow:
+The production website does not call a paid AI API and does not require staff to open a separate AI platform. Penjana Kapsyen may call Google Gemini on the free tier through Apps Script. Leave billing off on that Google project. If the key is missing, the free quota is used up, or the call fails, the same tab falls back to the local template generator and shows `Guna template (Gemini tidak tersedia)`. The browser never receives the Gemini key. The rest of the site stays a no-cost assisted workflow:
 
 - generate a structured Facebook draft from BRUTTI templates and verified facts
 - polish rough Bahasa Melayu wording into a clearer Brutti-style direction before caption generation, with one-click undo
@@ -64,6 +64,7 @@ The backend source is in `apps-script/Code.gs` and `apps-script/appsscript.json`
    - `META_PAGE_ID` — Page ID permitted to read post insights
    - `META_PAGE_ACCESS_TOKEN` — stored only in Script Properties; never in GitHub or the website
    - `META_GRAPH_VERSION` — required with the Meta connection
+   - `GEMINI_API_KEY` — optional. Create a key in [Google AI Studio](https://aistudio.google.com/apikey) and leave billing disabled. Put the key only here: **Apps Script → Project Settings → Script Properties**. Never commit it, never add it to GitHub variables, and never type it into the website. The caption action calls the free-tier model `gemini-3.5-flash-lite`. Do not enable billing, and do not switch this property to a paid-only model. After adding the property, deploy a new version of the existing web app so the URL stays the same. Before that deploy, run `testBmCaption()` from the Apps Script editor. It logs hard-coded samples for AYYASH, SUMANDAK, and TANAKVAGU. Each log says `source: GEMINI` or `source: TEMPLATE`. A template line includes the HTTP status, the Gemini error, or the validation check that failed. It does not log the key and it does not need a new web app deployment.
 
 5. Run `setupBruttiWorkspace()` once and approve the requested Google permissions.
 6. Select **Deploy → New deployment → Web app**:

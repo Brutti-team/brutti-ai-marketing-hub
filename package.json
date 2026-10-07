@@ -20,8 +20,10 @@
     "quality:language-lock": "node scripts/app-language-lock-smoke.mjs",
     "quality:caption-legacy-guard": "node scripts/caption-engine-legacy-guard-smoke.mjs",
     "quality:post-search": "node scripts/synced-post-search-smoke.mjs",
+    "quality:bm-caption": "node scripts/bm-caption-generator-smoke.mjs",
+    "quality:bm-gemini": "node scripts/bm-gemini-caption-dry-run.mjs",
     "check:css": "node scripts/css-balance-check.mjs",
-    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:product-photo && npm run quality:live-caption && npm run quality:voice && npm run quality:caption-v3 && npm run quality:caption-v32 && npm run quality:caption-final && npm run quality:language-lock && npm run quality:caption-legacy-guard && npm run quality:post-search && npm run check:css"
+    "check": "eslint . && npm run quality && npm run quality:soul && npm run quality:soul-lock && npm run quality:product && npm run quality:product-photo && npm run quality:live-caption && npm run quality:voice && npm run quality:caption-v3 && npm run quality:caption-v32 && npm run quality:caption-final && npm run quality:language-lock && npm run quality:caption-legacy-guard && npm run quality:post-search && npm run quality:bm-caption && npm run quality:bm-gemini && npm run check:css"
   },
   "dependencies": {
     "react": "^19.1.1",
