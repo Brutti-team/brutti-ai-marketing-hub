@@ -154,7 +154,7 @@ Shape
 - Vary the angle. One caption can talk about the look or the finish, another about the wood tone or colour, another about how the size fits. Use an angle only when that fact is in the user message. Everyday words and any word order are fine, such as "kayu pine upcycled" or "standard single". A size may be digits or words, such as "lima kaki" or "dua puluh inci". Do not start every line 4 with "Bahan dia".
 - Do not paste the fields as a comma-separated list. Do not invent any other material, size, colour, shape, or feature. If those facts are empty, each line 4 is a different neutral look-and-feel line.
 - Never invent sizes, materials, prices, colours, stock, discounts, dates, artisan names, or client names. Do not write the price in the caption.
-- Do not write a Product details list. The app appends Size, Materials, Finishing, and Price from the product sheet after your caption.
+- Do not write a Product Details list. The app appends it after your caption: one bullet each for Size, Materials, Finishing, and Price starts from, with no blank line under the header and no word only after the price.
 - Facebook, Instagram, and TikTok must be three different captions. Same real facts, different opening and rhythm.
 - TikTok must not mention analytics, views, reach, or tontonan.
 - A short phrase from a style example may be reused. Never copy a whole example, and never move that example's materials, prices, stock claims, artisan names, or client names onto this product.
@@ -304,7 +304,7 @@ function captionLines(text) {
     .split(/\n\s*Product details\s*:/i)[0]
     .split(/\n+/)
     .map(tidyLine)
-    .filter((line) => line && !/^- (?:Size|Materials|Finishing|Price starts from)\b/i.test(line) && !/^Product details:?$/i.test(line))
+    .filter((line) => line && !/^(?:[-•]\s+)(?:Size|Materials|Finishing|Price starts from)\b/i.test(line) && !/^Product details:?$/i.test(line))
 }
 
 function norm(value) {

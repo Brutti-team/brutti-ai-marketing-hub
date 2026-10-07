@@ -11,7 +11,7 @@
 // The caption uses the Product Name alone and does not append the category.
 // Line 4 is the design line, from the design note, name descriptors, or colour.
 // Price, size and material stay out of those lines. When a field has a value,
-// a Product details list follows the 4-line caption. Blank fields are omitted.
+// a Product Details list follows the 4-line caption. Blank fields are omitted.
 
 const HUMOUR = {
   wardrobe: 'Baju banyak, tapi bilik masih boleh nampak kemas. 😆',
@@ -514,7 +514,7 @@ function normalisePrice(value) {
   for (let guard = 0; guard < 4 && leading.test(text); guard += 1) {
     text = clean(text.replace(leading, ''))
   }
-  return text
+  return clean(text.replace(/\s+only\b[.!]*$/i, ''))
 }
 
 function splitMaterial(material) {
@@ -537,16 +537,16 @@ export function productDetails(product = {}) {
   const price = readField(product.price)
   const { materials, finishing } = splitMaterial(material)
   const lines = []
-  if (dimensions) lines.push(`- Size: ${dimensions}`)
-  if (materials) lines.push(`- Materials: ${materials}`)
-  if (finishing) lines.push(`- Finishing: ${finishing}`)
-  if (price) lines.push(`- Price starts from ${normalisePrice(price)}`)
+  if (dimensions) lines.push(`• Size: ${dimensions}`)
+  if (materials) lines.push(`• Materials: ${materials}`)
+  if (finishing) lines.push(`• Finishing: ${finishing}`)
+  if (price) lines.push(`• Price starts from ${normalisePrice(price)}`)
   const used = []
   if (price) used.push('price')
   if (materials || finishing) used.push('material')
   if (dimensions) used.push('dimensions')
   return {
-    text: lines.length ? `Product details:\n\n${lines.join('\n')}` : '',
+    text: lines.length ? `Product Details:\n${lines.join('\n')}` : '',
     used,
     materials,
     finishing,

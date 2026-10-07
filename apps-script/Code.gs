@@ -647,7 +647,7 @@ function testBmCaptionRequest_(product, strict) {
     'Facebook, Instagram, and TikTok must not share the same line 4.',
     'Do not paste the fields as a comma-separated list.',
     'Do not invent any other material, size, colour, feature, or claim such as dirancang khas. Do not use odd words such as zohor. Do not write the price.',
-    'Do not write a Product details list.',
+    'Do not write a Product Details list. The script appends bullets for Size, Materials, Finishing, and Price starts from after the caption, with no blank line under the header and without the word only.',
     'Facebook, Instagram, and TikTok must be three different captions.',
     'A short phrase from a style example may be reused. Never copy a whole example.',
     'Output exactly this shape, with a blank line before INSTAGRAM and before TIKTOK:',
@@ -752,7 +752,7 @@ function testBmLines_(text) {
     .split(/\n+/)
     .map(testBmTidy_)
     .filter(function (line) {
-      return line && !/^- (?:Size|Materials|Finishing|Price starts from)\b/i.test(line) && !/^Product details:?$/i.test(line);
+      return line && !/^(?:[-•]\s+)(?:Size|Materials|Finishing|Price starts from)\b/i.test(line) && !/^Product details:?$/i.test(line);
     });
 }
 
@@ -1129,13 +1129,14 @@ function testBmCaptionFinal_(text, product) {
   var body = testBmSeparatePlatforms_(String(text || '').split(/\n\s*Product details\s*:/i)[0]);
   var split = testBmCaptionMaterial_(product.material);
   var lines = [];
-  if (product.dimensions) lines.push('- Size: ' + String(product.dimensions).trim());
-  if (split.materials) lines.push('- Materials: ' + split.materials);
-  if (split.finishing) lines.push('- Finishing: ' + split.finishing);
+  if (product.dimensions) lines.push('• Size: ' + String(product.dimensions).trim());
+  if (split.materials) lines.push('• Materials: ' + split.materials);
+  if (split.finishing) lines.push('• Finishing: ' + split.finishing);
   var price = String(product.price || '').trim().replace(/^(?:(?:harga|price)\s+)?(?:bermula(?:\s+dari)?|starts?\s+from|from)\s+/i, '');
-  if (price) lines.push('- Price starts from ' + price);
+  price = price.replace(/\s+only\b[.!]*$/i, '').trim();
+  if (price) lines.push('• Price starts from ' + price);
   if (!lines.length) return body;
-  return body + '\n\nProduct details:\n\n' + lines.join('\n');
+  return body + '\n\nProduct Details:\n' + lines.join('\n');
 }
 
 function doPost(e) {
