@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
 import { filterSyncedPosts, normaliseSearchPosts, postImageUrl } from './lib/syncedPostSearch'
 
+// Hidden for now (Michelle, Oct 2026). Set to true to bring the "Find an old post" card back.
+const SHOW_OLD_POST_SEARCH = false
 const CACHE_PREFIX = 'brutti-meta-daily-insights-v2-'
 
 function findAnalyticsHost() {
@@ -152,7 +154,7 @@ export default function MetaInsightsEnhancer() {
   useEffect(() => { setVisibleCount(10) }, [state.data])
   const visiblePosts = posts.slice(0, visibleCount)
   if (!host) return null
-  return <>{createPortal(<><SearchPostedPieces data={state.data} loading={state.loading} error={state.error} onOpen={setSelectedPost}/><section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
+  return <>{createPortal(<>{SHOW_OLD_POST_SEARCH ? <SearchPostedPieces data={state.data} loading={state.loading} error={state.error} onOpen={setSelectedPost}/> : null}<section className="panel meta-post-performance" aria-label="Meta post performance" style={{ marginTop: 24 }}>
     <div className="panel-heading"><div><span className="eyebrow">LIVE META INSIGHTS</span><h3>Recent post performance</h3></div><span className="verified-label system-copy-hidden">{state.cached ? 'Daily sheet snapshot' : 'Read-only Meta data'}</span></div>
     {state.loading ? <p className="settings-copy">Loading verified Meta metrics…</p> : null}{state.error ? <p className="settings-copy">{state.error} Sistem tidak menganggarkan nombor.</p> : null}
     {posts.length ? <><div className="meta-post-list" role="table" aria-label="Recent Facebook and Instagram posts"><div className="meta-post-row meta-post-header" role="row"><span>Date & time</span><span>Platform</span><span>Type</span><span>Views</span><span>Reach</span><span>Viewers</span><span>Interactions</span><span>Post</span></div>{visiblePosts.map((post) => <div className="meta-post-row" role="row" key={post.key}><strong>{formatDate(post.createdTime)}</strong><span className={`meta-platform ${post.platform}`}>{post.platform === 'instagram' ? 'Instagram' : 'Facebook'}</span><span>{post.type}</span><span>{display(post.views)}</span><span>{display(post.reach)}</span><span>{display(post.viewers)}</span><span>{display(post.interactions)}</span><button type="button" className="meta-view-post" onClick={() => setSelectedPost(post)} aria-label={`View post from ${formatDate(post.createdTime)}`}><span aria-hidden="true">◉</span> View Post</button></div>)}</div>{visibleCount < posts.length ? <div className="meta-load-more"><span>Showing {visiblePosts.length} of {posts.length} posts</span><button type="button" className="button secondary" onClick={() => setVisibleCount((count) => Math.min(count + 10, posts.length))}>Muat lagi</button></div> : <p className="meta-list-count">All {posts.length} posts loaded</p>}</> : null}
