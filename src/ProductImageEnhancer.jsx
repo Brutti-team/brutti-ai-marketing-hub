@@ -141,6 +141,8 @@ function attachDriveImage(img, mapping, visual) {
 
 function enhanceProductCards(page) {
   page.querySelectorAll('.product-card').forEach((card) => {
+    // Cards with a repo-hosted photo (or a hidden wrong image) keep that choice.
+    if (card.dataset.photoOverride === '1') return
     const productName = card.querySelector('h3')?.textContent?.trim() || ''
     const mapping = imageForProduct(productName)
     if (!mapping) return

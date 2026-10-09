@@ -1,4 +1,6 @@
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from '../src/lib/metaProductPhoto.js'
+import { productPhotoOverride, productPhotoOverrideById } from '../src/lib/productPhotoOverrides.js'
+import { existsSync } from 'node:fs'
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -98,5 +100,14 @@ assert(snapshot.length === 1 && snapshot[0].message === 'from-all', 'Matching sh
 
 const fallback = postsFromSnapshot({ facebook: { topPosts: [post('fb')]}, instagram: { topPosts: [post('ig')] } })
 assert(fallback.length === 2, 'Without allPosts, Facebook and Instagram top posts are the synced set.')
+
+const kiosk = productPhotoOverride({ id: 'BR-115', name: 'Kiosk Tradisi Rotan', imageUrl: 'https://wrong.example/x.jpg' })
+assert(kiosk?.src === '/brutti-ai-marketing-hub/product-photos/BR-115-photo.jpg', 'A sheet row with an override ID uses the repo photo.')
+assert(productPhotoOverride({ id: 'BR-006', name: 'BESPOKE RACK – Open Concept Modular Closet' }, ['BESPOKE RACK – Open Concept Modular Closet']) === null, 'Local demo products that reuse an ID keep their own image.')
+assert(productPhotoOverride({ id: 'BR-085', name: 'Any' })?.src === '', 'BR-085 shows the placeholder.')
+assert(productPhotoOverride({ id: 'BR-084', name: 'Any' }) === null, 'Other IDs are untouched.')
+for (const file of Object.values(productPhotoOverrideById)) {
+  assert(existsSync(new URL(`../app/public/product-photos/${file}`, import.meta.url)), `Missing override photo ${file}`)
+}
 
 console.log('PASS: Product Library uses a synced photo only for a clear name or SKU.')

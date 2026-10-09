@@ -4,6 +4,7 @@ import {
   initialContent,
   initialPlans,
   pipelineStages,
+  productNames,
   products,
   promptLibrary,
   verifiedSnapshot,
@@ -28,6 +29,7 @@ import {
 } from './lib/googleWorkspace'
 import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
+import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
@@ -70,6 +72,9 @@ const catalogVisualFor = (name = '') => {
 
 // Files ending in -photo.jpg are real product photos from Brutti's own Facebook posts.
 const isPostPhoto = (name = '') => (catalogVisualByProduct[name] || '').endsWith('-photo.jpg')
+
+const localCatalogNames = [...new Set([...productNames, ...Object.keys(catalogVisualByProduct)])]
+const photoOverrideFor = (product) => productPhotoOverride(product, localCatalogNames)
 
 const catalogProductRecords = Object.keys(catalogVisualByProduct).map((name, index) => ({
   id: `CAT-${String(index + 1).padStart(2, '0')}`,
@@ -717,7 +722,8 @@ function BrandLibrary() {
 
 function ProductLibraryVisual({ product, index, savedImage, matches }) {
   const [hiddenMetaUrl, setHiddenMetaUrl] = useState('')
-  const photo = productLibraryPhoto(product, savedImage, matches)
+  const override = photoOverrideFor(product)
+  const photo = override ? { src: override.src, source: override.source } : productLibraryPhoto(product, savedImage, matches)
   const metaBlocked = photo.source === 'meta' && photo.src === hiddenMetaUrl
   const image = metaBlocked ? '' : photo.src
   const usingMeta = !metaBlocked && photo.source === 'meta'
@@ -725,7 +731,7 @@ function ProductLibraryVisual({ product, index, savedImage, matches }) {
     ? (product.sourceStatus || 'Verified source')
     : usingMeta
       ? (photo.platform === 'instagram' ? 'Instagram post photo' : 'Facebook post photo')
-      : (isPostPhoto(product.name) ? 'Facebook post photo' : catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
+      : (override ? 'Product photo · confirmed' : isPostPhoto(product.name) ? 'Facebook post photo' : catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
   return (
     <div className={`product-visual visual-${index % 5}`}>
       {image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
@@ -867,7 +873,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
       {SHOW_META_IMAGE_MATCHING ? <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar daripada post Brutti</h3><p className="settings-copy">Hanya padanan nama produk atau SKU yang jelas dipaparkan. Sahkan secara manual sebelum gambar baharu menggantikan sumber katalog atau Notion.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{strictSuggestions.length ? <div className="image-suggestion-list">{strictSuggestions.map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · Nama atau SKU jelas` : 'Tiada cadangan yakin'}</small><span className="confidence-badge strong">Jelas</span></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : null}</article>})}</div> : <p className="settings-copy">{imageSuggestions.length ? 'Tiada padanan nama atau SKU yang jelas dalam post yang sudah disync.' : 'Tekan “Cari padanan Meta” untuk scan semua caption Meta yang sudah disync.'}</p>}</section> : null}
       <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
       <p className="settings-copy">Kad tanpa gambar akan paparkan foto daripada post Facebook atau Instagram yang sudah disync, hanya jika kapsyen menyebut nama produk atau SKU dengan jelas. Padanan yang tidak jelas kekal placeholder.</p>
-      <div className="product-grid">{visible.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos}/><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
+      <div className="product-grid">{visible.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name} data-photo-override={photoOverrideFor(product) ? '1' : undefined}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos}/><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
     </div>
   )
@@ -1228,7 +1234,8 @@ function App() {
   }
   const useProduct = (product) => {
     const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; ')
-    const visualUrl = catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
+    const override = photoOverrideFor(product)
+    const visualUrl = override ? override.src : catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
     const visualName = visualUrl ? `${product.name} · Product Library visual` : ''
     setGenerator((form) => ({
       ...form,
