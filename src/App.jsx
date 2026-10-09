@@ -43,18 +43,18 @@ const navigation = [
 ]
 
 const catalogVisualByProduct = {
-  'AHTAM XL Shelving Rack': 'AHTAM-XL-catalog.jpg',
-  'AHTAM M Shelving Rack': 'AHTAM-M-catalog.jpg',
-  'GANTUNG Open Concept Cloth Rack': 'GANTUNG-catalog.jpg',
-  'BESPOKE RACK': 'BESPOKE-RACK-catalog.jpg',
-  'BESPOKE RACK – Open Concept Modular Closet': 'BESPOKE-RACK-catalog.jpg',
-  ADUDU: 'ADUDU-catalog.jpg',
-  'AGATANG Display Rack': 'AGATANG-catalog.jpg',
-  'PALANGKO Pastry Rack': 'PALANGKO-catalog.jpg',
-  'PUSMA Display Rack': 'PUSMA-catalog.jpg',
+  'AHTAM XL Shelving Rack': 'AHTAM-XL-photo.jpg',
+  'AHTAM M Shelving Rack': 'AHTAM-M-photo.jpg',
+  'GANTUNG Open Concept Cloth Rack': 'GANTUNG-photo.jpg',
+  'BESPOKE RACK': 'BESPOKE-RACK-photo.jpg',
+  'BESPOKE RACK – Open Concept Modular Closet': 'BESPOKE-RACK-photo.jpg',
+  ADUDU: 'ADUDU-photo.jpg',
+  'AGATANG Display Rack': 'AGATANG-photo.jpg',
+  'PALANGKO Pastry Rack': 'PALANGKO-photo.jpg',
+  'PUSMA Display Rack': 'PUSMA-photo.jpg',
   'POPO TV Console': 'POPO-catalog.jpg',
-  'SULOB Bespoke Shoe Rack': 'SULOB-catalog.jpg',
-  'TOMODON Shawl/Sampin Organizer': 'TOMODON-catalog.jpg',
+  'SULOB Bespoke Shoe Rack': 'SULOB-photo.jpg',
+  'TOMODON Shawl/Sampin Organizer': 'TOMODON-photo.jpg',
   'KAANAGAN Open Concept Wardrobe': 'KAANAGAN-catalog.jpg',
   'KAANAGAN Open Concept Wardrobe with Drawers': 'KAANAGAN-DRAWERS-catalog.jpg',
   'KOTAK Modular Storage': 'KOTAK-catalog.jpg',
@@ -68,12 +68,15 @@ const catalogVisualFor = (name = '') => {
   return file ? `/brutti-ai-marketing-hub/catalog-products/${file}` : ''
 }
 
+// Files ending in -photo.jpg are real product photos from Brutti's own Facebook posts.
+const isPostPhoto = (name = '') => (catalogVisualByProduct[name] || '').endsWith('-photo.jpg')
+
 const catalogProductRecords = Object.keys(catalogVisualByProduct).map((name, index) => ({
   id: `CAT-${String(index + 1).padStart(2, '0')}`,
   name,
   category: 'Catalog PDF',
   imageUrl: catalogVisualFor(name),
-  sourceStatus: 'Catalog PDF visual',
+  sourceStatus: isPostPhoto(name) ? 'Facebook post photo' : 'Catalog PDF visual',
 }))
 
 const stageClass = (value = '') => value.toLowerCase().replaceAll(' ', '-').replaceAll('/', '-')
@@ -722,7 +725,7 @@ function ProductLibraryVisual({ product, index, savedImage, matches }) {
     ? (product.sourceStatus || 'Verified source')
     : usingMeta
       ? (photo.platform === 'instagram' ? 'Instagram post photo' : 'Facebook post photo')
-      : (catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
+      : (isPostPhoto(product.name) ? 'Facebook post photo' : catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
   return (
     <div className={`product-visual visual-${index % 5}`}>
       {image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
