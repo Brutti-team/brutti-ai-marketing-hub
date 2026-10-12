@@ -229,3 +229,19 @@ export async function loadPublicMetaInsights() {
   return data
 }
 
+
+export async function listGoogleMarketingTools() {
+  return callMarketingApi('list_marketing_tools')
+}
+
+export async function createGoogleMarketingTool(record) {
+  return callMarketingApi('create_marketing_tool', { record })
+}
+
+export async function updateGoogleMarketingTool(record) {
+  return callMarketingApi('update_marketing_tool', { record })
+}
+
+export async function deleteGoogleMarketingTool(id) {
+  return callMarketingApi('delete_marketing_tool', { id: String(id) })
+}

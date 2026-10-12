@@ -1,6 +1,9 @@
 // Marketing Tools campaign storage.
-// Local-only for now (browser localStorage). Swap this module for a
-// Google Sheet / Apps Script backend later; keep the same function signatures.
+// Uses the "Marketing Tools" Google Sheet (via Apps Script) when the Google
+// workspace is connected; falls back to browser localStorage otherwise.
+// The API client is loaded lazily so this module stays importable in Node checks.
+const api = () => import('./googleWorkspace.js')
+
 export const MARKETING_TOOLS = ['Bunting', 'Billboard', 'KOL']
 export const MARKETING_TOOL_STATUSES = ['Idea', 'In Progress', 'Live', 'Done']
 export const MARKETING_TOOLS_STORAGE_KEY = 'brutti-marketing-tools-v1'
@@ -23,15 +26,58 @@ function persist(list) {
   return list
 }
 
-export function saveMarketingCampaign(list, record) {
+const cleanCampaign = (record) => {
   const clean = { ...blankMarketingCampaign(), ...record, cost: Number(record.cost) || 0, brand: String(record.brand || '').trim() || 'Brutti' }
   if (!MARKETING_TOOLS.includes(clean.tool)) throw new Error('Unsupported tool')
+  if (!MARKETING_TOOL_STATUSES.includes(clean.status)) throw new Error('Unsupported status')
+  return clean
+}
+
+export function saveMarketingCampaign(list, record) {
+  const clean = cleanCampaign(record)
   if (clean.id) return persist(list.map((item) => (item.id === clean.id ? clean : item)))
   return persist([...list, { ...clean, id: `mt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }])
 }
 
 export function deleteMarketingCampaign(list, id) {
   return persist(list.filter((item) => item.id !== id))
+}
+
+export function clearLocalMarketingCampaigns() {
+  storage()?.removeItem(MARKETING_TOOLS_STORAGE_KEY)
+}
+
+// --- Google Sheet backend (used when the workspace is connected) ---
+export async function loadRemoteMarketingCampaigns() {
+  const list = await (await api()).listGoogleMarketingTools()
+  return Array.isArray(list) ? list.filter((item) => MARKETING_TOOLS.includes(item?.tool)) : []
+}
+
+export async function saveRemoteMarketingCampaign(list, record) {
+  const clean = cleanCampaign(record)
+  if (clean.id) {
+    const saved = await (await api()).updateGoogleMarketingTool(clean)
+    return list.map((item) => (item.id === saved.id ? saved : item))
+  }
+  const saved = await (await api()).createGoogleMarketingTool(clean)
+  return [...list, saved]
+}
+
+export async function deleteRemoteMarketingCampaign(list, id) {
+  await (await api()).deleteGoogleMarketingTool(id)
+  return list.filter((item) => item.id !== id)
+}
+
+// One-time move of local records into the Sheet. Keeps local IDs so a retry
+// skips anything already moved. Returns the refreshed remote list.
+export async function moveLocalCampaignsToSheet() {
+  const local = loadMarketingCampaigns()
+  const remoteIds = new Set((await loadRemoteMarketingCampaigns()).map((item) => item.id))
+  for (const item of local) {
+    if (!remoteIds.has(item.id)) await (await api()).createGoogleMarketingTool(cleanCampaign(item))
+  }
+  clearLocalMarketingCampaigns()
+  return loadRemoteMarketingCampaigns()
 }
 
 export const filterMarketingCampaigns = (list, tool) => (tool === 'All' ? list : list.filter((item) => item.tool === tool))
