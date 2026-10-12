@@ -139,7 +139,15 @@ function assertPlatforms(output) {
   assert(new Set(fourth).size === 3, `Line 4 must differ across Facebook, Instagram, and TikTok:\n${fourth.join(' | ')}`)
 }
 
-const kaanagan = fallbackProduct('KAANAGAN Open Concept Wardrobe with Drawers')
+const kaanagan = {
+  id: 'TEST-KAANAGAN',
+  name: 'KAANAGAN Open Concept Wardrobe with Drawers',
+  category: 'Wardrobe',
+  price: '',
+  material: '',
+  dimensions: '',
+  colour: '',
+}
 const ahtam = fallbackProduct('AHTAM XL Shelving Rack')
 const pusma = fallbackProduct('PUSMA Display Rack')
 const facebookSamples = []

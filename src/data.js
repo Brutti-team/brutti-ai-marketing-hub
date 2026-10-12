@@ -11,10 +11,6 @@ export const productNames = [
   'POPO TV Console',
   'SULOB Bespoke Shoe Rack',
   'TOMODON Shawl/Sampin Organizer',
-  'KAANAGAN Open Concept Wardrobe',
-  'KAANAGAN Open Concept Wardrobe with Drawers',
-  'KOTAK Modular Storage',
-  'SUSUN Display Shelf',
 ]
 
 const categories = ['Storage', 'Wardrobe', 'Display', 'Bespoke']
@@ -23,7 +19,7 @@ export const products = productNames.map((name, index) => ({
   id: `BR-${String(index + 1).padStart(3, '0')}`,
   name,
   category: categories[index % categories.length],
-  photoConfirmed: ['AHTAM XL Shelving Rack', 'AHTAM M Shelving Rack', 'BESPOKE RACK', 'BESPOKE RACK – Open Concept Modular Closet', 'ADUDU', 'AGATANG Display Rack', 'PALANGKO Pastry Rack', 'PUSMA Display Rack', 'SULOB Bespoke Shoe Rack', 'TOMODON Shawl/Sampin Organizer', 'KAANAGAN Open Concept Wardrobe', 'KAANAGAN Open Concept Wardrobe with Drawers'].includes(name),
+  photoConfirmed: ['AHTAM XL Shelving Rack', 'AHTAM M Shelving Rack', 'BESPOKE RACK', 'BESPOKE RACK – Open Concept Modular Closet', 'ADUDU', 'AGATANG Display Rack', 'PALANGKO Pastry Rack', 'PUSMA Display Rack', 'SULOB Bespoke Shoe Rack', 'TOMODON Shawl/Sampin Organizer'].includes(name),
   sourceStatus: 'Verified name',
   imageDataUrl: {
     'AHTAM XL Shelving Rack': `${import.meta.env.BASE_URL}catalog-products/AHTAM-XL.jpg`,
@@ -36,8 +32,6 @@ export const products = productNames.map((name, index) => ({
     'PUSMA Display Rack': `${import.meta.env.BASE_URL}catalog-products/PUSMA.jpg`,
     'SULOB Bespoke Shoe Rack': `${import.meta.env.BASE_URL}catalog-products/SULOB.jpg`,
     'TOMODON Shawl/Sampin Organizer': `${import.meta.env.BASE_URL}catalog-products/TOMODON.jpg`,
-    'KAANAGAN Open Concept Wardrobe': `${import.meta.env.BASE_URL}catalog-products/KAANAGAN.jpg`,
-    'KAANAGAN Open Concept Wardrobe with Drawers': `${import.meta.env.BASE_URL}catalog-products/KAANAGAN.jpg`,
   }[name] || '',
 }))
 
