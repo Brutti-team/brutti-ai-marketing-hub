@@ -33,7 +33,7 @@ import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
-import { MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, saveMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
+import { MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -713,18 +713,43 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
 
 const formatRM = (value) => `RM ${(Number(value) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-function MarketingTools() {
-  const [campaigns, setCampaigns] = useState(() => loadMarketingCampaigns())
+function MarketingTools({ workspaceActive, toast }) {
+  const [campaigns, setCampaigns] = useState(() => (workspaceActive ? [] : loadMarketingCampaigns()))
+  const [localCount, setLocalCount] = useState(() => loadMarketingCampaigns().length)
+  const [busy, setBusy] = useState(false)
   const [filter, setFilter] = useState('All')
   const [draft, setDraft] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    setLocalCount(loadMarketingCampaigns().length)
+    if (!workspaceActive) { setCampaigns(loadMarketingCampaigns()); return undefined }
+    setBusy(true)
+    loadRemoteMarketingCampaigns().then((list) => { if (!cancelled) setCampaigns(list) }).catch((error) => toast?.(error.message || 'Could not load Marketing Tools from Google Sheet.')).finally(() => { if (!cancelled) setBusy(false) })
+    return () => { cancelled = true }
+  }, [workspaceActive])
   const visible = filterMarketingCampaigns(campaigns, filter)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
-  const save = (event) => { event.preventDefault(); setCampaigns((list) => saveMarketingCampaign(list, draft)); setDraft(null) }
-  const remove = (id) => { setCampaigns((list) => deleteMarketingCampaign(list, id)); setDraft(null) }
+  const run = async (task, message) => {
+    setBusy(true)
+    try { setCampaigns(await task()); setDraft(null); if (message) toast?.(message) }
+    catch (error) { toast?.(error.message || 'Marketing Tools request failed.') }
+    finally { setBusy(false) }
+  }
+  const save = (event) => {
+    event.preventDefault()
+    if (!workspaceActive) { setCampaigns((list) => saveMarketingCampaign(list, draft)); setDraft(null); return }
+    run(() => saveRemoteMarketingCampaign(campaigns, draft), 'Campaign saved to Google Sheet.')
+  }
+  const remove = (id) => {
+    if (!workspaceActive) { setCampaigns((list) => deleteMarketingCampaign(list, id)); setDraft(null); return }
+    run(() => deleteRemoteMarketingCampaign(campaigns, id), 'Campaign deleted from Google Sheet.')
+  }
+  const moveToSheet = () => run(async () => { const list = await moveLocalCampaignsToSheet(); setLocalCount(0); return list }, 'Local campaigns moved to Google Sheet.')
   return (
     <div className="page marketing-tools-page" data-user-content>
       <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => setDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
-      <p className="mt-storage-note">Data is saved on this device only for now (browser storage). It is not shared with other devices yet.</p>
+      <p className="mt-storage-note">{workspaceActive ? 'Campaigns are saved to the "Marketing Tools" tab of the BRUTTI Google Sheet and shared across devices.' : 'Google workspace is not connected, so campaigns are saved on this device only (browser storage). Connect Google in Settings to share them.'}</p>
+      {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
       <div className="tab-bar mt-filter">{['All', ...MARKETING_TOOLS].map((tool) => <button key={tool} className={filter === tool ? 'active' : ''} onClick={() => setFilter(tool)}>{tool}<em>{filterMarketingCampaigns(campaigns, tool).length}</em></button>)}</div>
       <section className="panel mt-list">
         <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
@@ -744,7 +769,7 @@ function MarketingTools() {
             <div className="two-fields"><label>Start date<input type="date" value={draft.startDate} onChange={update('startDate')}/></label><label>End date<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={update('endDate')}/></label></div>
             <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
             <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>
-            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit">Save campaign</button></div></div>
+            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
           </form>
         </div>
       ) : null}
@@ -1314,7 +1339,7 @@ function App() {
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} workspaceActive={workspaceActive} integrations={integrations} onUseIdea={usePerformanceIdea} toast={toast} />,
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
-    'marketing-tools': <MarketingTools />,
+    'marketing-tools': <MarketingTools workspaceActive={workspaceActive} toast={toast} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} toast={toast} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
