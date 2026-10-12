@@ -8,7 +8,7 @@ export const MARKETING_TOOLS = ['Bunting', 'Billboard', 'KOL']
 export const MARKETING_TOOL_STATUSES = ['Idea', 'In Progress', 'Live', 'Done']
 export const MARKETING_TOOLS_STORAGE_KEY = 'brutti-marketing-tools-v1'
 
-export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', status: 'Idea', notes: '' })
+export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', costNote: '', status: 'Idea', notes: '' })
 
 const storage = () => (typeof window !== 'undefined' && window.localStorage ? window.localStorage : null)
 
@@ -27,7 +27,7 @@ function persist(list) {
 }
 
 const cleanCampaign = (record) => {
-  const clean = { ...blankMarketingCampaign(), ...record, cost: Number(record.cost) || 0, brand: String(record.brand || '').trim() || 'Brutti' }
+  const clean = { ...blankMarketingCampaign(), ...record, cost: Number(record.cost) || 0, costNote: String(record.costNote || '').trim(), brand: String(record.brand || '').trim() || 'Brutti' }
   if (!MARKETING_TOOLS.includes(clean.tool)) throw new Error('Unsupported tool')
   if (!MARKETING_TOOL_STATUSES.includes(clean.status)) throw new Error('Unsupported status')
   return clean
