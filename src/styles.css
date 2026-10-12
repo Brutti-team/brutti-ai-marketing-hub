@@ -617,3 +617,5 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .mt-table th, .mt-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(127,127,127,.2); vertical-align: top; }
 .mt-table td small { display: block; opacity: .7; margin-top: 2px; }
 .mt-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+
+.mt-cost-note { display: block; font-size: 0.75rem; color: var(--muted, #6b7280); }
