@@ -59,10 +59,6 @@ const catalogVisualByProduct = {
   'POPO TV Console': 'POPO-catalog.jpg',
   'SULOB Bespoke Shoe Rack': 'SULOB-photo.jpg',
   'TOMODON Shawl/Sampin Organizer': 'TOMODON-photo.jpg',
-  'KAANAGAN Open Concept Wardrobe': 'KAANAGAN-catalog.jpg',
-  'KAANAGAN Open Concept Wardrobe with Drawers': 'KAANAGAN-DRAWERS-catalog.jpg',
-  'KOTAK Modular Storage': 'KOTAK-catalog.jpg',
-  'SUSUN Display Shelf': 'SUSUN-catalog.jpg',
 }
 
 const catalogVisualFor = (name = '') => {

@@ -3,7 +3,7 @@
 // sheet image URL, a Meta caption match and the Drive name overlay, because the
 // sheet / Drive images for these IDs were wrong or duplicated.
 //
-// The offline demo data in src/data.js reuses BR-001…BR-016 for different
+// The offline demo data in src/data.js reuses BR-001…BR-012 for different
 // products, so an override never applies to one of those local catalog names.
 
 const PHOTO_BASE = '/brutti-ai-marketing-hub/product-photos/'
