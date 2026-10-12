@@ -604,3 +604,16 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .app-language-control select { flex:0 0 210px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:inherit; font:inherit; }
 @media (max-width:650px) { .app-language-control { align-items:stretch; flex-direction:column; } .app-language-control select { flex-basis:auto; width:100%; } }
 
+
+/* Marketing Tools */
+.mt-storage-note { margin: 0 0 14px; font-size: 13px; opacity: .75; }
+.mt-filter { margin-bottom: 16px; }
+.mt-total { text-align: right; }
+.mt-total span { display: block; font-size: 12px; opacity: .7; }
+.mt-total strong { font-size: 20px; }
+.mt-empty { padding: 32px 8px; text-align: center; opacity: .8; }
+.mt-table-wrap { overflow-x: auto; }
+.mt-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mt-table th, .mt-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(127,127,127,.2); vertical-align: top; }
+.mt-table td small { display: block; opacity: .7; margin-top: 2px; }
+.mt-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }

@@ -33,11 +33,13 @@ import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
+import { MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, saveMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
   { id: 'planner', label: 'Campaign Planner', icon: 'calendar' },
+  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'box' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
   { id: 'products', label: 'Product Library', icon: 'box' },
   { id: 'analytics', label: 'Analytics', icon: 'chart' },
@@ -699,6 +701,47 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
   )
 }
 
+const formatRM = (value) => `RM ${(Number(value) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+function MarketingTools() {
+  const [campaigns, setCampaigns] = useState(() => loadMarketingCampaigns())
+  const [filter, setFilter] = useState('All')
+  const [draft, setDraft] = useState(null)
+  const visible = filterMarketingCampaigns(campaigns, filter)
+  const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
+  const save = (event) => { event.preventDefault(); setCampaigns((list) => saveMarketingCampaign(list, draft)); setDraft(null) }
+  const remove = (id) => { setCampaigns((list) => deleteMarketingCampaign(list, id)); setDraft(null) }
+  return (
+    <div className="page marketing-tools-page" data-user-content>
+      <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => setDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
+      <p className="mt-storage-note">Data is saved on this device only for now (browser storage). It is not shared with other devices yet.</p>
+      <div className="tab-bar mt-filter">{['All', ...MARKETING_TOOLS].map((tool) => <button key={tool} className={filter === tool ? 'active' : ''} onClick={() => setFilter(tool)}>{tool}<em>{filterMarketingCampaigns(campaigns, tool).length}</em></button>)}</div>
+      <section className="panel mt-list">
+        <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
+        {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
+          <div className="mt-table-wrap"><table className="mt-table"><thead><tr><th>Campaign</th><th>Tool</th><th>Brand</th><th>Location / Platform</th><th>Dates</th><th>Cost</th><th>Status</th><th></th></tr></thead><tbody>
+            {visible.map((item) => <tr key={item.id}><td><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => setDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
+          </tbody></table></div>
+        )}
+      </section>
+      {draft ? (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setDraft(null)}>
+          <form className="modal plan-modal" onSubmit={save}>
+            <div className="modal-head"><div><span className="eyebrow">MARKETING TOOLS</span><h2>{draft.id ? 'Edit campaign' : 'Add campaign'}</h2></div><button type="button" className="icon-button" onClick={() => setDraft(null)}><Icon name="close"/></button></div>
+            <label>Campaign name<input required value={draft.name} onChange={update('name')} placeholder="e.g. Kota Kinabalu roadside billboard"/></label>
+            <div className="two-fields"><label>Tool<select value={draft.tool} onChange={update('tool')}>{MARKETING_TOOLS.map((tool) => <option key={tool}>{tool}</option>)}</select></label><label>Brand<input value={draft.brand} onChange={update('brand')}/></label></div>
+            <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>
+            <div className="two-fields"><label>Start date<input type="date" value={draft.startDate} onChange={update('startDate')}/></label><label>End date<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={update('endDate')}/></label></div>
+            <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
+            <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>
+            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit">Save campaign</button></div></div>
+          </form>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function BrandLibrary() {
   const colours = [
     ['Forest Green','#12372A'],['Warm Ivory','#F7F3EA'],['Terracotta','#C96F4A'],['Charcoal','#202522'],['Muted Sage','#A8B5A2'],['Craft Tan','#BE906C'],
@@ -1261,6 +1304,7 @@ function App() {
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} workspaceActive={workspaceActive} integrations={integrations} onUseIdea={usePerformanceIdea} toast={toast} />,
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
+    'marketing-tools': <MarketingTools />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} toast={toast} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,

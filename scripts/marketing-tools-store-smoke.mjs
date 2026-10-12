@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict'
+const mem = new Map()
+globalThis.window = { localStorage: { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)) } }
+const s = await import('../src/lib/marketingToolsStore.js')
+assert.deepEqual(s.MARKETING_TOOLS, ['Bunting', 'Billboard', 'KOL'])
+assert.ok(!s.MARKETING_TOOLS.some((t) => /whatsapp/i.test(t)), 'WhatsApp Blast must not be a tool')
+assert.deepEqual(s.loadMarketingCampaigns(), [], 'starts empty')
+let list = s.saveMarketingCampaign([], { name: 'A', tool: 'Billboard', cost: '1200', brand: '' })
+assert.equal(list[0].brand, 'Brutti')
+list = s.saveMarketingCampaign(list, { name: 'B', tool: 'KOL', cost: 300 })
+assert.equal(s.totalMarketingCost(s.filterMarketingCampaigns(list, 'All')), 1500)
+assert.equal(s.filterMarketingCampaigns(list, 'KOL').length, 1)
+list = s.saveMarketingCampaign(list, { ...list[0], cost: 1000 })
+assert.equal(s.totalMarketingCost(list), 1300)
+list = s.deleteMarketingCampaign(list, list[1].id)
+assert.equal(s.loadMarketingCampaigns().length, 1)
+assert.throws(() => s.saveMarketingCampaign(list, { name: 'X', tool: 'WhatsApp Blast' }))
+console.log('marketing tools store smoke: ok')
