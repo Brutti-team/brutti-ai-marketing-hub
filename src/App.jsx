@@ -61,15 +61,29 @@ const catalogVisualByProduct = {
   'TOMODON Shawl/Sampin Organizer': 'TOMODON-photo.jpg',
 }
 
+// Case- and whitespace-insensitive product name key, so catalog cards match
+// library rows like "AHTAM XL Shelving Rack" vs "Ahtam XL Shelving Rack".
+const normalizeProductName = (name = '') => String(name).toLowerCase().replace(/[\s\u00a0]+/g, ' ').trim()
+
+// Catalog card names that refer to a differently named library row.
+const catalogNameAliases = {
+  [normalizeProductName('BESPOKE RACK')]: normalizeProductName('Bespoke Rack – Open Concept Modular Closet'),
+}
+const canonicalProductKey = (name = '') => {
+  const key = normalizeProductName(name)
+  return catalogNameAliases[key] || key
+}
+const catalogVisualByKey = Object.fromEntries(Object.entries(catalogVisualByProduct).map(([name, file]) => [canonicalProductKey(name), file]))
+
 const catalogVisualFor = (name = '') => {
-  const file = catalogVisualByProduct[name]
+  const file = catalogVisualByProduct[name] || catalogVisualByKey[canonicalProductKey(name)]
   // Keep the Pages sub-path explicit: catalog files are served from the app's
   // public folder and must not resolve against the domain root.
   return file ? `/brutti-ai-marketing-hub/catalog-products/${file}` : ''
 }
 
 // Files ending in -photo.jpg are real product photos from Brutti's own Facebook posts.
-const isPostPhoto = (name = '') => (catalogVisualByProduct[name] || '').endsWith('-photo.jpg')
+const isPostPhoto = (name = '') => (catalogVisualByProduct[name] || catalogVisualByKey[canonicalProductKey(name)] || '').endsWith('-photo.jpg')
 
 const localCatalogNames = [...new Set([...productNames, ...Object.keys(catalogVisualByProduct)])]
 const photoOverrideFor = (product) => productPhotoOverride(product, localCatalogNames)
@@ -817,7 +831,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     try { const result = await confirmProductImageMatch(productId, postId); setConfirmedImages((current) => ({ ...current, [productId]: result.imageUrl })); toast('Padanan disahkan dan disimpan ke Product Library.') } catch (error) { toast(error.message) }
   }
   const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
-  const allProductsWithCatalog = useMemo(() => [...productData, ...catalogProductRecords.filter((catalog) => !productData.some((product) => product.name === catalog.name))], [productData])
+  const allProductsWithCatalog = useMemo(() => [...productData, ...catalogProductRecords.filter((catalog) => !productData.some((product) => canonicalProductKey(product.name) === canonicalProductKey(catalog.name))).filter((catalog, index, list) => list.findIndex((entry) => canonicalProductKey(entry.name) === canonicalProductKey(catalog.name)) === index)], [productData])
   const metaPhotos = useMemo(() => matchProductPhotos(allProductsWithCatalog, metaPosts), [allProductsWithCatalog, metaPosts])
   const strictSuggestions = useMemo(() => imageSuggestions.flatMap((item) => {
     const product = allProductsWithCatalog.find((entry) => String(entry.id) === String(item.productId))
