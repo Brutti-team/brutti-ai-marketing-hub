@@ -56,7 +56,7 @@ const catalogVisualByProduct = {
   'AGATANG Display Rack': 'AGATANG-photo.jpg',
   'PALANGKO Pastry Rack': 'PALANGKO-photo.jpg',
   'PUSMA Display Rack': 'PUSMA-photo.jpg',
-  'POPO TV Console': 'POPO-catalog.jpg',
+  'POPO TV Console': 'POPO-photo.jpg',
   'SULOB Bespoke Shoe Rack': 'SULOB-photo.jpg',
   'TOMODON Shawl/Sampin Organizer': 'TOMODON-photo.jpg',
 }
