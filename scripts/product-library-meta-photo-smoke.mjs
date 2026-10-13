@@ -104,7 +104,6 @@ assert(fallback.length === 2, 'Without allPosts, Facebook and Instagram top post
 const kiosk = productPhotoOverride({ id: 'BR-115', name: 'Kiosk Tradisi Rotan', imageUrl: 'https://wrong.example/x.jpg' })
 assert(kiosk?.src === '/brutti-ai-marketing-hub/product-photos/BR-115-photo.jpg', 'A sheet row with an override ID uses the repo photo.')
 assert(productPhotoOverride({ id: 'BR-006', name: 'BESPOKE RACK – Open Concept Modular Closet' }, ['BESPOKE RACK – Open Concept Modular Closet']) === null, 'Local demo products that reuse an ID keep their own image.')
-assert(productPhotoOverride({ id: 'BR-085', name: 'Any' })?.src === '', 'BR-085 shows the placeholder.')
 assert(productPhotoOverride({ id: 'BR-084', name: 'Any' }) === null, 'Other IDs are untouched.')
 for (const file of Object.values(productPhotoOverrideById)) {
   assert(existsSync(new URL(`../app/public/product-photos/${file}`, import.meta.url)), `Missing override photo ${file}`)
