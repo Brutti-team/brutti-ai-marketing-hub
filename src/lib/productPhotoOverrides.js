@@ -24,7 +24,7 @@ export const productPhotoOverrideById = {
 }
 
 // IDs whose stored image is wrong and should show the normal placeholder.
-export const productPhotoHiddenIds = new Set(['BR-085'])
+export const productPhotoHiddenIds = new Set([])
 
 export function productPhotoOverride(product, localNames = []) {
   const id = String(product?.id || '').trim().toUpperCase()
