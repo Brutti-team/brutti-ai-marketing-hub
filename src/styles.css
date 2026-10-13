@@ -619,3 +619,10 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .mt-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
 
 .mt-cost-note { display: block; font-size: 0.75rem; color: var(--muted, #6b7280); }
+
+/* Product Library category list (vertical, scrollable) */
+.product-toolbar { align-items: flex-start; }
+.product-toolbar select.category-list { min-width: 220px; height: auto; max-height: 360px; overflow-y: auto; padding: 4px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-size: 15px; }
+.product-toolbar select.category-list option { padding: 6px 12px; cursor: pointer; }
+.product-toolbar select.category-list option:checked { background: #b6d7ff linear-gradient(#b6d7ff, #b6d7ff); color: #111; }
+@media (max-width: 720px) { .product-toolbar { flex-direction: column; align-items: stretch; } .product-toolbar select.category-list { width: 100%; min-width: 0; max-height: 240px; } }
