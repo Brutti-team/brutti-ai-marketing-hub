@@ -799,7 +799,7 @@ function BrandLibrary() {
   )
 }
 
-function ProductLibraryVisual({ product, index, savedImage, matches }) {
+function ProductLibraryVisual({ product, index, savedImage, matches, onOpen }) {
   const [hiddenMetaUrl, setHiddenMetaUrl] = useState('')
   const override = photoOverrideFor(product)
   const photo = override ? { src: override.src, source: override.source } : productLibraryPhoto(product, savedImage, matches)
@@ -812,7 +812,7 @@ function ProductLibraryVisual({ product, index, savedImage, matches }) {
       ? (photo.platform === 'instagram' ? 'Instagram post photo' : 'Facebook post photo')
       : (override ? 'Product photo · confirmed' : isPostPhoto(product.name) ? 'Facebook post photo' : catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
   return (
-    <div className={`product-visual visual-${index % 5}`}>
+    <div className={`product-visual visual-${index % 5}${image && onOpen ? ' lib-zoomable' : ''}`} onClick={image && onOpen ? () => onOpen({ src: image, name: product.name, noReferrer: usingMeta }) : undefined} role={image && onOpen ? 'button' : undefined} tabIndex={image && onOpen ? 0 : undefined} aria-label={image && onOpen ? `Enlarge photo of ${product.name}` : undefined} onKeyDown={image && onOpen ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen({ src: image, name: product.name, noReferrer: usingMeta }) } } : undefined}>
       {image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
       <span className="photo-status">{status}</span>
     </div>
@@ -833,6 +833,20 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [confirmedImages, setConfirmedImages] = useState({})
   const [metaPosts, setMetaPosts] = useState([])
+  const [lightbox, setLightbox] = useState(null)
+  const searchRef = useRef(null)
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === 'Escape') { setLightbox(null); return }
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return
+      const tag = (event.target?.tagName || '').toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || event.target?.isContentEditable) return
+      event.preventDefault()
+      searchRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   useEffect(() => {
     if (!workspaceActive) {
       setMetaPosts([])
@@ -856,7 +870,6 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const confirmImage = async (productId, postId) => {
     try { const result = await confirmProductImageMatch(productId, postId); setConfirmedImages((current) => ({ ...current, [productId]: result.imageUrl })); toast('Padanan disahkan dan disimpan ke Product Library.') } catch (error) { toast(error.message) }
   }
-  const categories = ['All', ...Array.from(new Set(productData.map((product) => product.category).filter(Boolean))).sort()]
   const allProductsWithCatalog = useMemo(() => [...productData, ...catalogProductRecords.filter((catalog) => !productData.some((product) => canonicalProductKey(product.name) === canonicalProductKey(catalog.name))).filter((catalog, index, list) => list.findIndex((entry) => canonicalProductKey(entry.name) === canonicalProductKey(catalog.name)) === index)], [productData])
   const metaPhotos = useMemo(() => matchProductPhotos(allProductsWithCatalog, metaPosts), [allProductsWithCatalog, metaPosts])
   const strictSuggestions = useMemo(() => imageSuggestions.flatMap((item) => {
@@ -874,7 +887,36 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     })
     return candidate ? [{ ...item, candidates: [candidate] }] : []
   }), [imageSuggestions, allProductsWithCatalog])
-  const visible = allProductsWithCatalog.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''}`.toLowerCase().includes(query.toLowerCase()))
+  const libraryStats = useMemo(() => {
+    const cats = new Set(productData.map((product) => product.category).filter(Boolean))
+    const prices = productData.flatMap((product) => {
+      const raw = String(product.price ?? '').replace(/,/g, '')
+      const nums = (raw.match(/\d+(?:\.\d+)?/g) || []).map(Number).filter((value) => value > 0)
+      return nums
+    })
+    const dates = productData.map((product) => product.postedAt || product.postDate || product.date || product.createdTime).filter(Boolean).map((value) => new Date(value)).filter((date) => !Number.isNaN(date.getTime())).sort((a, b) => a - b)
+    const fmtRm = (value) => `RM${value.toLocaleString('en-MY', { maximumFractionDigits: 2 })}`
+    const fmtMonth = (date) => date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+    return {
+      products: productData.length,
+      categories: cats.size,
+      priceRange: prices.length ? (Math.min(...prices) === Math.max(...prices) ? fmtRm(Math.min(...prices)) : `${fmtRm(Math.min(...prices))}–${fmtRm(Math.max(...prices))}`) : '',
+      pricedCount: productData.filter((product) => /\d/.test(String(product.price ?? ''))).length,
+      posted: dates.length ? `${fmtMonth(dates[0])} – ${fmtMonth(dates[dates.length - 1])}` : '',
+    }
+  }, [productData])
+  const searchMatches = allProductsWithCatalog.filter((product) => `${product.name} ${product.id || ''} ${product.category || ''} ${product.price || ''} ${product.material || ''} ${product.dimensions || ''} ${product.colour || ''} ${product.caption || ''}`.toLowerCase().includes(query.trim().toLowerCase()))
+  const categoryCounts = useMemo(() => {
+    const counts = new Map()
+    allProductsWithCatalog.forEach((product) => { const key = product.category || 'Uncategorised'; counts.set(key, (counts.get(key) || 0) + 1) })
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  }, [allProductsWithCatalog])
+  const groupedVisible = categoryCounts.map(([name]) => [name, searchMatches.filter((product) => (product.category || 'Uncategorised') === name && (category === 'All' || category === name))]).filter(([, items]) => items.length)
+  const visibleCount = groupedVisible.reduce((sum, [, items]) => sum + items.length, 0)
+  const pickCategory = (name) => {
+    setCategory((current) => (current === name ? 'All' : name))
+    window.requestAnimationFrame(() => document.getElementById('lib-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
 
   const blankReference = () => ({ id: '', name: '', category: 'Kiosk / Project', location: '', notes: '', imageDataUrl: '', imageName: '', existingImageUrl: '', driveFileId: '', driveUrl: '' })
   const closeReferenceForm = () => {
@@ -946,14 +988,26 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   }
 
   return (
-    <div className="page">
-      <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add kiosk / project</button></div>} />
+    <div className="page product-library-v2">
+      <header className="lib-hero">
+        <h1>BRUTTI</h1>
+        <p>Product Library · Custom Woodwork &amp; Furniture, Sabah MY</p>
+        <div className="lib-stats">
+          <div><strong>{libraryStats.products}</strong><span>PRODUCTS</span></div>
+          <div><strong>{libraryStats.categories}</strong><span>CATEGORIES</span></div>
+          {libraryStats.priceRange ? <div title={`From ${libraryStats.pricedCount} products with a price`}><strong>{libraryStats.priceRange}</strong><span>PRICE RANGE</span></div> : null}
+          {libraryStats.posted ? <div><strong>{libraryStats.posted}</strong><span>POSTED</span></div> : null}
+        </div>
+        <div className="lib-hero-actions">{workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button secondary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add kiosk / project</button></div>
+      </header>
       {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions"><span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : 'Connect Google Workspace to save a shared team reference.'}</span><div><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : reference.id ? 'Save changes' : 'Save reference'}</button></div></div></form></section> : null}
       {SHOW_META_IMAGE_MATCHING ? <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar daripada post Brutti</h3><p className="settings-copy">Hanya padanan nama produk atau SKU yang jelas dipaparkan. Sahkan secara manual sebelum gambar baharu menggantikan sumber katalog atau Notion.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{strictSuggestions.length ? <div className="image-suggestion-list">{strictSuggestions.map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · Nama atau SKU jelas` : 'Tiada cadangan yakin'}</small><span className="confidence-badge strong">Jelas</span></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : null}</article>})}</div> : <p className="settings-copy">{imageSuggestions.length ? 'Tiada padanan nama atau SKU yang jelas dalam post yang sudah disync.' : 'Tekan “Cari padanan Meta” untuk scan semua caption Meta yang sudah disync.'}</p>}</section> : null}
-      <div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></div>
-      <p className="settings-copy">Kad tanpa gambar akan paparkan foto daripada post Facebook atau Instagram yang sudah disync, hanya jika kapsyen menyebut nama produk atau SKU dengan jelas. Padanan yang tidak jelas kekal placeholder.</p>
-      <div className="product-grid">{visible.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name} data-photo-override={photoOverrideFor(product) ? '1' : undefined}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos}/><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
-      {!visible.length ? <div className="empty-list">No products match this search.</div> : null}
+      <div className="lib-search"><div className="search-box"><Icon name="search"/><input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, materials, price, caption… (press /)" aria-label="Search products"/></div><span className="lib-count">{visibleCount} {visibleCount === 1 ? 'product' : 'products'}</span></div>
+      <div className="lib-chips" role="toolbar" aria-label="Categories">{category !== 'All' ? <button type="button" className="lib-chip" onClick={() => setCategory('All')}>All <em>{allProductsWithCatalog.length}</em></button> : null}{categoryCounts.map(([name, count]) => <button type="button" key={name} className={`lib-chip ${category === name ? 'active' : ''}`} aria-pressed={category === name} onClick={() => pickCategory(name)}>{name} <em>{count}</em></button>)}</div>
+      <p className="lib-note">Team library of every BRUTTI product in the shared product sheet, grouped by category. Type in the search box to find anything — by name, ID, material, size or price. Tap a category chip to filter, click any photo to enlarge, and press “/” to jump to search. Cards without a confirmed photo show a matching Facebook or Instagram post photo only when the caption clearly names the product or SKU.</p>
+      <div id="lib-results">{groupedVisible.map(([name, items]) => <section className="lib-section" key={name}><h2>{name} <small>{items.length} {items.length === 1 ? 'item' : 'items'}</small></h2><div className="product-grid">{items.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name} data-photo-override={photoOverrideFor(product) ? '1' : undefined}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos} onOpen={setLightbox}/><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><dl className="lib-facts">{product.price ? <><dt>Price</dt><dd><strong>{product.price}</strong></dd></> : null}{product.dimensions ? <><dt>Size</dt><dd>{product.dimensions}</dd></> : null}{product.material ? <><dt>Materials</dt><dd>{product.material}</dd></> : null}</dl>{!product.material && !product.dimensions ? <p>Verified name. Add specifications from the source before making product claims.</p> : null}<button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div></section>)}</div>
+      {!visibleCount ? <div className="empty-list">No products match this search.</div> : null}
+      {lightbox ? <div className="lib-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.name} onClick={() => setLightbox(null)}><button type="button" className="lib-lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>×</button><img src={lightbox.src} alt={lightbox.name} referrerPolicy={lightbox.noReferrer ? 'no-referrer' : undefined} onClick={(event) => event.stopPropagation()}/><p>{lightbox.name}</p></div> : null}
     </div>
   )
 }
