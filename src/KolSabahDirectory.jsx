@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listGoogleKolSabah } from './lib/googleWorkspace'
-import { contactLinks, filterKols, normalizeKol, primaryNiche, profileLinks, sampleKolSabah } from './lib/kolSabah'
+import { filterKols, normalizeKol, primaryNiche, sampleKolSabah } from './lib/kolSabah'
 
 export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) {
   const [kols, setKols] = useState(() => sampleKolSabah())
@@ -28,21 +28,14 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
       {visible.length === 0 ? <div className="mt-empty"><strong>No KOLs match.</strong></div> : (
         <div className="kol-grid">
           {visible.map((kol, index) => {
-            const profiles = profileLinks(kol)
-            const contacts = contactLinks(kol.businessContact)
             return (
               <article key={`${kol.name}-${index}`} className="kol-card">
-                <header><strong>{kol.name}</strong>{kol.handle ? <span>{kol.handle}</span> : null}</header>
+                <header><strong>{kol.name}</strong></header>
                 <dl>
                   <div><dt>Niche</dt><dd>{kol.niche || '—'}</dd></div>
                   <div><dt>Location</dt><dd>{kol.location || '—'}</dd></div>
-                  <div><dt>Followers</dt><dd>{kol.followers || '—'}</dd></div>
-                  <div><dt>Business contact</dt><dd>{contacts.length ? contacts.map((c) => <a key={c.href} href={c.href} target="_blank" rel="noreferrer" className={`kol-contact ${c.type}`}>{c.type === 'whatsapp' ? 'WhatsApp ' : 'Email '}{c.label}</a>) : (kol.businessContact || '—')}</dd></div>
                 </dl>
-                {contacts.length && kol.businessContact ? <small className="kol-note">{kol.businessContact}</small> : null}
-                {kol.notes ? <small className="kol-note">{kol.notes}</small> : null}
                 <footer>
-                  <div className="kol-links">{profiles.map((p) => <a key={p.href} href={p.href} target="_blank" rel="noreferrer">{p.label}</a>)}</div>
                   <button type="button" className="button secondary small" onClick={() => onStartCampaign?.(kol)}>Start KOL campaign</button>
                 </footer>
               </article>
