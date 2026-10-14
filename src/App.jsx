@@ -33,6 +33,7 @@ import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
+import KolSabahDirectory from './KolSabahDirectory'
 import { MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
 
 const navigation = [
@@ -719,6 +720,8 @@ function MarketingTools({ workspaceActive, toast }) {
   const [busy, setBusy] = useState(false)
   const [filter, setFilter] = useState('All')
   const [draft, setDraft] = useState(null)
+  const [view, setView] = useState('campaigns')
+  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, location: [kol.handle, kol.location].filter(Boolean).join(' · ') })
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
@@ -750,6 +753,8 @@ function MarketingTools({ workspaceActive, toast }) {
       <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => setDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
       <p className="mt-storage-note">{workspaceActive ? 'Campaigns are saved to the "Marketing Tools" tab of the BRUTTI Google Sheet and shared across devices.' : 'Google workspace is not connected, so campaigns are saved on this device only (browser storage). Connect Google in Settings to share them.'}</p>
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
+      <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
+      {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
       <div className="tab-bar mt-filter">{['All', ...MARKETING_TOOLS].map((tool) => <button key={tool} className={filter === tool ? 'active' : ''} onClick={() => setFilter(tool)}>{tool}<em>{filterMarketingCampaigns(campaigns, tool).length}</em></button>)}</div>
       <section className="panel mt-list">
         <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
@@ -759,6 +764,7 @@ function MarketingTools({ workspaceActive, toast }) {
           </tbody></table></div>
         )}
       </section>
+      </>)}
       {draft ? (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setDraft(null)}>
           <form className="modal plan-modal" onSubmit={save}>
