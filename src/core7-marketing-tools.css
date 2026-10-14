@@ -184,3 +184,20 @@ button[hidden] {
     flex-direction: column;
   }
 }
+
+/* KOL Sabah directory */
+.kol-controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 16px; }
+.kol-controls input { flex: 1 1 240px; min-width: 0; }
+.kol-controls select { flex: 0 1 260px; min-width: 0; }
+.kol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.kol-card { border: 1px solid rgba(127,127,127,.25); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.kol-card header { display: flex; flex-direction: column; }
+.kol-card header span { opacity: .7; font-size: .85em; }
+.kol-card dl { margin: 0; display: grid; gap: 6px; }
+.kol-card dt { font-size: .72em; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
+.kol-card dd { margin: 0; overflow-wrap: anywhere; }
+.kol-contact { display: inline-block; margin-right: 8px; font-weight: 600; }
+.kol-note { opacity: .7; overflow-wrap: anywhere; }
+.kol-card footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kol-links { display: flex; gap: 10px; flex-wrap: wrap; }
+.kol-links a { font-weight: 600; }

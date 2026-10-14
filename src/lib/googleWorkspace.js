@@ -245,3 +245,7 @@ export async function updateGoogleMarketingTool(record) {
 export async function deleteGoogleMarketingTool(id) {
   return callMarketingApi('delete_marketing_tool', { id: String(id) })
 }
+
+export async function listGoogleKolSabah() {
+  return callMarketingApi('list_kol_sabah')
+}
