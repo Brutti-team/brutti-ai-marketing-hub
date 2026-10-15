@@ -8,7 +8,9 @@ export const MARKETING_TOOLS = ['Bunting', 'Billboard', 'KOL']
 export const MARKETING_TOOL_STATUSES = ['Idea', 'In Progress', 'Live', 'Done']
 export const MARKETING_TOOLS_STORAGE_KEY = 'brutti-marketing-tools-v1'
 
-export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', costNote: '', status: 'Idea', notes: '' })
+export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', costNote: '', status: 'Idea', notes: '', tiktok: '', instagram: '', facebook: '', youtube: '', phone: '' })
+
+export const KOL_CONTACT_FIELDS = [['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['youtube', 'YouTube']]
 
 const storage = () => (typeof window !== 'undefined' && window.localStorage ? window.localStorage : null)
 
@@ -28,6 +30,8 @@ function persist(list) {
 
 const cleanCampaign = (record) => {
   const clean = { ...blankMarketingCampaign(), ...record, cost: Number(record.cost) || 0, costNote: String(record.costNote || '').trim(), brand: String(record.brand || '').trim() || 'Brutti' }
+  for (const field of ['tiktok', 'instagram', 'facebook', 'youtube', 'phone']) clean[field] = String(record[field] || '').trim()
+  if (!clean.status) clean.status = 'Idea'
   if (!MARKETING_TOOLS.includes(clean.tool)) throw new Error('Unsupported tool')
   if (!MARKETING_TOOL_STATUSES.includes(clean.status)) throw new Error('Unsupported status')
   return clean

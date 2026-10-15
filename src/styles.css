@@ -626,3 +626,5 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 .product-toolbar select.category-list option { padding: 6px 12px; cursor: pointer; }
 .product-toolbar select.category-list option:checked { background: #b6d7ff linear-gradient(#b6d7ff, #b6d7ff); color: #111; }
 @media (max-width: 720px) { .product-toolbar { flex-direction: column; align-items: stretch; } .product-toolbar select.category-list { width: 100%; min-width: 0; max-height: 240px; } }
+.mt-table small.mt-kol-contacts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.75rem; }
+.mt-table small.mt-kol-contacts a { color: var(--accent, #12372A); }
