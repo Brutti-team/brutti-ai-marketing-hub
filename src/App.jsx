@@ -728,7 +728,7 @@ function MarketingTools({ workspaceActive, toast }) {
   const [filter, setFilter] = useState('All')
   const [draft, setDraft] = useState(null)
   const [view, setView] = useState('campaigns')
-  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, location: [kol.handle, kol.location].filter(Boolean).join(' · '), tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
+  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
@@ -778,7 +778,7 @@ function MarketingTools({ workspaceActive, toast }) {
             <div className="modal-head"><div><span className="eyebrow">MARKETING TOOLS</span><h2>{draft.id ? 'Edit campaign' : 'Add campaign'}</h2></div><button type="button" className="icon-button" onClick={() => setDraft(null)}><Icon name="close"/></button></div>
             <label>Campaign name<input required value={draft.name} onChange={update('name')} placeholder="e.g. Kota Kinabalu roadside billboard"/></label>
             <div className="two-fields"><label>Tool<select value={draft.tool} onChange={update('tool')}>{MARKETING_TOOLS.map((tool) => <option key={tool}>{tool}</option>)}</select></label><label>Brand<input value={draft.brand} onChange={update('brand')}/></label></div>
-            <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>
+            {draft.tool === 'KOL' ? null : <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>}
             <div className="two-fields"><label>Start date<input type="date" value={draft.startDate} onChange={update('startDate')}/></label><label>End date<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={update('endDate')}/></label></div>
             {draft.tool === 'KOL' ? (<>
               <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Phone number (optional)<input type="tel" value={draft.phone || ''} onChange={update('phone')} placeholder="e.g. 012-345 6789"/></label></div>
