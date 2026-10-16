@@ -34,7 +34,8 @@ import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulS
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
 import KolSabahDirectory from './KolSabahDirectory'
-import { MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
+import { contactLinks } from './lib/kolSabah'
+import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -714,6 +715,12 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
 
 const formatRM = (value) => `RM ${(Number(value) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+function KolContactLine({ item }) {
+  const links = KOL_CONTACT_FIELDS.filter(([field]) => /^https?:\/\//i.test(item[field] || ''))
+  if (!links.length && !item.phone) return null
+  return <small className="mt-kol-contacts">{links.map(([field, label]) => <a key={field} href={item[field]} target="_blank" rel="noreferrer">{label}</a>)}{item.phone ? <a href={`tel:${item.phone.replace(/[^\d+]/g, '')}`}>{item.phone}</a> : null}</small>
+}
+
 function MarketingTools({ workspaceActive, toast }) {
   const [campaigns, setCampaigns] = useState(() => (workspaceActive ? [] : loadMarketingCampaigns()))
   const [localCount, setLocalCount] = useState(() => loadMarketingCampaigns().length)
@@ -721,7 +728,7 @@ function MarketingTools({ workspaceActive, toast }) {
   const [filter, setFilter] = useState('All')
   const [draft, setDraft] = useState(null)
   const [view, setView] = useState('campaigns')
-  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, location: [kol.handle, kol.location].filter(Boolean).join(' · ') })
+  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
@@ -760,7 +767,7 @@ function MarketingTools({ workspaceActive, toast }) {
         <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
           <div className="mt-table-wrap"><table className="mt-table"><thead><tr><th>Campaign</th><th>Tool</th><th>Brand</th><th>Location / Platform</th><th>Dates</th><th>Cost</th><th>Status</th><th></th></tr></thead><tbody>
-            {visible.map((item) => <tr key={item.id}><td><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}{item.costNote ? <small className="mt-cost-note">{item.costNote}</small> : null}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => setDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
+            {visible.map((item) => <tr key={item.id}><td><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}{item.tool === 'KOL' ? <KolContactLine item={item}/> : null}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}{item.costNote ? <small className="mt-cost-note">{item.costNote}</small> : null}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => setDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
           </tbody></table></div>
         )}
       </section>
@@ -771,10 +778,16 @@ function MarketingTools({ workspaceActive, toast }) {
             <div className="modal-head"><div><span className="eyebrow">MARKETING TOOLS</span><h2>{draft.id ? 'Edit campaign' : 'Add campaign'}</h2></div><button type="button" className="icon-button" onClick={() => setDraft(null)}><Icon name="close"/></button></div>
             <label>Campaign name<input required value={draft.name} onChange={update('name')} placeholder="e.g. Kota Kinabalu roadside billboard"/></label>
             <div className="two-fields"><label>Tool<select value={draft.tool} onChange={update('tool')}>{MARKETING_TOOLS.map((tool) => <option key={tool}>{tool}</option>)}</select></label><label>Brand<input value={draft.brand} onChange={update('brand')}/></label></div>
-            <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>
+            {draft.tool === 'KOL' ? null : <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>}
             <div className="two-fields"><label>Start date<input type="date" value={draft.startDate} onChange={update('startDate')}/></label><label>End date<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={update('endDate')}/></label></div>
-            <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
-            <label>Cost note<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. Barter: 1 Sukod Desk, no cash"/></label>
+            {draft.tool === 'KOL' ? (<>
+              <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Phone number (optional)<input type="tel" value={draft.phone || ''} onChange={update('phone')} placeholder="e.g. 012-345 6789"/></label></div>
+              <div className="two-fields">{KOL_CONTACT_FIELDS.slice(0, 2).map(([field, label]) => <label key={field}>{label} (optional)<input type="url" value={draft[field] || ''} onChange={update(field)} placeholder="https://"/></label>)}</div>
+              <div className="two-fields">{KOL_CONTACT_FIELDS.slice(2).map(([field, label]) => <label key={field}>{label} (optional)<input type="url" value={draft[field] || ''} onChange={update(field)} placeholder="https://"/></label>)}</div>
+            </>) : (<>
+              <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
+              <label>Cost note<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. Barter: 1 Sukod Desk, no cash"/></label>
+            </>)}
             <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>
             <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
           </form>
