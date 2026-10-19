@@ -131,20 +131,75 @@ export function postsFromSnapshot(snapshot) {
   return [...(snapshot.facebook?.topPosts || []), ...(snapshot.instagram?.topPosts || [])]
 }
 
+function tokensContainPhrase(parts, tokens) {
+  if (!parts.length || !tokens.length) return false
+  for (let index = 0; index <= tokens.length - parts.length; index += 1) {
+    let ok = true
+    for (let offset = 0; offset < parts.length; offset += 1) {
+      if (tokens[index + offset] !== parts[offset]) { ok = false; break }
+    }
+    if (ok) return true
+  }
+  return false
+}
+
+// Same rules as captionClearlyNamesProduct, but product names and captions are
+// prepared once, so 100+ products against hundreds of posts stays fast.
 export function matchProductPhotos(products, posts) {
   const list = Array.isArray(products) ? products.filter(Boolean) : []
   const usablePosts = (Array.isArray(posts) ? posts : []).filter(isSyncedMetaPost)
   const matches = {}
-  list.forEach((product) => {
-    const key = productPhotoKey(product)
-    if (!key) return
-    const hits = usablePosts
-      .filter((post) => captionClearlyNamesProduct(product, postCaption(post), list))
+  if (!list.length || !usablePosts.length) return matches
+
+  const info = list.map((product) => {
+    const name = normalizeProductText(product?.name)
+    return {
+      product,
+      key: productPhotoKey(product),
+      name,
+      parts: name ? name.split(' ') : [],
+      clear: fullNameIsClear(product?.name),
+      distinct: distinctiveNameTokens(product?.name),
+      skus: skuCandidates(product),
+    }
+  })
+  const notSame = (other, mine) => other.key === '' || other.key !== mine.key
+  const owners = new Map()
+  info.forEach((entry) => entry.distinct.forEach((token) => {
+    if (!owners.has(token)) owners.set(token, [])
+    owners.get(token).push(entry)
+  }))
+  info.forEach((entry) => {
+    entry.longer = info.filter((other) => notSame(other, entry) && other.name.length > entry.name.length && other.name.startsWith(`${entry.name} `))
+    entry.duplicate = info.some((other) => notSame(other, entry) && other.name === entry.name)
+    entry.unique = entry.distinct.filter((token) => owners.get(token).every((other) => !notSame(other, entry)))
+    entry.skuPatterns = entry.skus.map((sku) => new RegExp(`(^|[^A-Za-z0-9])BR[-\\u2013\\u2014\\s]?${sku.slice(3)}([^0-9]|$)`, 'i'))
+  })
+
+  const prepared = usablePosts.map((post) => {
+    const caption = postCaption(post)
+    const normalized = normalizeProductText(caption)
+    return { post, caption, tokens: normalized ? normalized.split(' ') : [] }
+  })
+
+  const names = (entry, item) => {
+    if (entry.skuPatterns.some((pattern) => pattern.test(item.caption))) return true
+    if (entry.clear && tokensContainPhrase(entry.parts, item.tokens)
+      && !entry.longer.some((other) => tokensContainPhrase(other.parts, item.tokens))
+      && !entry.duplicate) return true
+    return entry.unique.some((token) => item.tokens.includes(token))
+  }
+
+  info.forEach((entry) => {
+    if (!entry.key) return
+    const hits = prepared
+      .filter((item) => names(entry, item))
+      .map((item) => item.post)
       .sort((left, right) => postTime(right) - postTime(left))
     if (!hits.length) return
     const post = hits[0]
     const platform = String(post.platform || 'facebook').trim().toLowerCase() === 'instagram' ? 'instagram' : 'facebook'
-    matches[key] = {
+    matches[entry.key] = {
       imageUrl: String(post.imageUrl).trim(),
       platform,
       postId: String(post.sourceId || post.id || ''),
