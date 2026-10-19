@@ -628,3 +628,12 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 @media (max-width: 720px) { .product-toolbar { flex-direction: column; align-items: stretch; } .product-toolbar select.category-list { width: 100%; min-width: 0; max-height: 240px; } }
 .mt-table small.mt-kol-contacts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.75rem; }
 .mt-table small.mt-kol-contacts a { color: var(--accent, #12372A); }
+
+/* Product Library: category list as left sidebar (no empty space) */
+.product-browse { display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 16px; align-items: start; }
+.product-browse .product-toolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; margin-bottom: 0; position: sticky; top: 16px; }
+.product-browse .product-toolbar .search-box { width: 100%; min-width: 0; }
+.product-browse .product-toolbar select.category-list { width: 100%; min-width: 0; max-height: 70vh; }
+.product-browse .product-grid { grid-template-columns: repeat(3,1fr); }
+@media (max-width: 900px) { .product-browse { grid-template-columns: 1fr; } .product-browse .product-toolbar { position: static; } .product-browse .product-toolbar select.category-list { max-height: 240px; } .product-browse .product-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 560px) { .product-browse .product-grid { grid-template-columns: 1fr; } }
