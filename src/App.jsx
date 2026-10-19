@@ -781,8 +781,9 @@ function MarketingTools({ workspaceActive, toast }) {
     finally { setImageBusy(false) }
   }
   const dropImage = () => setDraft((current) => ({ ...current, imageDataUrl: '', imageName: '', removeImage: Boolean(current.imageUrl || current.imageFileId), imageUrl: '' }))
-  const openDraft = (value) => { setImageError(''); setDraft(value) }
-  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
+  const [notesMode, setNotesMode] = useState('text')
+  const openDraft = (value) => { setImageError(''); setNotesMode(value.tool === 'KOL' && value.imageUrl ? 'image' : 'text'); setDraft(value) }
+  const startKolCampaign = (kol) => openDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
@@ -846,15 +847,25 @@ function MarketingTools({ workspaceActive, toast }) {
               <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
               <label>Cost note<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. Barter: 1 Sukod Desk, no cash"/></label>
             </>)}
-            <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>
             {draft.tool === 'KOL' ? (
-              <div className="mt-kol-image">
-                <label>Gambar (optional)<input type="file" accept="image/*" onChange={pickImage} disabled={imageBusy}/></label>
-                {imageBusy ? <small>Mengecilkan gambar…</small> : null}
+              <div className="mt-notes-field">
+                <div className="mt-notes-head">
+                  <label htmlFor="mt-notes-input">Notes</label>
+                  <div className="mt-notes-toggle" role="group" aria-label="Notes type">
+                    <button type="button" className={notesMode === 'text' ? 'active' : ''} aria-pressed={notesMode === 'text'} onClick={() => setNotesMode('text')}>Type notes</button>
+                    <button type="button" className={notesMode === 'image' ? 'active' : ''} aria-pressed={notesMode === 'image'} onClick={() => setNotesMode('image')}>Letak gambar</button>
+                  </div>
+                </div>
+                {notesMode === 'text' ? <textarea id="mt-notes-input" className="mt-notes-box" rows={3} value={draft.notes} onChange={update('notes')}/> : (
+                  draft.imageDataUrl || draft.imageUrl ? (
+                    <div className="mt-notes-box mt-notes-image"><KolImageThumb className="mt-kol-thumb large" url={draft.imageDataUrl || draft.imageUrl} alt="Pratonton gambar KOL"/><small>{draft.imageName || 'Gambar disimpan'}</small><button type="button" className="button secondary small" onClick={dropImage}>Buang gambar</button></div>
+                  ) : (
+                    <label className="mt-notes-box mt-notes-drop">{imageBusy ? 'Mengecilkan gambar…' : 'Klik untuk pilih gambar'}<input type="file" accept="image/*" onChange={pickImage} disabled={imageBusy}/></label>
+                  )
+                )}
                 {imageError ? <small className="mt-kol-image-error">{imageError}</small> : null}
-                {draft.imageDataUrl || draft.imageUrl ? <div className="mt-kol-image-preview"><KolImageThumb className="mt-kol-thumb large" url={draft.imageDataUrl || draft.imageUrl} alt="Pratonton gambar KOL"/><small>{draft.imageName || 'Gambar disimpan'}</small><button type="button" className="button secondary small" onClick={dropImage}>Buang gambar</button></div> : null}
               </div>
-            ) : null}
+            ) : <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>}
             <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy || imageBusy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
           </form>
         </div>
