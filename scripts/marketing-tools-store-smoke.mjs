@@ -18,4 +18,16 @@ assert.equal(s.loadMarketingCampaigns()[1].costNote, 'Barter: 1 Sukod Desk, no c
 list = s.deleteMarketingCampaign(list, list[1].id)
 assert.equal(s.loadMarketingCampaigns().length, 1)
 assert.throws(() => s.saveMarketingCampaign(list, { name: 'X', tool: 'WhatsApp Blast' }))
+// Optional KOL image (local-only mode keeps the shrunk data URL as imageUrl).
+const img = 'data:image/jpeg;base64,AAAA'
+list = s.saveMarketingCampaign(list, { name: 'K', tool: 'KOL', imageDataUrl: img, imageName: 'k.jpg' })
+const kol = s.loadMarketingCampaigns().find((item) => item.name === 'K')
+assert.equal(kol.imageUrl, img, 'local KOL image kept as imageUrl')
+assert.ok(!('imageDataUrl' in kol) && !('removeImage' in kol), 'upload-only fields are not stored locally')
+list = s.saveMarketingCampaign(list, { ...kol, notes: 'edited' })
+assert.equal(s.loadMarketingCampaigns().find((item) => item.id === kol.id).imageUrl, img, 'image kept on edit without a new image')
+list = s.saveMarketingCampaign(list, { ...kol, imageUrl: '', removeImage: true })
+assert.equal(s.loadMarketingCampaigns().find((item) => item.id === kol.id).imageUrl, '', 'image removed')
+list = s.saveMarketingCampaign(list, { name: 'Bunt', tool: 'Bunting', imageDataUrl: img })
+assert.equal(s.loadMarketingCampaigns().find((item) => item.name === 'Bunt').imageUrl, '', 'non-KOL tools ignore image uploads')
 console.log('marketing tools store smoke: ok')

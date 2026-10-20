@@ -721,6 +721,42 @@ function KolContactLine({ item }) {
   return <small className="mt-kol-contacts">{links.map(([field, label]) => <a key={field} href={item[field]} target="_blank" rel="noreferrer">{label}</a>)}{item.phone ? <a href={`tel:${item.phone.replace(/[^\d+]/g, '')}`}>{item.phone}</a> : null}</small>
 }
 
+// KOL campaign image: shrink in the browser (longest side 1280px, JPEG) so it stays under the 1.2 MB upload limit.
+const KOL_IMAGE_MAX_SIDE = 1280
+const KOL_IMAGE_MAX_BYTES = 1200000
+const dataUrlBytes = (dataUrl) => Math.ceil(((dataUrl.split(',')[1] || '').length * 3) / 4)
+async function shrinkKolImage(file) {
+  const objectUrl = URL.createObjectURL(file)
+  try {
+    const image = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = () => reject(new Error('This image could not be read.')); img.src = objectUrl })
+    const scale = Math.min(1, KOL_IMAGE_MAX_SIDE / Math.max(image.naturalWidth, image.naturalHeight))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+    const context = canvas.getContext('2d')
+    context.fillStyle = '#fff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(image, 0, 0, canvas.width, canvas.height)
+    for (const quality of [0.82, 0.7, 0.55]) {
+      const dataUrl = canvas.toDataURL('image/jpeg', quality)
+      if (dataUrlBytes(dataUrl) <= KOL_IMAGE_MAX_BYTES) return dataUrl
+    }
+    throw new Error('Image is still larger than 1.2 MB after shrinking.')
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+// Browsers block opening data: URLs directly in a new tab, so open those as a blob.
+function openKolImage(event, url) {
+  if (!/^data:/i.test(url)) return
+  event.preventDefault()
+  fetch(url).then((response) => response.blob()).then((blob) => window.open(URL.createObjectURL(blob), '_blank', 'noopener'))
+}
+function KolImageThumb({ url, alt, className }) {
+  if (!url) return null
+  return <a className={className} href={url} target="_blank" rel="noreferrer" onClick={(event) => openKolImage(event, url)} title="Buka gambar"><img src={url} alt={alt}/></a>
+}
+
 function MarketingTools({ workspaceActive, toast }) {
   const [campaigns, setCampaigns] = useState(() => (workspaceActive ? [] : loadMarketingCampaigns()))
   const [localCount, setLocalCount] = useState(() => loadMarketingCampaigns().length)
@@ -728,7 +764,26 @@ function MarketingTools({ workspaceActive, toast }) {
   const [filter, setFilter] = useState('All')
   const [draft, setDraft] = useState(null)
   const [view, setView] = useState('campaigns')
-  const startKolCampaign = (kol) => setDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
+  const [imageError, setImageError] = useState('')
+  const [imageBusy, setImageBusy] = useState(false)
+  const pickImage = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setImageError('Pilih fail gambar (PNG, JPG, WEBP atau GIF).'); return }
+    setImageBusy(true)
+    try {
+      const dataUrl = await shrinkKolImage(file)
+      const baseName = file.name.replace(/\.[^.]+$/, '') || 'kol'
+      setDraft((current) => (current ? { ...current, imageDataUrl: dataUrl, imageName: `${baseName}.jpg`, removeImage: false } : current))
+      setImageError('')
+    } catch (error) { setImageError(error.message || 'This image could not be used.') }
+    finally { setImageBusy(false) }
+  }
+  const dropImage = () => setDraft((current) => ({ ...current, imageDataUrl: '', imageName: '', removeImage: Boolean(current.imageUrl || current.imageFileId), imageUrl: '' }))
+  const [notesMode, setNotesMode] = useState('text')
+  const openDraft = (value) => { setImageError(''); setNotesMode(value.tool === 'KOL' && value.imageUrl ? 'image' : 'text'); setDraft(value) }
+  const startKolCampaign = (kol) => openDraft({ ...blankMarketingCampaign(), tool: 'KOL', name: `KOL: ${kol.name}`, tiktok: kol.tiktok || '', instagram: kol.instagram || '', facebook: kol.facebook || '', youtube: kol.youtube || '', phone: contactLinks(kol.businessContact).find((link) => link.type === 'whatsapp')?.label || '' })
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
@@ -747,7 +802,11 @@ function MarketingTools({ workspaceActive, toast }) {
   }
   const save = (event) => {
     event.preventDefault()
-    if (!workspaceActive) { setCampaigns((list) => saveMarketingCampaign(list, draft)); setDraft(null); return }
+    if (!workspaceActive) {
+      try { setCampaigns(saveMarketingCampaign(campaigns, draft)); setDraft(null) }
+      catch (error) { toast?.(/quota/i.test(error?.message || '') ? 'Browser storage is full. Remove the image or connect Google.' : (error.message || 'Could not save campaign.')) }
+      return
+    }
     run(() => saveRemoteMarketingCampaign(campaigns, draft), 'Campaign saved to Google Sheet.')
   }
   const remove = (id) => {
@@ -757,7 +816,7 @@ function MarketingTools({ workspaceActive, toast }) {
   const moveToSheet = () => run(async () => { const list = await moveLocalCampaignsToSheet(); setLocalCount(0); return list }, 'Local campaigns moved to Google Sheet.')
   return (
     <div className="page marketing-tools-page" data-user-content>
-      <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => setDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
+      <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => openDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
       <p className="mt-storage-note">{workspaceActive ? 'Campaigns are saved to the "Marketing Tools" tab of the BRUTTI Google Sheet and shared across devices.' : 'Google workspace is not connected, so campaigns are saved on this device only (browser storage). Connect Google in Settings to share them.'}</p>
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
@@ -767,7 +826,7 @@ function MarketingTools({ workspaceActive, toast }) {
         <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
           <div className="mt-table-wrap"><table className="mt-table"><thead><tr><th>Campaign</th><th>Tool</th><th>Brand</th><th>Location / Platform</th><th>Dates</th><th>Cost</th><th>Status</th><th></th></tr></thead><tbody>
-            {visible.map((item) => <tr key={item.id}><td><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}{item.tool === 'KOL' ? <KolContactLine item={item}/> : null}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}{item.costNote ? <small className="mt-cost-note">{item.costNote}</small> : null}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => setDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
+            {visible.map((item) => <tr key={item.id}><td>{item.tool === 'KOL' && item.imageUrl ? <div className="mt-kol-row"><KolImageThumb className="mt-kol-thumb" url={item.imageUrl} alt={item.name}/><div><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}<KolContactLine item={item}/></div></div> : <><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}{item.tool === 'KOL' ? <KolContactLine item={item}/> : null}</>}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}{item.costNote ? <small className="mt-cost-note">{item.costNote}</small> : null}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => openDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
           </tbody></table></div>
         )}
       </section>
@@ -788,8 +847,26 @@ function MarketingTools({ workspaceActive, toast }) {
               <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
               <label>Cost note<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. Barter: 1 Sukod Desk, no cash"/></label>
             </>)}
-            <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>
-            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
+            {draft.tool === 'KOL' ? (
+              <div className="mt-notes-field">
+                <div className="mt-notes-head">
+                  <label htmlFor="mt-notes-input">Notes</label>
+                  <div className="mt-notes-toggle" role="group" aria-label="Notes type">
+                    <button type="button" className={notesMode === 'text' ? 'active' : ''} aria-pressed={notesMode === 'text'} onClick={() => setNotesMode('text')}>Type notes</button>
+                    <button type="button" className={notesMode === 'image' ? 'active' : ''} aria-pressed={notesMode === 'image'} onClick={() => setNotesMode('image')}>Letak gambar</button>
+                  </div>
+                </div>
+                {notesMode === 'text' ? <textarea id="mt-notes-input" className="mt-notes-box" rows={3} value={draft.notes} onChange={update('notes')}/> : (
+                  draft.imageDataUrl || draft.imageUrl ? (
+                    <div className="mt-notes-box mt-notes-image"><KolImageThumb className="mt-kol-thumb large" url={draft.imageDataUrl || draft.imageUrl} alt="Pratonton gambar KOL"/><small>{draft.imageName || 'Gambar disimpan'}</small><button type="button" className="button secondary small" onClick={dropImage}>Buang gambar</button></div>
+                  ) : (
+                    <label className="mt-notes-box mt-notes-drop">{imageBusy ? 'Mengecilkan gambar…' : 'Klik untuk pilih gambar'}<input type="file" accept="image/*" onChange={pickImage} disabled={imageBusy}/></label>
+                  )
+                )}
+                {imageError ? <small className="mt-kol-image-error">{imageError}</small> : null}
+              </div>
+            ) : <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>}
+            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy || imageBusy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
           </form>
         </div>
       ) : null}

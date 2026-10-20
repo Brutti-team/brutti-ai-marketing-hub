@@ -628,6 +628,24 @@ footer span:first-child { color: #646a66; font-weight: 700; }
 @media (max-width: 720px) { .product-toolbar { flex-direction: column; align-items: stretch; } .product-toolbar select.category-list { width: 100%; min-width: 0; max-height: 240px; } }
 .mt-table small.mt-kol-contacts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.75rem; }
 .mt-table small.mt-kol-contacts a { color: var(--accent, #12372A); }
+.mt-kol-row { display: flex; gap: 10px; align-items: flex-start; }
+.mt-kol-thumb { flex: none; display: block; width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line, rgba(127,127,127,.3)); }
+.mt-kol-thumb.large { width: 96px; height: 72px; }
+.mt-kol-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mt-kol-image-error { color: #a44; opacity: 1 !important; }
+.modal > .mt-notes-field { margin-top: 13px; display: flex; flex-direction: column; gap: 6px; }
+.mt-notes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mt-notes-toggle { display: inline-flex; padding: 2px; border: 1px solid #dcdad4; border-radius: 999px; background: #fffefa; }
+.mt-notes-toggle button { border: 0; background: transparent; color: #515753; font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+.mt-notes-toggle button.active { background: var(--forest, #12372A); color: #fff; }
+.mt-notes-box { height: var(--mt-notes-height, 112px); box-sizing: border-box; }
+textarea.mt-notes-box { resize: none; }
+.mt-notes-drop { flex-direction: row; align-items: center; justify-content: center; border: 1.5px dashed #c9c6bd; border-radius: 8px; background: #fffefa; color: #6b706c; cursor: pointer; }
+.mt-notes-drop:hover { border-color: #98a69e; }
+.mt-notes-drop input { display: none; }
+.mt-notes-image { display: flex; align-items: center; gap: 10px; padding: 0 11px; border: 1px solid #dcdad4; border-radius: 8px; background: #fffefa; }
+.mt-notes-image small { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .75; }
+.mt-notes-image .mt-kol-thumb.large { width: 112px; height: 84px; }
 
 /* Product Library: category list as left sidebar (no empty space) */
 .product-browse { display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 16px; align-items: start; }

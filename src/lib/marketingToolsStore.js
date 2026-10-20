@@ -8,7 +8,7 @@ export const MARKETING_TOOLS = ['Bunting', 'Billboard', 'KOL']
 export const MARKETING_TOOL_STATUSES = ['Idea', 'In Progress', 'Live', 'Done']
 export const MARKETING_TOOLS_STORAGE_KEY = 'brutti-marketing-tools-v1'
 
-export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', costNote: '', status: 'Idea', notes: '', tiktok: '', instagram: '', facebook: '', youtube: '', phone: '' })
+export const blankMarketingCampaign = () => ({ id: '', name: '', tool: 'Bunting', brand: 'Brutti', location: '', startDate: '', endDate: '', cost: '', costNote: '', status: 'Idea', notes: '', tiktok: '', instagram: '', facebook: '', youtube: '', phone: '', imageUrl: '', imageFileId: '' })
 
 export const KOL_CONTACT_FIELDS = [['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['youtube', 'YouTube']]
 
@@ -34,11 +34,34 @@ const cleanCampaign = (record) => {
   if (!clean.status) clean.status = 'Idea'
   if (!MARKETING_TOOLS.includes(clean.tool)) throw new Error('Unsupported tool')
   if (!MARKETING_TOOL_STATUSES.includes(clean.status)) throw new Error('Unsupported status')
+  // Optional KOL image. imageDataUrl / imageName / removeImage are one-shot upload fields.
+  clean.imageDataUrl = clean.tool === 'KOL' ? String(record.imageDataUrl || '') : ''
+  clean.imageName = clean.imageDataUrl ? String(record.imageName || '') : ''
+  clean.removeImage = Boolean(record.removeImage) && !clean.imageDataUrl
+  clean.imageUrl = String(record.imageUrl || '')
+  clean.imageFileId = String(record.imageFileId || '')
   return clean
 }
 
+// Local-only mode: keep the (already shrunk) data URL as the record's imageUrl.
+const localCampaign = (clean) => {
+  const { imageDataUrl, removeImage, imageName, ...rest } = clean
+  void imageName
+  if (imageDataUrl) return { ...rest, imageUrl: imageDataUrl, imageFileId: '' }
+  if (removeImage) return { ...rest, imageUrl: '', imageFileId: '' }
+  return rest
+}
+
+// Remote mode: send upload fields only when they carry something.
+const remoteCampaign = (clean) => {
+  const out = { ...clean }
+  if (!out.imageDataUrl) { delete out.imageDataUrl; delete out.imageName }
+  if (!out.removeImage) delete out.removeImage
+  return out
+}
+
 export function saveMarketingCampaign(list, record) {
-  const clean = cleanCampaign(record)
+  const clean = localCampaign(cleanCampaign(record))
   if (clean.id) return persist(list.map((item) => (item.id === clean.id ? clean : item)))
   return persist([...list, { ...clean, id: `mt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }])
 }
@@ -60,10 +83,10 @@ export async function loadRemoteMarketingCampaigns() {
 export async function saveRemoteMarketingCampaign(list, record) {
   const clean = cleanCampaign(record)
   if (clean.id) {
-    const saved = await (await api()).updateGoogleMarketingTool(clean)
+    const saved = await (await api()).updateGoogleMarketingTool(remoteCampaign(clean))
     return list.map((item) => (item.id === saved.id ? saved : item))
   }
-  const saved = await (await api()).createGoogleMarketingTool(clean)
+  const saved = await (await api()).createGoogleMarketingTool(remoteCampaign(clean))
   return [...list, saved]
 }
 
@@ -78,7 +101,11 @@ export async function moveLocalCampaignsToSheet() {
   const local = loadMarketingCampaigns()
   const remoteIds = new Set((await loadRemoteMarketingCampaigns()).map((item) => item.id))
   for (const item of local) {
-    if (!remoteIds.has(item.id)) await (await api()).createGoogleMarketingTool(cleanCampaign(item))
+    if (remoteIds.has(item.id)) continue
+    // A local image is a data URL; upload it to Drive with the record.
+    const localImage = /^data:image\//i.test(item.imageUrl || '') ? item.imageUrl : ''
+    const record = { ...item, imageUrl: localImage ? '' : item.imageUrl, imageDataUrl: localImage, imageName: localImage ? `kol-${item.id}.jpg` : '' }
+    await (await api()).createGoogleMarketingTool(remoteCampaign(cleanCampaign(record)))
   }
   clearLocalMarketingCampaigns()
   return loadRemoteMarketingCampaigns()
