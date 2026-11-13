@@ -10,6 +10,11 @@ const META_PERFORMANCE_SHEET = 'Meta Performance';
 // The planner workbook's 'Meta Performance' tab is a parallel operational view; sync mirrors
 // metrics into it by header name and never creates a new tab or overwrites helper columns.
 const META_INSIGHTS_SPREADSHEET_ID = '1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU';
+// Facebook Page post media-view metrics only support period=lifetime.
+// post_total_media_view_unique is Meta's current replacement for post reach
+// (formerly post_impressions_unique). Requests must pass period=lifetime or
+// Meta may return a day bucket of 0 while views still fill from lifetime.
+// Docs: https://developers.facebook.com/docs/graph-api/reference/page/insights/
 const FACEBOOK_INSIGHT_METRICS = ['post_media_view', 'post_total_media_view_unique'];
 const INSTAGRAM_INSIGHT_METRICS = 'views,reach,shares,saved,total_interactions';
 
@@ -176,7 +181,7 @@ function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
   for (let start = 0; start < posts.length; start += batchSize) {
     const batch = posts.slice(start, start + batchSize).map(post => ({
       method: 'GET',
-      relative_url: version + '/' + encodeURIComponent(post.id) + '/insights?metric=' + encodeURIComponent(metricNames.join(','))
+      relative_url: version + '/' + encodeURIComponent(post.id) + '/insights?metric=' + encodeURIComponent(metricNames.join(',')) + '&period=lifetime'
     }));
     let body = [];
     let fetched = false;
@@ -220,7 +225,7 @@ function safeMetaPostMetrics_(version, postId, token, unavailable) {
   const names = FACEBOOK_INSIGHT_METRICS.slice();
   const result = {};
   try {
-    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: names.join(',') }).data || [];
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: names.join(','), period: 'lifetime' }).data || [];
     data.forEach(item => { result[item.name] = insightValue_(item); });
   } catch (error) { /* Keep unavailable metrics blank; never invent KPI. */ }
   names.forEach(name => { if (result[name] === undefined || result[name] === null) { result[name] = null; unavailable[name] = true; } });
@@ -335,6 +340,57 @@ function backfillMetaInsights() {
   return { postsSyncedThisRun: result.posts || 0, syncedAt: result.syncedAt, cursorRemaining: Boolean(after), startedWithCursor: Boolean(before), message: after ? 'Run again to continue older posts.' : 'Historical backfill reached the oldest available post.' };
 }
 
+// Temporary diagnostic: writes a token-free raw insights payload for one
+// Facebook post (with and without period=lifetime) to the Integration Log.
+// Does not publish or change Meta. Safe to run from the Apps Script editor.
+function debugFacebookReachSample() {
+  const properties = scriptProperties_();
+  const token = properties.getProperty('META_PAGE_ACCESS_TOKEN');
+  const version = properties.getProperty('META_GRAPH_VERSION') || 'v23.0';
+  if (!token) throw new Error('META_PAGE_ACCESS_TOKEN is missing.');
+  const sheet = ensureMetaPostInsightsSheet_();
+  const last = sheet.getLastRow();
+  if (last < 2) throw new Error('META_POST_INSIGHTS has no posts.');
+  const rows = sheet.getRange(2, 1, last - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
+  let sample = null;
+  for (let i = rows.length - 1; i >= 0; i -= 1) {
+    const row = rows[i];
+    if (String(row[1] || '').toLowerCase() === 'facebook' && String(row[0] || '') && numericOrNull_(row[6]) && numericOrNull_(row[6]) > 0) {
+      sample = { id: String(row[0]), views: numericOrNull_(row[6]), reach: numericOrNull_(row[7]), createdTime: String(row[2] || '') };
+      break;
+    }
+  }
+  if (!sample) throw new Error('No Facebook post with views found to sample.');
+  const fetchOnce = function (period) {
+    const params = { metric: FACEBOOK_INSIGHT_METRICS.join(',') };
+    if (period) params.period = period;
+    try {
+      const body = metaGraphRequest_(version + '/' + encodeURIComponent(sample.id) + '/insights', token, params);
+      const data = (body && body.data) || [];
+      return {
+        ok: true,
+        period: period || '(omitted)',
+        entries: data.map(function (entry) {
+          return {
+            name: entry && entry.name,
+            period: entry && entry.period,
+            parsed: insightValue_(entry),
+            total_value: entry && entry.total_value,
+            values: entry && entry.values
+          };
+        })
+      };
+    } catch (error) {
+      const message = String(error && error.message || error).replace(/access_token=[^&\s]+/gi, 'access_token=[hidden]').substring(0, 300);
+      return { ok: false, period: period || '(omitted)', error: message };
+    }
+  };
+  const result = { postId: sample.id, sheetViews: sample.views, sheetReach: sample.reach, createdTime: sample.createdTime, withoutPeriod: fetchOnce(''), withLifetime: fetchOnce('lifetime') };
+  const summary = JSON.stringify(result).replace(/access_token=[^&\s"]+/gi, 'access_token=[hidden]').substring(0, 1500);
+  logEvent_('debug_facebook_reach', sample.id, 'Success', summary);
+  return result;
+}
+
 function ensureMetaPostInsightsSheet_() {
   const spreadsheet = SpreadsheetApp.openById(META_INSIGHTS_SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
@@ -343,12 +399,45 @@ function ensureMetaPostInsightsSheet_() {
   return sheet;
 }
 
+function insightScalar_(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' || typeof value === 'string') return numericOrNull_(value);
+  if (typeof value === 'object') {
+    if (value.value !== undefined && value.value !== null && typeof value.value !== 'object') return numericOrNull_(value.value);
+    if (value.total !== undefined) return numericOrNull_(value.total);
+  }
+  return null;
+}
+
+function insightTotalValue_(total) {
+  if (total === null || total === undefined || total === '') return null;
+  if (typeof total === 'number' || typeof total === 'string') return numericOrNull_(total);
+  if (typeof total !== 'object') return null;
+  const direct = insightScalar_(total.value);
+  if (direct !== null && direct !== 0) return direct;
+  const results = [];
+  (total.breakdowns || []).forEach(function (breakdown) {
+    (breakdown.results || []).forEach(function (result) {
+      const number = insightScalar_(result && result.value);
+      if (number !== null) results.push(number);
+    });
+  });
+  if (results.length) return results.reduce(function (sum, number) { return sum + number; }, 0);
+  return direct;
+}
+
 function insightValue_(item) {
   if (!item) return null;
-  if (item.total_value && item.total_value.value !== undefined && item.total_value.value !== null) return numericOrNull_(item.total_value.value);
+  // post_media_view and post_total_media_view_unique are lifetime-only
+  // (https://developers.facebook.com/docs/graph-api/reference/page/insights/).
+  // Prefer a non-zero lifetime total so a default day-period 0 cannot hide reach.
+  const fromTotal = insightTotalValue_(item.total_value);
   const values = item.values || [];
-  if (!values.length) return null;
-  return numericOrNull_(values[values.length - 1].value);
+  const fromValues = values.length ? insightScalar_(values[values.length - 1].value) : null;
+  if (fromTotal !== null && fromTotal !== 0) return fromTotal;
+  if (fromValues !== null && fromValues !== 0) return fromValues;
+  if (fromTotal !== null) return fromTotal;
+  return fromValues;
 }
 
 function metaEngagementTotal_(parts) {
@@ -438,7 +527,7 @@ function upsertMetaPerformance_(records) {
 
 function safeMetaPostMetric_(version, postId, token, metricName, unavailable) {
   try {
-    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: metricName }).data || [];
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: metricName, period: 'lifetime' }).data || [];
     const value = insightValue_(data[0]);
     if (value === null) unavailable[metricName] = true;
     return value;
