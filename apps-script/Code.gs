@@ -5,6 +5,13 @@ const PRODUCT_SHEET = 'Product Library';
 const PRODUCT_REFERENCE_SHEET = 'Product References';
 const META_POST_INSIGHTS_SHEET = 'META_POST_INSIGHTS';
 const META_POST_INSIGHTS_HEADERS = ['Post ID', 'Platform', 'Created Time', 'Message', 'Permalink', 'Format', 'Views', 'Reach', 'Reactions', 'Comments', 'Shares', 'Saves', 'Engagement', 'Synced At', 'Image URL'];
+const META_PERFORMANCE_SHEET = 'Meta Performance';
+// Primary post snapshot lives in the Brutti Meta Insights spreadsheet (META_POST_INSIGHTS).
+// The planner workbook's 'Meta Performance' tab is a parallel operational view; sync mirrors
+// metrics into it by header name and never creates a new tab or overwrites helper columns.
+const META_INSIGHTS_SPREADSHEET_ID = '1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU';
+const FACEBOOK_INSIGHT_METRICS = ['post_media_view', 'post_total_media_view_unique'];
+const INSTAGRAM_INSIGHT_METRICS = 'views,reach,shares,saved,total_interactions';
 
 const BRUTTI_RESOURCE_IDS = {
   plannerSpreadsheet: '10o2HcCKqbkcvTPx58MKiKG2bx6cnvBtuJULEIEWG8xQ',
@@ -90,15 +97,18 @@ function syncMetaInsights() {
   const metricMap = fetchMetaMetricsBatch_(version, posts, token, unavailable);
   const syncedAt = new Date().toISOString();
   const records = posts.map(post => {
-    const metrics = metricMap[String(post.id)] || { post_video_views: null, post_impressions_unique: null, post_saves: null, post_engaged_users: null };
+    const metrics = metricMap[String(post.id)] || {};
     const attachment = post.attachments && post.attachments.data && post.attachments.data[0];
+    const reactions = metaCount_(post.reactions);
+    const comments = metaCount_(post.comments);
+    const shares = post.shares ? numericOrNull_(post.shares.count) : null;
     return {
       sourceId: String(post.id || ''), platform: 'facebook', createdTime: post.created_time || '', message: post.message || '', permalink: post.permalink_url || '',
       format: attachment ? (attachment.media_type || attachment.type || 'post') : 'post',
       imageUrl: attachment && attachment.media && attachment.media.image ? (attachment.media.image.src || '') : (attachment && attachment.url ? attachment.url : ''),
-      views: metrics.post_video_views, reach: metrics.post_impressions_unique,
-      reactions: metaCount_(post.reactions), comments: metaCount_(post.comments), shares: post.shares ? numericOrNull_(post.shares.count) : null,
-      saves: metrics.post_saves, engagement: metrics.post_engaged_users, syncedAt: syncedAt
+      views: metrics.post_media_view, reach: metrics.post_total_media_view_unique,
+      reactions: reactions, comments: comments, shares: shares,
+      saves: null, engagement: metaEngagementTotal_({ reactions: reactions, comments: comments, shares: shares, saves: null }), syncedAt: syncedAt
     };
   }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
   const instagramUserId = properties.getProperty('META_INSTAGRAM_USER_ID');
@@ -124,6 +134,7 @@ function syncMetaInsights() {
     else newRecords.push(post);
   });
   if (newRecords.length) sheet.getRange(sheet.getLastRow() + 1, 1, newRecords.length, META_POST_INSIGHTS_HEADERS.length).setValues(newRecords.map(valuesFor));
+  try { upsertMetaPerformance_(records); } catch (error) { /* Planner mirror must not roll back the primary META_POST_INSIGHTS write. */ }
   logEvent_('sync_meta_insights', '', 'Success', records.length + ' verified Meta post records synced. Unavailable metrics: ' + Object.keys(unavailable).join(', '));
   saveMetaTokenHealth_({ status: 'valid', checkedAt: syncedAt, pageId: pageId, message: 'Token accepted by Meta Graph API.' });
   return { posts: records.length, unavailableMetrics: Object.keys(unavailable), syncedAt: syncedAt };
@@ -158,7 +169,7 @@ function saveMetaTokenHealth_(result) {
 
 function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
   const result = {};
-  const metricNames = ['post_video_views', 'post_impressions_unique', 'post_saves', 'post_engaged_users'];
+  const metricNames = FACEBOOK_INSIGHT_METRICS.slice();
   // Keep Meta requests small and spaced out. A large batch can trigger
   // UrlFetch/Graph traffic throttling even when the token is valid.
   const batchSize = 3;
@@ -195,8 +206,7 @@ function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
       try {
         const payload = JSON.parse(item.body || '{}');
         (payload.data || []).forEach(entry => {
-          const values = entry.values || [];
-          metrics[entry.name] = values.length ? numericOrNull_(values[values.length - 1].value) : null;
+          metrics[entry.name] = insightValue_(entry);
         });
       } catch (error) { /* Leave unavailable metrics blank. */ }
       metricNames.forEach(name => { if (metrics[name] === undefined || metrics[name] === null) { metrics[name] = null; unavailable[name] = true; } });
@@ -207,15 +217,11 @@ function fetchMetaMetricsBatch_(version, posts, token, unavailable) {
 }
 
 function safeMetaPostMetrics_(version, postId, token, unavailable) {
-  const names = ['post_video_views', 'post_impressions_unique', 'post_saves', 'post_engaged_users'];
+  const names = FACEBOOK_INSIGHT_METRICS.slice();
   const result = {};
   try {
     const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: names.join(',') }).data || [];
-    data.forEach(item => {
-      const values = item.values || [];
-      const latest = values.length ? values[values.length - 1] : null;
-      result[item.name] = latest ? numericOrNull_(latest.value) : null;
-    });
+    data.forEach(item => { result[item.name] = insightValue_(item); });
   } catch (error) { /* Keep unavailable metrics blank; never invent KPI. */ }
   names.forEach(name => { if (result[name] === undefined || result[name] === null) { result[name] = null; unavailable[name] = true; } });
   return result;
@@ -223,7 +229,7 @@ function safeMetaPostMetrics_(version, postId, token, unavailable) {
 
 function fetchAllMetaPosts_(version, pageId, token, cursor) {
   // Keep each Graph API page deliberately small to avoid Meta's request-size limit.
-  const fields = 'id,message,created_time,permalink_url,attachments{media_type,type,media,url}';
+  const fields = 'id,message,created_time,permalink_url,attachments{media_type,type,media,url},reactions.summary(true),comments.summary(true),shares';
   const all = [];
   let path = version + '/' + encodeURIComponent(pageId) + '/published_posts';
   let params = { fields: fields, limit: '10' };
@@ -283,7 +289,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
     return {
       sourceId: String(post.id || ''), platform: 'instagram', createdTime: post.timestamp || '', message: post.caption || '', permalink: post.permalink || '',
       format: String(post.media_type || 'post').toLowerCase(), imageUrl: post.media_url || post.thumbnail_url || '', views: metrics.views, reach: metrics.reach, reactions: reactions, comments: comments,
-      shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement, syncedAt: new Date().toISOString()
+      shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement !== null ? metrics.engagement : metaEngagementTotal_({ reactions: reactions, comments: comments, shares: metrics.shares, saves: metrics.saves }), syncedAt: new Date().toISOString()
     };
   }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
 }
@@ -291,14 +297,15 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
 function safeInstagramMetrics_(version, mediaId, token, unavailable) {
   const result = { views: null, reach: null, shares: null, saves: null, engagement: null };
   try {
-    const data = metaGraphRequest_(version + '/' + encodeURIComponent(mediaId) + '/insights', token, { metric: 'impressions,reach,shares,saved,engagement,video_views' }).data || [];
+    // impressions, plays, video_views and engagement are deprecated and would fail the whole request.
+    const data = metaGraphRequest_(version + '/' + encodeURIComponent(mediaId) + '/insights', token, { metric: INSTAGRAM_INSIGHT_METRICS }).data || [];
     data.forEach(item => {
-      const value = item.values && item.values.length ? numericOrNull_(item.values[item.values.length - 1].value) : null;
-      if (item.name === 'impressions' || item.name === 'video_views') result.views = value;
+      const value = insightValue_(item);
+      if (item.name === 'views') result.views = value;
       if (item.name === 'reach') result.reach = value;
       if (item.name === 'shares') result.shares = value;
       if (item.name === 'saved') result.saves = value;
-      if (item.name === 'engagement') result.engagement = value;
+      if (item.name === 'total_interactions') result.engagement = value;
     });
   } catch (error) { unavailable.instagram = true; }
   return result;
@@ -329,25 +336,121 @@ function backfillMetaInsights() {
 }
 
 function ensureMetaPostInsightsSheet_() {
-  const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
-  const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET) || spreadsheet.insertSheet(META_POST_INSIGHTS_SHEET);
+  const spreadsheet = SpreadsheetApp.openById(META_INSIGHTS_SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
+  if (!sheet) throw new Error('META_POST_INSIGHTS tab is missing in the Brutti Meta Insights spreadsheet. Refusing to create a duplicate tab.');
   if (sheet.getLastRow() < 1) sheet.getRange(1, 1, 1, META_POST_INSIGHTS_HEADERS.length).setValues([META_POST_INSIGHTS_HEADERS]);
   return sheet;
+}
+
+function insightValue_(item) {
+  if (!item) return null;
+  if (item.total_value && item.total_value.value !== undefined && item.total_value.value !== null) return numericOrNull_(item.total_value.value);
+  const values = item.values || [];
+  if (!values.length) return null;
+  return numericOrNull_(values[values.length - 1].value);
+}
+
+function metaEngagementTotal_(parts) {
+  const keys = ['reactions', 'comments', 'shares', 'saves'];
+  let total = 0;
+  let any = false;
+  keys.forEach(function (key) {
+    const value = parts && parts[key];
+    if (value !== null && value !== undefined && value !== '') {
+      const number = numericOrNull_(value);
+      if (number !== null) { total += number; any = true; }
+    }
+  });
+  return any ? total : null;
+}
+
+function metaEngagementRate_(post) {
+  const interactions = metaEngagementTotal_(post);
+  const base = post.reach !== null && post.reach !== undefined ? post.reach : post.views;
+  if (interactions === null || base === null || base === undefined || Number(base) <= 0) return '';
+  return (Math.round((interactions / Number(base)) * 10000) / 100).toFixed(2) + '%';
+}
+
+function headerIndex_(headers, names) {
+  const map = {};
+  headers.forEach(function (header, index) { map[String(header || '').trim().toLowerCase()] = index; });
+  for (let i = 0; i < names.length; i += 1) {
+    if (map[String(names[i]).toLowerCase()] !== undefined) return map[String(names[i]).toLowerCase()];
+  }
+  return -1;
+}
+
+function upsertMetaPerformance_(records) {
+  if (!records || !records.length) return;
+  const spreadsheet = SpreadsheetApp.openById(BRUTTI_RESOURCE_IDS.plannerSpreadsheet);
+  const sheet = spreadsheet.getSheetByName(META_PERFORMANCE_SHEET);
+  if (!sheet || sheet.getLastRow() < 1) return;
+  const lastColumn = Math.max(sheet.getLastColumn(), 1);
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const idCol = headerIndex_(headers, ['Meta Post ID', 'Post ID']);
+  if (idCol < 0) return;
+  const columns = {
+    platform: headerIndex_(headers, ['Platform']),
+    createdTime: headerIndex_(headers, ['Published At', 'Created Time']),
+    permalink: headerIndex_(headers, ['Post URL', 'Permalink']),
+    format: headerIndex_(headers, ['Content Type', 'Format']),
+    views: headerIndex_(headers, ['Views']),
+    reach: headerIndex_(headers, ['Reach']),
+    reactions: headerIndex_(headers, ['Reactions']),
+    comments: headerIndex_(headers, ['Comments']),
+    shares: headerIndex_(headers, ['Shares']),
+    saves: headerIndex_(headers, ['Saves']),
+    engagementRate: headerIndex_(headers, ['Engagement Rate']),
+    metricStatus: headerIndex_(headers, ['Metric Status']),
+    syncedAt: headerIndex_(headers, ['Last Synced', 'Synced At']),
+    message: headerIndex_(headers, ['Caption / Post Text', 'Message'])
+  };
+  const existing = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, lastColumn).getValues() : [];
+  const rowById = {};
+  existing.forEach(function (row, index) { if (row[idCol]) rowById[String(row[idCol])] = index + 2; });
+  const syncedDisplay = function (value) {
+    const date = value instanceof Date ? value : new Date(value);
+    return isNaN(date.getTime()) ? String(value || '') : Utilities.formatDate(date, 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm:ss');
+  };
+  records.forEach(function (post) {
+    const rowNumber = rowById[post.sourceId];
+    const row = rowNumber ? sheet.getRange(rowNumber, 1, 1, lastColumn).getValues()[0] : headers.map(function () { return ''; });
+    row[idCol] = post.sourceId;
+    if (columns.platform >= 0) row[columns.platform] = post.platform === 'instagram' ? 'Instagram' : 'Facebook';
+    if (columns.createdTime >= 0) row[columns.createdTime] = post.createdTime || row[columns.createdTime] || '';
+    if (columns.permalink >= 0) row[columns.permalink] = post.permalink || row[columns.permalink] || '';
+    if (columns.format >= 0 && !row[columns.format]) row[columns.format] = post.format || '';
+    if (columns.views >= 0) row[columns.views] = post.views;
+    if (columns.reach >= 0) row[columns.reach] = post.reach;
+    if (columns.reactions >= 0) row[columns.reactions] = post.reactions;
+    if (columns.comments >= 0) row[columns.comments] = post.comments;
+    if (columns.shares >= 0) row[columns.shares] = post.shares;
+    if (columns.saves >= 0) row[columns.saves] = post.saves;
+    if (columns.engagementRate >= 0) row[columns.engagementRate] = metaEngagementRate_(post);
+    if (columns.metricStatus >= 0) row[columns.metricStatus] = 'Synced';
+    if (columns.syncedAt >= 0) row[columns.syncedAt] = syncedDisplay(post.syncedAt);
+    if (columns.message >= 0 && !row[columns.message]) row[columns.message] = post.message || '';
+    const target = rowNumber || Math.max(sheet.getLastRow() + 1, 2);
+    sheet.getRange(target, 1, 1, lastColumn).setValues([row]);
+  });
 }
 
 function safeMetaPostMetric_(version, postId, token, metricName, unavailable) {
   try {
     const data = metaGraphRequest_(version + '/' + encodeURIComponent(postId) + '/insights', token, { metric: metricName }).data || [];
-    const values = data[0] && data[0].values ? data[0].values : [];
-    const latest = values.length ? values[values.length - 1] : null;
-    const value = latest ? numericOrNull_(latest.value) : null;
+    const value = insightValue_(data[0]);
     if (value === null) unavailable[metricName] = true;
     return value;
   } catch (error) { unavailable[metricName] = true; return null; }
 }
 
 function metaCount_(field) { return field && field.summary ? numericOrNull_(field.summary.total_count) : null; }
-function numericOrNull_(value) { return typeof value === 'number' && isFinite(value) ? value : null; }
+function numericOrNull_(value) {
+  if (typeof value === 'number' && isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && isFinite(Number(value))) return Number(value);
+  return null;
+}
 function hasMetaPostMetric_(post) { return ['views', 'reach', 'reactions', 'comments', 'shares', 'saves', 'engagement'].some(key => post[key] !== null); }
 
 function metaGraphRequest_(path, token, params) {
@@ -360,7 +463,7 @@ function metaGraphRequest_(path, token, params) {
 }
 
 function metaInsightsPublic_() {
-  const spreadsheet = SpreadsheetApp.openById('1Zs9mc5E6aBk3l9tr6x0crs4XnbBHgemcADwZaNlJByU');
+  const spreadsheet = SpreadsheetApp.openById(META_INSIGHTS_SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(META_POST_INSIGHTS_SHEET);
   if (!sheet || sheet.getLastRow() < 2) return { sourceUpdatedAt: null, syncedPostCount: 0, unavailableMetrics: [], instagram: { latestReach: null, followers: null, trend: [], topPosts: [] }, facebook: { followers: null, topPosts: [] } };
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, META_POST_INSIGHTS_HEADERS.length).getValues();
