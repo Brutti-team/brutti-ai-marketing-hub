@@ -30,6 +30,7 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
               <article key={`${kol.name}-${index}`} className="kol-card">
                 <header><strong>{kol.name}</strong></header>
                 <div className="kol-photo">{kol.image ? <img src={kol.image} alt={kol.name} loading="lazy"/> : <span>{(kol.name.match(/[A-Za-z0-9]+/g) || ['?']).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>}</div>
+                {kol.rate && <p className="kol-rate">{kol.rate}</p>}
                 <footer>
                   <button type="button" className="button secondary small" onClick={() => onStartCampaign?.(kol)}>Start KOL campaign</button>
                 </footer>
