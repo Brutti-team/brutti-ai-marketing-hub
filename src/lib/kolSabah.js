@@ -1,6 +1,6 @@
 import sampleCsv from '../data/kol-sabah-sample.csv?raw'
 
-export const KOL_FIELDS = ['name', 'handle', 'niche', 'location', 'tiktok', 'instagram', 'facebook', 'youtube', 'followers', 'businessContact', 'source', 'notes']
+export const KOL_FIELDS = ['name', 'handle', 'niche', 'location', 'tiktok', 'instagram', 'facebook', 'youtube', 'followers', 'businessContact', 'source', 'notes', 'image']
 
 export function parseCsv(text) {
   const rows = []

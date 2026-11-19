@@ -201,3 +201,18 @@ button[hidden] {
 .kol-card footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .kol-links { display: flex; gap: 10px; flex-wrap: wrap; }
 .kol-links a { font-weight: 600; }
+.kol-card header { align-items: center; text-align: center; }
+.kol-card footer { justify-content: center; }
+.kol-photo { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; background: #151c18; display: flex; align-items: center; justify-content: center; }
+.kol-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kol-photo span { font-size: 2.2em; font-weight: 700; opacity: .55; letter-spacing: .04em; }
+@media (max-width: 640px) { .kol-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kol-grid { align-items: start; }
+.kol-card { align-items: stretch; height: auto; min-height: 0; }
+.kol-card footer { margin-top: 0; }
+.kol-photo { align-self: stretch; width: auto; max-width: none; flex: none; }
+.kol-directory .kol-card footer { padding: 0; margin: 0; max-width: none; flex-direction: row; font-size: inherit; color: inherit; }
+.kol-directory .kol-grid { align-items: stretch; }
+.kol-directory .kol-card header { min-height: 2.6em; justify-content: center; line-height: 1.3; }
+.kol-directory .kol-card footer { margin-top: auto; }
+.kol-directory .kol-card footer .button { width: 100%; }
