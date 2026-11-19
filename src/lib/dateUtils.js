@@ -51,3 +51,28 @@ export function greetingForNow(value = new Date()) {
   if (hour < 18) return 'Good afternoon'
   return 'Good evening'
 }
+
+export function startOfMonth(value = new Date()) {
+  const date = value instanceof Date ? value : dateFromKey(value)
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+export function addMonths(value, amount) {
+  const date = startOfMonth(value)
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1)
+}
+
+// Every date shown in a Monday-first month grid: full weeks covering the month (5–6 rows).
+export function monthGridKeys(anchor = new Date()) {
+  const first = startOfMonth(anchor)
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0)
+  const start = startOfWeek(first)
+  const end = addDays(startOfWeek(last), 6)
+  const keys = []
+  for (let day = new Date(start); day <= end; day = addDays(day, 1)) keys.push(localDateKey(day))
+  return keys
+}
+
+export function formatMonthTitle(value = new Date()) {
+  return startOfMonth(value).toLocaleDateString('en-MY', { month: 'long', year: 'numeric' })
+}

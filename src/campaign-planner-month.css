@@ -1,0 +1,111 @@
+/* Campaign Planner: full month calendar. Shared week-calendar styles are untouched;
+   every rule here is scoped to .month-calendar. */
+
+.week-calendar.month-calendar,
+.planner-calendar-workspace .week-calendar.month-calendar {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-height: 0;
+  max-width: 100%;
+}
+.week-calendar.month-calendar .month-weekday {
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.week-calendar.month-calendar .calendar-day.month-day,
+.planner-calendar-workspace .week-calendar.month-calendar .calendar-day.month-day {
+  min-width: 0;
+  min-height: 118px;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.week-calendar.month-calendar .month-day:nth-child(7n + 1) { border-left: 0; }
+.week-calendar.month-calendar .month-day:nth-last-child(-n + 7) { border-bottom: 0; }
+.week-calendar.month-calendar .month-day.is-outside { opacity: .42; }
+.week-calendar.month-calendar .month-day-head {
+  padding: 6px 6px 4px 8px;
+  border-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  text-align: left;
+}
+.week-calendar.month-calendar .month-day-head strong { margin: 0; font-size: 15px; line-height: 1; }
+.week-calendar.month-calendar .month-add {
+  width: auto;
+  height: 24px;
+  padding: 0 7px;
+  flex: 0 0 auto;
+  font-size: 11px;
+}
+.week-calendar.month-calendar .month-items { padding: 2px 5px 6px; display: grid; gap: 3px; min-width: 0; }
+.week-calendar.month-calendar .month-item {
+  margin: 0;
+  padding: 4px 6px;
+  border-left-width: 3px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.week-calendar.month-calendar .month-item strong {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-calendar.month-calendar .month-dot { display: none; }
+.week-calendar.month-calendar .month-more {
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+}
+.week-calendar.month-calendar .month-more:hover { color: var(--terracotta); }
+
+@media (max-width: 980px) {
+  .week-calendar.month-calendar .calendar-day.month-day,
+  .planner-calendar-workspace .week-calendar.month-calendar .calendar-day.month-day { min-height: 86px; }
+  .week-calendar.month-calendar .month-add span { display: none; }
+  .week-calendar.month-calendar .month-add { width: 22px; height: 22px; padding: 0; }
+}
+
+/* Phone: compact cells, items become coloured dots (tap opens the same edit form). */
+@media (max-width: 600px) {
+  .week-calendar.month-calendar { border-radius: 10px; }
+  .week-calendar.month-calendar .month-weekday { padding: 7px 0; font-size: 9px; letter-spacing: 0; }
+  .week-calendar.month-calendar .calendar-day.month-day,
+  .planner-calendar-workspace .week-calendar.month-calendar .calendar-day.month-day { min-height: 64px; }
+  .week-calendar.month-calendar .month-day-head { padding: 4px 3px 2px; flex-direction: column; align-items: center; gap: 3px; }
+  .week-calendar.month-calendar .month-day-head strong { font-size: 13px; }
+  .week-calendar.month-calendar .month-add { width: 20px; height: 18px; border-radius: 5px; }
+  .week-calendar.month-calendar .month-items { padding: 1px 2px 4px; display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+  .week-calendar.month-calendar .month-item {
+    width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%;
+    background: transparent; justify-content: center;
+  }
+  .week-calendar.month-calendar .month-item strong { display: none; }
+  .week-calendar.month-calendar .month-dot {
+    display: block; width: 8px; height: 8px; border-radius: 50%; background: var(--tan);
+  }
+  .week-calendar.month-calendar .month-item.review .month-dot { background: var(--terracotta); }
+  .week-calendar.month-calendar .month-item.scheduled .month-dot { background: var(--forest-3); }
+  .week-calendar.month-calendar .month-more { width: 100%; padding: 0; font-size: 9px; text-align: center; }
+}
