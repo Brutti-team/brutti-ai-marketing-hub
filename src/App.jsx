@@ -27,7 +27,7 @@ import {
   confirmProductImageMatch,
   setWorkspaceKey,
 } from './lib/googleWorkspace'
-import { addDays, dateFromKey, formatDateRange, formatTimestamp, greetingForNow, localDateKey, startOfWeek, weekKeys } from './lib/dateUtils'
+import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
@@ -697,17 +697,23 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   )
 }
 
+const MONTH_CELL_LIMIT = 3
+const MONTH_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
 function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
-  const [anchor, setAnchor] = useState(() => startOfWeek(new Date()))
-  const week = weekKeys(anchor)
+  const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()))
+  const [expandedDay, setExpandedDay] = useState('')
   const today = localDateKey()
-  const weekPlans = plans.filter((plan) => week.includes(plan.date))
-  const moveWeek = (days) => setAnchor((current) => addDays(current, days))
+  const monthDays = monthGridKeys(monthAnchor)
+  const monthPrefix = localDateKey(monthAnchor).slice(0, 7)
+  const monthPlans = plans.filter((plan) => String(plan.date || '').startsWith(monthPrefix))
+  const plansByDate = plans.reduce((map, plan) => { (map[plan.date] = map[plan.date] || []).push(plan); return map }, {})
+  const moveMonth = (step) => setMonthAnchor((current) => addMonths(current, step))
   return (
     <div className="page">
-      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Dynamic weekly planner for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
-      <div className="planner-summary dynamic-planner-summary"><div><span>Week</span><strong>{formatDateRange(week)}</strong><small>{weekPlans.length} planned item{weekPlans.length === 1 ? '' : 's'}</small></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveWeek(-7)}>← Previous</button><button className="button secondary small" onClick={() => setAnchor(startOfWeek(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveWeek(7)}>Next →</button></div></div>
-      <section className="week-calendar">{week.map((date) => { const items = plans.filter((plan) => plan.date === date); const day = dateFromKey(date); return <div className={`calendar-day ${date === today ? 'is-today' : ''}`} key={date}><div className="calendar-day-head"><span>{day.toLocaleDateString('en-MY',{weekday:'short'})}{date === today ? ' · Today' : ''}</span><strong>{day.getDate()}</strong></div><div className="calendar-items">{items.map((plan) => <button className={`calendar-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)}><small>{plan.type}</small><strong>{plan.title}</strong><span>{plan.channel} · {plan.status}</span></button>)}<button className="add-day" onClick={() => newPlan(date)}><Icon name="plus" size={14}/>Add</button></div></div>})}</section>
+      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Monthly content calendar for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
+      <div className="planner-summary dynamic-planner-summary"><div><span>Month</span><strong>{formatMonthTitle(monthAnchor)}</strong><small>{monthPlans.length} {monthPlans.length === 1 ? 'planned item' : 'planned items'}</small></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button><button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
+      <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong><button type="button" className="add-day month-add" onClick={() => newPlan(date)} aria-label={`Add content on ${day.toLocaleDateString('en-MY',{day:'numeric',month:'short'})}`}><Icon name="plus" size={12}/><span>Add</span></button></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section>
       <div className="planner-bottom-grid"><section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">SMART CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea,index) => <article key={idea.title}><span className="campaign-index">{String(index+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(today, idea)}>Plan idea</button></article>)}</div></section><section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} total items</h3></div></div><div className="compact-plan-list">{[...plans].sort((a,b) => a.date.localeCompare(b.date)).map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{dateFromKey(plan.date).toLocaleDateString('en-MY',{day:'2-digit',month:'short'})}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section></div>
     </div>
   )
