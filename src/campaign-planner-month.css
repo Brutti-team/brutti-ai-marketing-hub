@@ -138,3 +138,7 @@
 .mt-poster-empty{display:flex;align-items:center;justify-content:center;background:rgba(127,127,127,.12);font-size:12px;opacity:.7}
 .mt-poster-card strong{font-size:14px;line-height:1.3}
 @media (max-width:600px){.mt-poster-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+
+/* Marketing Tools: no outer panel box around poster cards (Michelle, 19 Nov) */
+.marketing-tools-page .panel.mt-list{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.mt-poster-card strong{text-align:center;align-self:stretch}
