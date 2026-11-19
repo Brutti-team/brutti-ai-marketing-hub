@@ -35,7 +35,7 @@ import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
 import KolSabahDirectory from './KolSabahDirectory'
 import { contactLinks } from './lib/kolSabah'
-import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign, totalMarketingCost } from './lib/marketingToolsStore'
+import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign } from './lib/marketingToolsStore'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -717,7 +717,6 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
   )
 }
 
-const formatRM = (value) => `RM ${(Number(value) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 function KolContactLine({ item }) {
   const links = KOL_CONTACT_FIELDS.filter(([field]) => /^https?:\/\//i.test(item[field] || ''))
@@ -826,11 +825,11 @@ function MarketingTools({ workspaceActive, toast }) {
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
       {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
       <section className="panel mt-list">
-        <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
+        <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div></div>
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
-          <div className="mt-table-wrap"><table className="mt-table"><thead><tr><th>Campaign</th><th>Tool</th><th>Brand</th><th>Location / Platform</th><th>Dates</th><th>Cost</th><th>Status</th><th></th></tr></thead><tbody>
-            {visible.map((item) => <tr key={item.id}><td>{item.tool === 'KOL' && item.imageUrl ? <div className="mt-kol-row"><KolImageThumb className="mt-kol-thumb" url={item.imageUrl} alt={item.name}/><div><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}<KolContactLine item={item}/></div></div> : <><strong>{item.name}</strong>{item.notes ? <small>{item.notes}</small> : null}{item.tool === 'KOL' ? <KolContactLine item={item}/> : null}</>}</td><td>{item.tool}</td><td>{item.brand}</td><td>{item.location || '—'}</td><td>{item.startDate || '—'} → {item.endDate || '—'}</td><td>{formatRM(item.cost)}{item.costNote ? <small className="mt-cost-note">{item.costNote}</small> : null}</td><td><StatusPill>{item.status}</StatusPill></td><td className="mt-actions"><button className="button secondary small" onClick={() => openDraft(item)}>Edit</button><button className="delete-plan" onClick={() => remove(item.id)} aria-label={`Delete ${item.name}`}><Icon name="trash" size={15}/></button></td></tr>)}
-          </tbody></table></div>
+          <div className="mt-poster-grid">
+            {visible.map((item) => <button type="button" key={item.id} className="mt-poster-card" onClick={() => openDraft(item)} aria-label={`Buka ${item.name}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy"/> : <span className="mt-poster-empty">Tiada poster</span>}<strong>{item.name}</strong></button>)}
+          </div>
         )}
       </section>
       </>)}
