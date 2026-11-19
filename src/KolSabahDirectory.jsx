@@ -4,14 +4,13 @@ import { filterKols, normalizeKol, primaryNiche, sampleKolSabah } from './lib/ko
 
 export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) {
   const [kols, setKols] = useState(() => sampleKolSabah())
-  const [source, setSource] = useState('sample')
   const [query, setQuery] = useState('')
   const [niche, setNiche] = useState('All')
   useEffect(() => {
     if (!workspaceActive) return undefined
     let cancelled = false
     listGoogleKolSabah()
-      .then((rows) => { if (!cancelled && Array.isArray(rows) && rows.length) { setKols(rows.map(normalizeKol).filter((k) => k.name)); setSource('sheet') } })
+      .then((rows) => { if (!cancelled && Array.isArray(rows) && rows.length) { setKols(rows.map(normalizeKol).filter((k) => k.name)) } })
       .catch(() => { /* Apps Script action not deployed yet: keep bundled sample data. */ })
     return () => { cancelled = true }
   }, [workspaceActive])
