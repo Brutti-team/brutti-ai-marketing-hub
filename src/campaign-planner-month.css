@@ -142,3 +142,20 @@
 /* Marketing Tools: no outer panel box around poster cards (Michelle, 19 Nov) */
 .marketing-tools-page .panel.mt-list{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 .mt-poster-card strong{text-align:center;align-self:stretch}
+
+/* KOL Notes image box + toggle follow dark theme (Michelle, 19 Nov) */
+html[data-theme='dark'] .mt-notes-image,
+html[data-theme='dark'] .mt-notes-toggle{background:#151c18;color:var(--charcoal);border-color:var(--line)}
+html[data-theme='dark'] .mt-notes-toggle button{color:#aab5ae}
+html[data-theme='dark'] .mt-notes-toggle button.active{background:#2c4a3c;color:#fff}
+
+/* Marketing Tools Edit campaign: center all text (Michelle, 19 Nov) */
+.marketing-tools-page .modal.plan-modal label,
+.marketing-tools-page .modal.plan-modal input,
+.marketing-tools-page .modal.plan-modal select,
+.marketing-tools-page .modal.plan-modal textarea,
+.marketing-tools-page .modal.plan-modal .modal-head,
+.marketing-tools-page .modal.plan-modal .mt-notes-head label{text-align:center;text-align-last:center}
+.marketing-tools-page .modal.plan-modal .modal-head{justify-content:center;position:relative}
+.marketing-tools-page .modal.plan-modal .modal-head .icon-button{position:absolute;right:0;top:0}
+.marketing-tools-page .modal.plan-modal .mt-notes-head{justify-content:center;flex-wrap:wrap;gap:8px}
