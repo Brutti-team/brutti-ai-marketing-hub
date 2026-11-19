@@ -4,14 +4,13 @@ import { filterKols, normalizeKol, primaryNiche, sampleKolSabah } from './lib/ko
 
 export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) {
   const [kols, setKols] = useState(() => sampleKolSabah())
-  const [source, setSource] = useState('sample')
   const [query, setQuery] = useState('')
   const [niche, setNiche] = useState('All')
   useEffect(() => {
     if (!workspaceActive) return undefined
     let cancelled = false
     listGoogleKolSabah()
-      .then((rows) => { if (!cancelled && Array.isArray(rows) && rows.length) { setKols(rows.map(normalizeKol).filter((k) => k.name)); setSource('sheet') } })
+      .then((rows) => { if (!cancelled && Array.isArray(rows) && rows.length) { setKols(rows.map(normalizeKol).filter((k) => k.name)) } })
       .catch(() => { /* Apps Script action not deployed yet: keep bundled sample data. */ })
     return () => { cancelled = true }
   }, [workspaceActive])
@@ -20,7 +19,6 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
   return (
     <section className="panel kol-directory">
       <div className="panel-heading"><div><span className="eyebrow">KOL SABAH DIRECTORY</span><h3>{visible.length} of {kols.length} KOLs</h3></div></div>
-      <p className="mt-storage-note">{source === 'sheet' ? 'Live from the "KOL Sabah" tab of the BRUTTI Google Sheet (read-only).' : 'Showing bundled sample data (14 Oct 2026). Live Sheet data loads once Google is connected and list_kol_sabah is deployed.'}</p>
       <div className="kol-controls">
         <input type="search" placeholder="Search name, handle, niche, location…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search KOLs"/>
         <select value={niche} onChange={(e) => setNiche(e.target.value)} aria-label="Filter by niche">{niches.map((n) => <option key={n}>{n}</option>)}</select>
