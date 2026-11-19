@@ -222,3 +222,4 @@ button[hidden] {
 .kol-directory .kol-details { margin: 0; display: grid; gap: 6px; font-size: .82em; line-height: 1.35; }
 .kol-directory .kol-details dt { font-size: .78em; }
 .kol-directory .kol-details a { color: inherit; text-decoration: underline; }
+.kol-directory .kol-controls { grid-template-columns: 1fr !important; }
