@@ -868,7 +868,7 @@ function MarketingTools({ workspaceActive, toast }) {
                 {imageError ? <small className="mt-kol-image-error">{imageError}</small> : null}
               </div>
             ) : <label>Notes<textarea rows={3} value={draft.notes} onChange={update('notes')}/></label>}
-            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy || imageBusy}>{busy ? 'Saving…' : 'Save campaign'}</button></div></div>
+            <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => remove(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={() => setDraft(null)}>Cancel</button><button className="button primary" type="submit" disabled={busy || imageBusy}>{busy ? 'Saving…' : 'Save'}</button></div></div>
           </form>
         </div>
       ) : null}
