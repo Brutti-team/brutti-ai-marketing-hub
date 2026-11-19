@@ -223,3 +223,7 @@ button[hidden] {
 .kol-directory .kol-details dt { font-size: .78em; }
 .kol-directory .kol-details a { color: inherit; text-decoration: underline; }
 .kol-directory .kol-controls { grid-template-columns: 1fr !important; }
+.kol-directory .kol-more { margin-top: auto; }
+.kol-directory .kol-more summary { list-style: none; width: 100%; text-align: center; cursor: pointer; display: flex; justify-content: center; }
+.kol-directory .kol-more summary::-webkit-details-marker { display: none; }
+.kol-directory .kol-more[open] summary { margin-bottom: 8px; }
