@@ -114,8 +114,11 @@ function syncMetaInsights() {
   }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
   const instagramUserId = properties.getProperty('META_INSTAGRAM_USER_ID');
   if (instagramUserId) {
-    const instagramPosts = fetchInstagramPosts_(version, instagramUserId, token, unavailable);
-    instagramPosts.forEach(post => records.push(post));
+    const igCursor = properties.getProperty('META_IG_SYNC_CURSOR') || '';
+    const igSync = fetchInstagramPosts_(version, instagramUserId, token, unavailable, igCursor);
+    igSync.posts.forEach(post => records.push(post));
+    if (igSync.nextCursor) properties.setProperty('META_IG_SYNC_CURSOR', igSync.nextCursor);
+    else properties.deleteProperty('META_IG_SYNC_CURSOR');
   }
   const sheet = ensureMetaPostInsightsSheet_();
   const existingRows = sheet.getLastRow() > 1
@@ -261,17 +264,25 @@ function fetchAllMetaPosts_(version, pageId, token, cursor) {
   return { posts: all, nextCursor: path ? JSON.stringify({ path: path, params: params }) : '' };
 }
 
-function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
+function fetchInstagramPosts_(version, instagramUserId, token, unavailable, cursor) {
   const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count';
   const posts = [];
   let path = version + '/' + encodeURIComponent(instagramUserId) + '/media';
   let params = { fields: fields, limit: '10' };
+  if (cursor) {
+    try {
+      const saved = JSON.parse(cursor);
+      path = saved.path || path;
+      params = saved.params || params;
+    } catch (error) { /* Restart from the beginning if the checkpoint is invalid. */ }
+  }
   let pages = 0;
+  // Walk several pages per sync; META_IG_SYNC_CURSOR continues from the last page on the next run.
   while (path && pages < 10) {
     const response = metaGraphRequest_(path, token, params);
     posts.push(...(response.data || []));
     const next = response.paging && response.paging.next;
-    if (!next) break;
+    if (!next) { path = ''; break; }
     const parsed = next.match(/^https:\/\/graph\.facebook\.com\/(.+?)\?(.*)$/);
     if (!parsed) break;
     path = parsed[1];
@@ -282,7 +293,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
     });
     pages += 1;
   }
-  return posts.map(post => {
+  const mapped = posts.map(post => {
     let metrics = {};
     try { metrics = safeInstagramMetrics_(version, post.id, token, unavailable); } catch (error) { unavailable.instagram = true; }
     const reactions = numericOrNull_(post.like_count);
@@ -293,6 +304,7 @@ function fetchInstagramPosts_(version, instagramUserId, token, unavailable) {
       shares: metrics.shares, saves: metrics.saves, engagement: metrics.engagement !== null ? metrics.engagement : metaEngagementTotal_({ reactions: reactions, comments: comments, shares: metrics.shares, saves: metrics.saves }), syncedAt: new Date().toISOString()
     };
   }).filter(post => post.sourceId && (hasMetaPostMetric_(post) || post.message));
+  return { posts: mapped, nextCursor: path ? JSON.stringify({ path: path, params: params }) : '' };
 }
 
 function safeInstagramMetrics_(version, mediaId, token, unavailable) {
@@ -326,14 +338,16 @@ function installScheduledMetaSync() {
 }
 
 // Pull older Meta posts in safe batches. Run this after replacing the Page
-// token; repeat until cursorRemaining is false. Each run stays below Apps
-// Script execution limits and reuses META_SYNC_CURSOR between runs.
+// token; repeat until cursorRemaining and igCursorRemaining are false. Each
+// run stays below Apps Script execution limits and reuses META_SYNC_CURSOR
+// and META_IG_SYNC_CURSOR between runs.
 function backfillMetaInsights() {
   const properties = scriptProperties_();
   const before = properties.getProperty('META_SYNC_CURSOR') || '';
   const result = syncMetaInsights();
   const after = properties.getProperty('META_SYNC_CURSOR') || '';
-  return { postsSyncedThisRun: result.posts || 0, syncedAt: result.syncedAt, cursorRemaining: Boolean(after), startedWithCursor: Boolean(before), message: after ? 'Run again to continue older posts.' : 'Historical backfill reached the oldest available post.' };
+  const igAfter = properties.getProperty('META_IG_SYNC_CURSOR') || '';
+  return { postsSyncedThisRun: result.posts || 0, syncedAt: result.syncedAt, cursorRemaining: Boolean(after), igCursorRemaining: Boolean(igAfter), startedWithCursor: Boolean(before), message: (after || igAfter) ? 'Run again to continue older posts.' : 'Historical backfill reached the oldest available post.' };
 }
 
 // Temporary diagnostic: writes a token-free raw insights payload for one
