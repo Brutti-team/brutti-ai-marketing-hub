@@ -142,3 +142,9 @@
 /* Marketing Tools: no outer panel box around poster cards (Michelle, 19 Nov) */
 .marketing-tools-page .panel.mt-list{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 .mt-poster-card strong{text-align:center;align-self:stretch}
+
+/* KOL Notes image box + toggle follow dark theme (Michelle, 19 Nov) */
+html[data-theme='dark'] .mt-notes-image,
+html[data-theme='dark'] .mt-notes-toggle{background:#151c18;color:var(--charcoal);border-color:var(--line)}
+html[data-theme='dark'] .mt-notes-toggle button{color:#aab5ae}
+html[data-theme='dark'] .mt-notes-toggle button.active{background:#2c4a3c;color:#fff}
