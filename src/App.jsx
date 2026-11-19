@@ -825,7 +825,7 @@ function MarketingTools({ workspaceActive, toast }) {
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
       {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
       <section className="panel mt-list">
-        <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div></div>
+        
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
           <div className="mt-poster-grid">
             {visible.map((item) => <button type="button" key={item.id} className="mt-poster-card" onClick={() => openDraft(item)} aria-label={`Buka ${item.name}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy"/> : <span className="mt-poster-empty">Tiada poster</span>}<strong>{item.name}</strong></button>)}
