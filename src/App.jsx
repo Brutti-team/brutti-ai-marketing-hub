@@ -765,7 +765,7 @@ function MarketingTools({ workspaceActive, toast }) {
   const [campaigns, setCampaigns] = useState(() => (workspaceActive ? [] : loadMarketingCampaigns()))
   const [localCount, setLocalCount] = useState(() => loadMarketingCampaigns().length)
   const [busy, setBusy] = useState(false)
-  const [filter, setFilter] = useState('All')
+  const filter = 'All'
   const [draft, setDraft] = useState(null)
   const [view, setView] = useState('campaigns')
   const [imageError, setImageError] = useState('')
@@ -825,7 +825,6 @@ function MarketingTools({ workspaceActive, toast }) {
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
       {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
-      <div className="tab-bar mt-filter">{['All', ...MARKETING_TOOLS].map((tool) => <button key={tool} className={filter === tool ? 'active' : ''} onClick={() => setFilter(tool)}>{tool}<em>{filterMarketingCampaigns(campaigns, tool).length}</em></button>)}</div>
       <section className="panel mt-list">
         <div className="panel-heading"><div><span className="eyebrow">{filter === 'All' ? 'ALL TOOLS' : filter.toUpperCase()}</span><h3>{visible.length} campaign{visible.length === 1 ? '' : 's'}</h3></div><div className="mt-total"><span>Total cost</span><strong>{formatRM(totalMarketingCost(visible))}</strong></div></div>
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (

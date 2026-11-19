@@ -126,3 +126,6 @@
 /* Theme toggle lives in Settings; workspace chip stays in DOM (notification check) but hidden. */
 .topbar .topbar-workspace-chip[hidden] { display: none !important; }
 .settings-theme-panel .panel-heading { align-items: center; }
+
+/* Hide "Install app" button from top bar (Michelle, 19 Nov) */
+.topbar .pwa-install-button{display:none!important}
