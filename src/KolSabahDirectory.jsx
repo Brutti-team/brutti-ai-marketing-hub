@@ -20,7 +20,7 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
     <section className="panel kol-directory">
       <div className="panel-heading"><div><span className="eyebrow">KOL SABAH DIRECTORY</span><h3>{visible.length} of {kols.length} KOLs</h3></div></div>
       <div className="kol-controls">
-        <input type="search" placeholder="Search name, handle, niche, location…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search KOLs"/>
+        <input type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search KOLs"/>
         <select value={niche} onChange={(e) => setNiche(e.target.value)} aria-label="Filter by niche">{niches.map((n) => <option key={n}>{n}</option>)}</select>
       </div>
       {visible.length === 0 ? <div className="mt-empty"><strong>No KOLs match.</strong></div> : (
