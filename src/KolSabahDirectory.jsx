@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { listGoogleKolSabah } from './lib/googleWorkspace'
 import { filterKols, normalizeKol, primaryNiche, sampleKolSabah } from './lib/kolSabah'
 
-export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) {
+export default function KolSabahDirectory({ workspaceActive }) {
   const [kols, setKols] = useState(() => sampleKolSabah())
   const [query, setQuery] = useState('')
   const [niche, setNiche] = useState('All')
@@ -30,10 +30,11 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
               <article key={`${kol.name}-${index}`} className="kol-card">
                 <header><strong>{kol.name}</strong></header>
                 <div className="kol-photo">{kol.image ? <img src={kol.image} alt={kol.name} loading="lazy"/> : <span>{(kol.name.match(/[A-Za-z0-9]+/g) || ['?']).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>}</div>
-                {kol.rate && <p className="kol-rate">{kol.rate}</p>}
-                <footer>
-                  <button type="button" className="button secondary small" onClick={() => onStartCampaign?.(kol)}>Start KOL campaign</button>
-                </footer>
+                <dl className="kol-details">
+                  <div><dt>Platform</dt><dd>{[['TikTok', kol.tiktok], ['IG', kol.instagram], ['FB', kol.facebook]].filter(([, url]) => url).map(([label, url], i) => <span key={label}>{i ? ' · ' : ''}<a href={url} target="_blank" rel="noreferrer">{label}</a></span>)}{!kol.tiktok && !kol.instagram && !kol.facebook && '-'}</dd></div>
+                  <div><dt>No. Tel</dt><dd>{(kol.businessContact.match(/(?:\+?6?0)1[\d\s-]{7,11}\d/) || ['-'])[0]}</dd></div>
+                  <div><dt>Rate</dt><dd>{kol.rate || '-'}</dd></div>
+                </dl>
               </article>
             )
           })}
