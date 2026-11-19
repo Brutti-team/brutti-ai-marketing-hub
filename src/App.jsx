@@ -820,7 +820,6 @@ function MarketingTools({ workspaceActive, toast }) {
   return (
     <div className="page marketing-tools-page" data-user-content>
       <PageHeader eyebrow="OFFLINE & PARTNER CHANNELS" title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => openDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
-      <p className="mt-storage-note">{workspaceActive ? 'Campaigns are saved to the "Marketing Tools" tab of the BRUTTI Google Sheet and shared across devices.' : 'Google workspace is not connected, so campaigns are saved on this device only (browser storage). Connect Google in Settings to share them.'}</p>
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
       {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
