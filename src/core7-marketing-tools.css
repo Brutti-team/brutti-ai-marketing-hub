@@ -219,4 +219,11 @@ button[hidden] {
 .kol-directory .kol-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .kol-directory .kol-controls input, .kol-directory .kol-controls select { width: 100%; min-width: 0; max-width: none; flex: none; }
 @media (max-width: 640px) { .kol-directory .kol-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.kol-directory .kol-rate { margin: 0; text-align: center; font-size: .82em; line-height: 1.35; opacity: .85; }
+.kol-directory .kol-details { margin: 0; display: grid; gap: 6px; font-size: .82em; line-height: 1.35; }
+.kol-directory .kol-details dt { font-size: .78em; }
+.kol-directory .kol-details a { color: inherit; text-decoration: underline; }
+.kol-directory .kol-controls { grid-template-columns: 1fr !important; }
+.kol-directory .kol-more { margin-top: auto; }
+.kol-directory .kol-more summary { list-style: none; width: 100%; text-align: center; cursor: pointer; display: flex; justify-content: center; }
+.kol-directory .kol-more summary::-webkit-details-marker { display: none; }
+.kol-directory .kol-more[open] summary { margin-bottom: 8px; }
