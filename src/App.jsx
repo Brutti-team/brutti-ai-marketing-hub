@@ -795,7 +795,7 @@ function MarketingTools({ workspaceActive, toast }) {
     loadRemoteMarketingCampaigns().then((list) => { if (!cancelled) setCampaigns(list) }).catch((error) => toast?.(error.message || 'Could not load Marketing Tools from Google Sheet.')).finally(() => { if (!cancelled) setBusy(false) })
     return () => { cancelled = true }
   }, [workspaceActive])
-  const visible = filterMarketingCampaigns(campaigns, filter)
+  const visible = filterMarketingCampaigns(campaigns, filter).filter((item) => item.status !== 'Hidden')
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
   const run = async (task, message) => {
     setBusy(true)
