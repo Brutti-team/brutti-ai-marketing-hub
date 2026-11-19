@@ -122,3 +122,7 @@
 }
 .planner-month-page .page-header .eyebrow { display: block; font-size: 30px; line-height: 1.15; letter-spacing: .05em; }
 @media (max-width: 600px) { .planner-month-page .page-header .eyebrow { font-size: 22px; } }
+
+/* Theme toggle lives in Settings; workspace chip stays in DOM (notification check) but hidden. */
+.topbar .topbar-workspace-chip[hidden] { display: none !important; }
+.settings-theme-panel .panel-heading { align-items: center; }

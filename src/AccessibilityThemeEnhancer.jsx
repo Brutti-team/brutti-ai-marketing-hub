@@ -56,7 +56,7 @@ export default function AccessibilityThemeEnhancer() {
 
     let timer = 0
     const sync = () => {
-      const nextTarget = root.querySelector('.topbar-status')
+      const nextTarget = root.querySelector('.settings-theme-slot')
       setTarget((current) => current === nextTarget ? current : nextTarget)
     }
     const schedule = () => {
