@@ -210,11 +210,10 @@ function MobileBottomNavigation({ page, setPage, openMore }) {
 }
 
 function Topbar({ setOpen, workspaceActive }) {
-  const todayLabel = new Date().toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' })
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><PWAInstallControl/><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><span className="topbar-date">{todayLabel}</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><PWAInstallControl/><span className={`status-chip topbar-workspace-chip ${workspaceActive ? 'connected' : 'local'}`} hidden><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><div className="avatar">MC</div></div>
     </header>
   )
 }
@@ -1175,6 +1174,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   return (
     <div className="page">
       <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="Connect the internal Google backend without exposing API keys in GitHub or the browser." />
+      <section className="panel settings-theme-panel"><div className="panel-heading"><div><span className="eyebrow">DISPLAY MODE</span><h3>Light / Dark</h3></div><div className="settings-theme-slot"/></div></section>
       <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3 className="system-copy-hidden">{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
         {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Remember this device</label><small className="settings-copy">Use this only on your own device. The workspace key will stay saved here until you disconnect.</small><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
