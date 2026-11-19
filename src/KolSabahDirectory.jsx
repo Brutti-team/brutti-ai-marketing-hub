@@ -29,10 +29,7 @@ export default function KolSabahDirectory({ workspaceActive, onStartCampaign }) 
             return (
               <article key={`${kol.name}-${index}`} className="kol-card">
                 <header><strong>{kol.name}</strong></header>
-                <dl>
-                  <div><dt>Niche</dt><dd>{kol.niche || '—'}</dd></div>
-                  <div><dt>Location</dt><dd>{kol.location || '—'}</dd></div>
-                </dl>
+                <div className="kol-photo">{kol.image ? <img src={kol.image} alt={kol.name} loading="lazy"/> : <span>{(kol.name.match(/[A-Za-z0-9]+/g) || ['?']).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>}</div>
                 <footer>
                   <button type="button" className="button secondary small" onClick={() => onStartCampaign?.(kol)}>Start KOL campaign</button>
                 </footer>
