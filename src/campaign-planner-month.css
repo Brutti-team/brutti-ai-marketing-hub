@@ -141,3 +141,4 @@
 
 /* Marketing Tools: no outer panel box around poster cards (Michelle, 19 Nov) */
 .marketing-tools-page .panel.mt-list{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.mt-poster-card strong{text-align:center;align-self:stretch}
