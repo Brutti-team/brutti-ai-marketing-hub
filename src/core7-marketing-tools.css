@@ -235,3 +235,5 @@ button[hidden] {
 .kol-modal .kol-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
 .kol-modal .kol-links a { display: block; text-align: center; padding: 10px; border: 1px solid rgba(127,127,127,.4); border-radius: 10px; text-decoration: none; font-weight: 600; color: inherit; }
 .kol-modal .modal-head .icon-button { font-size: 1.1em; }
+.kol-directory > .panel-heading { justify-content: center; text-align: center; }
+.kol-directory > .panel-heading > div { width: 100%; text-align: center; }

@@ -17,7 +17,7 @@ export default function KolSabahDirectory({ workspaceActive }) {
   const visible = filterKols(kols, query, 'All')
   return (
     <section className="panel kol-directory">
-      <div className="panel-heading"><div><span className="eyebrow">KOL SABAH DIRECTORY</span><h3>{visible.length} of {kols.length} KOLs</h3></div></div>
+      <div className="panel-heading"><div><span className="eyebrow">KOL SABAH DIRECTORY</span><h3>{visible.length} of {kols.length}</h3></div></div>
       <div className="kol-controls">
         <input type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search KOLs"/>
       </div>
