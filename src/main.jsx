@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
+import { applyBrightness, readBrightness } from './lib/appBrightness'
 import LowRiskSafeUiEnhancer from './LowRiskSafeUiEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
@@ -146,6 +147,8 @@ export function DeferredEnhancers() {
     </Suspense>
   )
 }
+
+applyBrightness(readBrightness())
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
