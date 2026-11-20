@@ -189,7 +189,16 @@ textarea {
   }
 
   .mobile-bottom-navigation button svg { width: 19px; height: 19px; }
-  .mobile-bottom-navigation button small { max-width: 100%; overflow: hidden; font-size: 8px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-bottom-navigation button small {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
   .mobile-bottom-navigation button.active { color: #fff; background: rgba(255,255,255,.1); }
   .mobile-bottom-navigation button.active svg { color: #efb69d; }
 
@@ -249,7 +258,8 @@ textarea {
 }
 
 @media (max-width: 370px) {
-  .mobile-bottom-navigation { right: 6px; left: 6px; }
+  .mobile-bottom-navigation { right: 6px; left: 6px; gap: 2px; padding: 6px; }
+  .mobile-bottom-navigation button { min-height: 50px; padding: 4px 1px; }
   .mobile-bottom-navigation button small { font-size: 7px; }
 }
 /* Mobile dashboard cards */

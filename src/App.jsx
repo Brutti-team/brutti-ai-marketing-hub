@@ -191,6 +191,7 @@ const mobileNavigation = [
   { id: 'dashboard', label: 'Home', icon: 'dashboard' },
   { id: 'studio', label: 'Content', icon: 'sparkles' },
   { id: 'planner', label: 'Planner', icon: 'calendar' },
+  { id: 'products', label: 'Product Library', icon: 'box' },
 ]
 
 function MobileBottomNavigation({ page, setPage, openMore }) {
