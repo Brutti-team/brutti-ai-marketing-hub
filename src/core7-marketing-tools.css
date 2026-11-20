@@ -227,3 +227,5 @@ button[hidden] {
 .kol-directory .kol-more summary { list-style: none; width: 100%; text-align: center; cursor: pointer; display: flex; justify-content: center; }
 .kol-directory .kol-more summary::-webkit-details-marker { display: none; }
 .kol-directory .kol-more[open] summary { margin-bottom: 8px; }
+.kol-directory .kol-links { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.kol-directory .kol-links a { display: block; text-align: center; padding: 7px 8px; border: 1px solid rgba(127,127,127,.4); border-radius: 10px; text-decoration: none; font-weight: 600; }
