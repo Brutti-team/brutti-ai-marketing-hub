@@ -194,6 +194,16 @@ const PAIRS = [
   ['Verified post URL + reach + views + engagements', 'URL siaran disahkan + capaian + tontonan + penglibatan'],
   ['Read-only Google Sheet data. The website caches one verified snapshot per day, so opening Analytics does not create extra Meta API calls.', 'Data Google Sheet baca sahaja. Laman ini menyimpan satu snapshot disahkan setiap hari, jadi membuka Analitik tidak membuat panggilan Meta API tambahan.'],
   ['Settings', 'Tetapan'],
+  ['Choose a setting to review or update.', 'Pilih satu tetapan untuk semak atau kemaskini.'],
+  ['Display', 'Paparan'],
+  ['Theme, light/dark mode', 'Tema, mod terang/gelap'],
+  ['Access', 'Akses'],
+  ['Workspace key, connection and review rules', 'Kunci workspace, sambungan dan peraturan semakan'],
+  ['Notification', 'Notifikasi'],
+  ['Action Center reminders', 'Reminder Action Center'],
+  ['Language', 'Bahasa'],
+  ['Bahasa Melayu / English', 'Bahasa Melayu / English'],
+  ['Reminders for review, today’s plan and workspace connection appear in the bell at the top of the app.', 'Reminder untuk semakan, pelan hari ini dan sambungan workspace muncul pada loceng di bahagian atas app.'],
   ['Workspace Configuration', 'Konfigurasi Ruang Kerja'],
   ['Manage display language and internal connections without exposing API keys in GitHub or the browser.', 'Urus bahasa paparan dan sambungan dalaman tanpa mendedahkan kunci API dalam GitHub atau pelayar.'],
   ['Internal Access', 'Akses Dalaman'],
@@ -408,9 +418,13 @@ function mountControl(language) {
   select.value = language
   select.addEventListener('change', () => applyLanguage(select.value))
   panel.append(copy, select)
-  const reference = page.querySelector('.settings-grid') || page.querySelector('.settings-panel')
-  if (reference) reference.insertAdjacentElement('beforebegin', panel)
-  else page.append(panel)
+  const slot = page.querySelector('.settings-language-slot')
+  if (slot) slot.append(panel)
+  else {
+    const reference = page.querySelector('.settings-grid') || page.querySelector('.settings-panel')
+    if (reference) reference.insertAdjacentElement('beforebegin', panel)
+    else page.append(panel)
+  }
 }
 
 export default function AppLanguageLock() {
