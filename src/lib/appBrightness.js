@@ -43,12 +43,38 @@ export function readBrightness() {
   }
 }
 
+const VEIL_ID = 'app-brightness-veil'
+
+function brightnessVeil() {
+  let veil = document.getElementById(VEIL_ID)
+  if (veil) return veil
+  if (!document.body) return null
+  veil = document.createElement('div')
+  veil.id = VEIL_ID
+  veil.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(veil)
+  return veil
+}
+
 export function applyBrightness(percent) {
   const value = clampBrightness(percent)
   const filter = filterFromSlider(value)
   const root = document.getElementById('root')
-  if (root) root.style.filter = `brightness(${filter})`
-  document.documentElement.style.setProperty('--app-brightness', String(filter))
+  // Old versions applied the filter only to #root, which left the body
+  // background and position:fixed UI (bottom nav) unfiltered.
+  if (root) root.style.removeProperty('filter')
+  const html = document.documentElement
+  if (filter === 1) html.style.removeProperty('filter')
+  else html.style.filter = `brightness(${filter})`
+  html.style.setProperty('--app-brightness', String(filter))
+  const veil = brightnessVeil()
+  if (veil) {
+    // brightness() above 1 has little effect on near-white light-mode
+    // backgrounds (they already clip). A white veil makes 76–100 visibly
+    // brighter in both themes. At the default (filter 1) it stays hidden.
+    const lift = Math.max(0, (filter - 1) / 0.2) * 0.18
+    veil.style.opacity = String(lift)
+  }
   return value
 }
 
