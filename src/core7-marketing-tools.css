@@ -555,3 +555,9 @@ html[data-theme='dark'] .settings-list-icon {
     font-size: 24px;
   }
 }
+
+/* Settings heading centered, no eyebrow (Michelle, 20 Nov 2026) */
+.settings-page > .page-header { flex-direction: column; align-items: center; text-align: center; }
+.settings-page > .page-header > div:first-child { max-width: none; }
+.settings-page > .page-header h1 { margin-top: 0; }
+.settings-page .settings-list { margin-inline: auto; }
