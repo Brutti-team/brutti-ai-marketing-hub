@@ -139,35 +139,49 @@ function attachDriveImage(img, mapping, visual) {
   img.src = thumbnailUrl(mapping.fileId)
 }
 
+function applyDriveImage(host, productName) {
+  if (!host || host.dataset.photoOverride === '1') return null
+  const mapping = imageForProduct(productName)
+  if (!mapping) return null
+
+  const visual = host.querySelector('.product-visual')
+  if (!visual) return mapping
+
+  if (!visual.querySelector('.product-real-image')) {
+    const img = document.createElement('img')
+    img.className = 'product-real-image'
+    img.alt = `${mapping.product} product photo`
+    img.loading = 'lazy'
+    img.decoding = 'async'
+    attachDriveImage(img, mapping, visual)
+    visual.prepend(img)
+  }
+
+  const badge = visual.querySelector('.photo-status')
+  const badgeText = `${mapping.view} · Confirmed`
+  if (badge && badge.textContent !== badgeText) badge.textContent = badgeText
+  return mapping
+}
+
+function bindCreateButton(host, mapping) {
+  const createButton = [...host.querySelectorAll('button')]
+    .find((button) => /create product content/i.test(button.textContent || ''))
+  bindOnce(createButton, 'productImageBridge', () => writePending(mapping), true)
+}
+
 function enhanceProductCards(page) {
   page.querySelectorAll('.product-card').forEach((card) => {
     // Cards with a repo-hosted photo (or a hidden wrong image) keep that choice.
-    if (card.dataset.photoOverride === '1') return
     const productName = card.querySelector('h3')?.textContent?.trim() || ''
-    const mapping = imageForProduct(productName)
-    if (!mapping) return
-
-    const visual = card.querySelector('.product-visual')
-    if (!visual) return
-
-    if (!visual.querySelector('.product-real-image')) {
-      const img = document.createElement('img')
-      img.className = 'product-real-image'
-      img.alt = `${mapping.product} product photo`
-      img.loading = 'lazy'
-      img.decoding = 'async'
-      attachDriveImage(img, mapping, visual)
-      visual.prepend(img)
-    }
-
-    const badge = visual.querySelector('.photo-status')
-    const badgeText = `${mapping.view} · Confirmed`
-    if (badge && badge.textContent !== badgeText) badge.textContent = badgeText
-
-    const createButton = [...card.querySelectorAll('button')]
-      .find((button) => /create product content/i.test(button.textContent || ''))
-    bindOnce(createButton, 'productImageBridge', () => writePending(mapping), true)
+    const mapping = applyDriveImage(card, productName)
+    if (mapping) bindCreateButton(card, mapping)
   })
+
+  const modal = page.querySelector('.product-modal')
+  if (!modal) return
+  const productName = modal.querySelector('.modal-head h2')?.textContent?.trim() || ''
+  const mapping = applyDriveImage(modal, productName)
+  if (mapping) bindCreateButton(modal, mapping)
 }
 
 function productSelectOn(page) {

@@ -163,6 +163,7 @@ const PAIRS = [
   ['Verified source', 'Sumber disahkan'],
   ['Uncategorised', 'Tanpa kategori'],
   ['Verified name. Add specifications from the source before making product claims.', 'Nama disahkan. Tambah spesifikasi daripada sumber sebelum membuat tuntutan produk.'],
+  ['View details', 'Lihat butiran'],
   ['Create product content', 'Cipta kandungan produk'],
   ['Asset Library', 'Pustaka Aset'],
   ['Creative Source Files', 'Fail Sumber Kreatif'],

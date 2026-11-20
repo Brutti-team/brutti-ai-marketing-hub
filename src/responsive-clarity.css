@@ -734,7 +734,6 @@ html[data-theme='dark'] .brutti-notification-count {
     font-size: 21px;
   }
 
-  .product-grid,
   .asset-grid,
   .prompt-grid,
   .core7-prompt-grid,
@@ -745,6 +744,11 @@ html[data-theme='dark'] .brutti-notification-count {
   .phase3-criteria,
   .phase3-ranking-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .product-browse .product-grid,
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .product-card-body,
