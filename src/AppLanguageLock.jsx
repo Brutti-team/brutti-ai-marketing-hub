@@ -441,6 +441,7 @@ export default function AppLanguageLock() {
       queued = window.requestAnimationFrame(() => {
         mountControl(language)
         translateDocument(language)
+        document.documentElement.classList.remove('lang-pending')
       })
     }
     const onLanguageChange = (event) => {
