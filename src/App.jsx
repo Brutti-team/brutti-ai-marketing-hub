@@ -142,6 +142,10 @@ function Icon({ name, size = 18 }) {
     heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>,
     file: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></>,
     alert: <><path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v5M12 18h.01"/></>,
+    monitor: <><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></>,
+    key: <><circle cx="8" cy="15" r="4"/><path d="M11 13.5 20 4.5M16 5.5l3 3"/></>,
+    bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></>,
+    globe: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.6 3 14.4 0 18M12 3c-3 3.6-3 14.4 0 18"/></>,
   }
   return <svg {...props}>{shapes[name] || shapes.file}</svg>
 }
@@ -1234,10 +1238,21 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
   )
 }
 
+// Hidden for now (Michelle, Nov 2026). Set to true to show the Integrations list in Settings again.
+const SHOW_SETTINGS_INTEGRATIONS = false
+
 function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefreshIntegrations, onConnect, onDisconnect }) {
   const [accessKey, setAccessKey] = useState('')
   const [rememberDevice, setRememberDevice] = useState(false)
   const [connecting, setConnecting] = useState(false)
+  const [section, setSection] = useState(null)
+  const settingsSections = [
+    { id: 'display', title: 'Display', description: 'Theme, light/dark mode', icon: 'monitor' },
+    { id: 'access', title: 'Access', description: 'Workspace key, connection and review rules', icon: 'key' },
+    { id: 'notification', title: 'Notification', description: 'Action Center reminders', icon: 'bell' },
+    { id: 'language', title: 'Language', description: 'Bahasa Melayu / English', icon: 'globe' },
+  ]
+  const activeSection = settingsSections.find((item) => item.id === section)
   const connections = [
     { name:'Google Sheets', detail:'Content Library, Daily Planner and Integration Log', status:integrations.sheets ? 'Connected' : 'Not connected', icon:'file' },
     { name:'Google Drive', detail:'BRUTTI AI MARKETING SYSTEM and approved assets', status:integrations.drive ? 'Connected' : 'Not connected', icon:'image' },
@@ -1258,17 +1273,43 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
     }
   }
   return (
-    <div className="page">
-      <PageHeader eyebrow="WORKSPACE CONFIGURATION" title="Settings" description="Connect the internal Google backend without exposing API keys in GitHub or the browser." />
-      <section className="panel settings-theme-panel"><div className="panel-heading"><div><span className="eyebrow">DISPLAY MODE</span><h3>Light / Dark</h3></div><div className="settings-theme-slot"/></div></section>
-      <section className="panel cloud-access-panel">
+    <div className="page settings-page">
+      <PageHeader title="Settings" description={activeSection ? activeSection.description : 'Choose a setting to review or update.'} />
+      {section ? <button type="button" className="settings-back" onClick={() => setSection(null)}><Icon name="chevron" size={18}/><span>Settings</span></button> : null}
+      {section ? <h2 className="settings-section-title">{activeSection?.title}</h2> : null}
+      {!section ? (
+        <nav className="settings-list" aria-label="Settings">
+          {settingsSections.map((item) => (
+            <button type="button" className="settings-list-row" key={item.id} onClick={() => setSection(item.id)}>
+              <span className="settings-list-icon"><Icon name={item.icon} size={22}/></span>
+              <span className="settings-list-copy"><strong>{item.title}</strong><small>{item.description}</small></span>
+              <Icon name="chevron" size={18}/>
+            </button>
+          ))}
+        </nav>
+      ) : null}
+      <div className="settings-section-display" hidden={section !== 'display'}>
+        <section className="panel settings-theme-panel"><div className="panel-heading"><div><span className="eyebrow">DISPLAY MODE</span><h3>Light / Dark</h3></div><div className="settings-theme-slot"/></div></section>
+      </div>
+      <div className="settings-section-access" hidden={section !== 'access'}>
+        <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3 className="system-copy-hidden">{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
         {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Remember this device</label><small className="settings-copy">Use this only on your own device. The workspace key will stay saved here until you disconnect.</small><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
       </section>
-      <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3 className="system-copy-hidden">Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p className="system-copy-hidden">{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' || connection.status === 'Ready' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
-      <div className="settings-grid">
+        <div className="settings-grid">
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WORKFLOW RULES</span><h3>Review-first controls</h3></div></div><div className="setting-row"><div><strong>Human approval required</strong><p>Content must be approved before scheduling or publishing.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Block unsupported facts</strong><p>Flag prices, promotions, delivery dates and KPI without sources.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Facebook-only operations</strong><p>Other platforms remain disabled until data and connections exist.</p></div><span className="switch on"><i/></span></div></section>
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{workspaceActive ? 'GOOGLE DATA' : 'LOCAL DATA'}</span><h3>{workspaceActive ? 'Shared internal workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{workspaceActive ? 'Content and planner edits are stored in BRUTTI Google Sheets. Assets remain in the existing Google Drive structure.' : 'Until Apps Script is connected, content and planner edits stay in this browser only.'}</p>{!workspaceActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark"><span>B</span></div><div><strong>Drive-first assets</strong><p>Official logo and product files remain in their approved BRUTTI Drive folders.</p></div></div></section>
+      </div>
+        <div className="settings-access-slot"></div>
+      </div>
+      <div className="settings-section-notification" hidden={section !== 'notification'}>
+        <section className="panel settings-notification-panel"><div className="panel-heading"><div><span className="eyebrow">ACTION CENTER</span><h3>Reminders</h3></div></div><p className="settings-copy">Reminders for review, today’s plan and workspace connection appear in the bell at the top of the app.</p></section>
+      </div>
+      <div className="settings-section-language" hidden={section !== 'language'}>
+        <div className="settings-language-slot"></div>
+      </div>
+      <div className="settings-section-integrations" hidden={!SHOW_SETTINGS_INTEGRATIONS}>
+        <section className="panel settings-panel"><div className="panel-heading"><div><span className="eyebrow">INTEGRATIONS</span><h3 className="system-copy-hidden">Connection status</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'local'}`}><span/>{workspaceActive ? 'Google mode' : 'Local fallback'}</span></div><div className="connections-list">{connections.map((connection) => <article key={connection.name}><div className="connection-icon"><Icon name={connection.icon}/></div><div><strong>{connection.name}</strong><p className="system-copy-hidden">{connection.detail}</p></div><StatusPill>{connection.status}</StatusPill><button className="button secondary small" onClick={() => toast(connection.status === 'Connected' || connection.status === 'Ready' ? `${connection.name} is ready.` : `${connection.name} still needs configuration in Apps Script Properties.`)}>Check</button></article>)}</div></section>
       </div>
     </div>
   )

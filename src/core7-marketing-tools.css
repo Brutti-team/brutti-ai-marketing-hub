@@ -417,3 +417,147 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
   .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign { min-height: 28px !important; height: 28px !important; padding: 0 9px !important; font-size: 10.5px !important; gap: 4px; border-radius: 8px; }
   .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign svg { width: 11px !important; height: 11px !important; }
 }
+
+
+/* Settings list (Windows-style landing) */
+.settings-page [hidden] {
+  display: none !important;
+}
+
+.settings-list {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.settings-list-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  font: inherit;
+}
+
+.settings-list-row:hover,
+.settings-list-row:focus-visible {
+  border-color: var(--sage, var(--forest));
+  outline: none;
+}
+
+.settings-list-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(18, 55, 42, 0.08);
+  color: var(--forest);
+}
+
+.settings-list-icon svg {
+  display: block;
+}
+
+.settings-list-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-list-copy strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.settings-list-copy small {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.settings-list-row > svg:last-child {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.settings-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.settings-back svg {
+  transform: rotate(180deg);
+}
+
+.settings-section-title {
+  margin: 0 0 16px;
+  font: 600 28px/1.15 'Playfair Display', Georgia, serif;
+  color: var(--ink);
+}
+
+.settings-section-access .settings-grid {
+  margin-top: 16px;
+}
+
+.settings-section-language .app-language-control,
+.settings-section-access .workspace-readiness-panel {
+  margin-top: 16px;
+}
+
+html[data-theme='dark'] .settings-list-row {
+  background: var(--paper);
+  border-color: rgba(198, 214, 205, 0.16);
+}
+
+html[data-theme='dark'] .settings-list-row:hover,
+html[data-theme='dark'] .settings-list-row:focus-visible {
+  border-color: rgba(198, 214, 205, 0.36);
+}
+
+html[data-theme='dark'] .settings-list-icon {
+  background: rgba(143, 168, 154, 0.14);
+  color: #d5e2da;
+}
+
+@media (max-width: 720px) {
+  .settings-list-row {
+    min-height: 68px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+
+  .settings-section-title {
+    font-size: 24px;
+  }
+}
+
+/* Settings heading centered, no eyebrow (Michelle, 20 Nov 2026) */
+.settings-page > .page-header { flex-direction: column; align-items: center; text-align: center; }
+.settings-page > .page-header > div:first-child { max-width: none; }
+.settings-page > .page-header h1 { margin-top: 0; }
+.settings-page .settings-list { margin-inline: auto; }

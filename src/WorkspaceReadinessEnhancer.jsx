@@ -19,7 +19,7 @@ function localDateKey() {
 
 function activeSettingsPage() {
   return [...document.querySelectorAll('#root .page')]
-    .find((page) => page.offsetParent !== null && page.querySelector('h1')?.textContent?.trim() === 'Settings') || null
+    .find((page) => page.offsetParent !== null && ['Settings', 'Tetapan'].includes(page.querySelector('h1')?.textContent?.trim())) || null
 }
 
 function assert(condition, message) {
@@ -155,7 +155,9 @@ function createPanel(page) {
     <div class="workspace-readiness-result">Ready to test. Meta / Facebook publishing is intentionally skipped.</div>
   `
 
-  page.appendChild(panel)
+  const slot = page.querySelector('.settings-access-slot')
+  if (slot) slot.appendChild(panel)
+  else page.appendChild(panel)
   return panel
 }
 
