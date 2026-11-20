@@ -10,6 +10,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="BRUTTI AI" />
     <meta name="format-detection" content="telephone=no" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('brutti-ui-theme') === 'dark' ? 'dark' : 'light';
+          var d = document.documentElement;
+          d.dataset.theme = t;
+          d.style.colorScheme = t;
+          var b = Number(localStorage.getItem('brutti-ui-brightness-v2'));
+          if (isFinite(b) && localStorage.getItem('brutti-ui-brightness-v2') !== null) {
+            b = Math.min(100, Math.max(0, Math.round(b)));
+            var f = (t === 'dark' && b > 75) ? 1 + ((b - 75) * 0.35) / 25 : (40 + 80 * b / 100) / 100;
+            if (f !== 1) d.style.filter = 'brightness(' + f + ')';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>Brutti AI Marketing Hub</title>
     <link rel="manifest" href="/brutti-ai-marketing-hub/manifest.webmanifest" />
     <link rel="icon" href="/brutti-ai-marketing-hub/icons/brutti-official-logo.svg" type="image/svg+xml" />
