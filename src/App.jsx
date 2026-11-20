@@ -930,6 +930,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [confirmedImages, setConfirmedImages] = useState({})
   const [metaPosts, setMetaPosts] = useState([])
+  const [selected, setSelected] = useState(null)
   useEffect(() => {
     if (!workspaceActive) {
       setMetaPosts([])
@@ -1038,9 +1039,13 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     }
   }
   const removeReference = async (product) => {
-    if (!window.confirm(`Delete “${product.name}” and its saved reference image?`)) return
+    if (!window.confirm(`Delete “${product.name}” and its saved reference image?`)) return false
     await onDeleteReference(product)
+    return true
   }
+
+  const selectedImage = selected ? (confirmedImages[selected.id] || catalogVisualFor(selected.name) || selected.imageDataUrl || selected.imageUrl) : ''
+  const selectedIndex = selected ? Math.max(0, visible.findIndex((product) => (product.id || product.name) === (selected.id || selected.name))) : 0
 
   return (
     <div className="page">
@@ -1049,7 +1054,16 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
       {SHOW_META_IMAGE_MATCHING ? <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar daripada post Brutti</h3><p className="settings-copy">Hanya padanan nama produk atau SKU yang jelas dipaparkan. Sahkan secara manual sebelum gambar baharu menggantikan sumber katalog atau Notion.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{strictSuggestions.length ? <div className="image-suggestion-list">{strictSuggestions.map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · Nama atau SKU jelas` : 'Tiada cadangan yakin'}</small><span className="confidence-badge strong">Jelas</span></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : null}</article>})}</div> : <p className="settings-copy">{imageSuggestions.length ? 'Tiada padanan nama atau SKU yang jelas dalam post yang sudah disync.' : 'Tekan “Cari padanan Meta” untuk scan semua caption Meta yang sudah disync.'}</p>}</section> : null}
       <div className="product-browse"><div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select className="category-list" aria-label="Filter by category" size={Math.min(categories.length, 10)} value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value} value={value}>{value}</option>)}</select></div><div className="product-browse-main">
       <p className="settings-copy">Kad tanpa gambar akan paparkan foto daripada post Facebook atau Instagram yang sudah disync, hanya jika kapsyen menyebut nama produk atau SKU dengan jelas. Padanan yang tidak jelas kekal placeholder.</p>
-      <div className="product-grid">{visible.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name} data-photo-override={photoOverrideFor(product) ? '1' : undefined}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos}/><div className="product-card-body"><div><span>{product.id} · {product.category || 'Uncategorised'}</span><h3>{product.name}</h3></div><p>{product.price ? <><strong>{product.price}</strong><br/></> : null}{product.material || product.dimensions ? `${product.material || ''}${product.material && product.dimensions ? ' · ' : ''}${product.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" onClick={() => onUseProduct(product)}>Create product content <Icon name="arrow" size={15}/></button>{product.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => editReference(product)}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={() => removeReference(product)}>Delete reference</button></div> : null}</div></article> })}</div>
+        <div className="product-grid">{visible.map((product,index) => { const savedImage = confirmedImages[product.id] || catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl; return <article className="product-card" key={product.id || product.name} data-photo-override={photoOverrideFor(product) ? '1' : undefined}><ProductLibraryVisual product={product} index={index} savedImage={savedImage} matches={metaPhotos}/><div className="product-card-body"><h3>{product.name}</h3><button type="button" className="button secondary small" onClick={() => setSelected(product)}>View details</button></div></article> })}</div>
+        {selected ? (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
+          <div className="modal plan-modal product-modal" role="dialog" aria-modal="true" aria-label={`${selected.name} details`} data-photo-override={photoOverrideFor(selected) ? '1' : undefined}>
+            <div className="modal-head"><div><span className="eyebrow">PRODUCT LIBRARY</span><h2>{selected.name}</h2></div><button type="button" className="icon-button" aria-label="Close" onClick={() => setSelected(null)}>✕</button></div>
+            <div className="product-modal-visual"><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos}/></div>
+            <div className="product-modal-body"><div><span>{selected.id} · {selected.category || 'Uncategorised'}</span></div><p>{selected.price ? <><strong>{selected.price}</strong><br/></> : null}{selected.material || selected.dimensions ? `${selected.material || ''}${selected.material && selected.dimensions ? ' · ' : ''}${selected.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" type="button" onClick={() => { const product = selected; setSelected(null); onUseProduct(product) }}>Create product content <Icon name="arrow" size={15}/></button>{selected.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={async () => { if (await removeReference(selected)) setSelected(null) }}>Delete reference</button></div> : null}</div>
+          </div>
+        </div>
+        ) : null}
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}</div></div>
     </div>
   )
