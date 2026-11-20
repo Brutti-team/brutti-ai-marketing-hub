@@ -30,6 +30,8 @@ import {
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
+import { preferRepoWebp } from './lib/preferRepoWebp'
+import { PreferWebpImg } from './lib/PreferWebpImg.jsx'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
@@ -905,8 +907,10 @@ function BrandLibrary() {
 }
 
 
-function slugifyProductName(name = '') {
-  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'photo'
+function productDownloadFilename(product) {
+  const raw = String(product?.name || product?.id || 'Product').trim() || 'Product'
+  const safe = raw.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Product'
+  return `${safe}.jpg`
 }
 
 function readVisualPhotoSrc(root) {
@@ -918,11 +922,25 @@ function readVisualPhotoSrc(root) {
 }
 
 async function downloadProductPhoto(url, product) {
-  const filename = `${product.id || 'product'}-${slugifyProductName(product.name)}.jpg`
+  const filename = productDownloadFilename(product)
   try {
-    const response = await fetch(url, { mode: 'cors', credentials: 'omit' })
-    if (!response.ok) throw new Error('download failed')
-    const blob = await response.blob()
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('image load failed'))
+      img.src = url
+    })
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, image.naturalWidth)
+    canvas.height = Math.max(1, image.naturalHeight)
+    const context = canvas.getContext('2d')
+    context.fillStyle = '#fff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(image, 0, 0)
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((next) => (next ? resolve(next) : reject(new Error('jpeg failed'))), 'image/jpeg', 0.92)
+    })
     const objectUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = objectUrl
@@ -951,7 +969,7 @@ function ProductLibraryVisual({ product, index, savedImage, matches, fit = 'cove
   const contain = fit === 'contain'
   return (
     <div className={`product-visual visual-${index % 5}${contain ? ' product-visual-contain' : ''}`}>
-      {image ? <img src={image} alt={product.name} style={contain ? { width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain' } : { width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
+      {image ? <PreferWebpImg src={image} product={product} alt={product.name} style={contain ? { width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain' } : { width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
       <span className="photo-status">{status}</span>
     </div>
   )
@@ -1564,7 +1582,7 @@ function App() {
   const useProduct = (product) => {
     const details = [product.price, product.material, product.dimensions, product.colour].filter(Boolean).join('; ')
     const override = photoOverrideFor(product)
-    const visualUrl = override ? override.src : catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl || product.existingImageUrl || ''
+    const visualUrl = preferRepoWebp(override ? override.src : catalogVisualFor(product.name) || product.imageDataUrl || product.imageUrl || product.existingImageUrl || '', product)
     const visualName = visualUrl ? `${product.name} · Product Library visual` : ''
     setGenerator((form) => ({
       ...form,

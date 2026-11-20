@@ -147,6 +147,9 @@ function applyDriveImage(host, productName) {
   const visual = host.querySelector('.product-visual')
   if (!visual) return mapping
 
+  // Keep a repo/Sheet photo already rendered by React; do not cover it with a Drive thumbnail.
+  if (visual.querySelector('img[src]:not(.product-real-image)')) return mapping
+
   if (!visual.querySelector('.product-real-image')) {
     const img = document.createElement('img')
     img.className = 'product-real-image'
