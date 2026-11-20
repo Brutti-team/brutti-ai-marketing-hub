@@ -24,7 +24,7 @@ function formatProductDisplayName(value = '') {
 }
 
 function syncProductNameCasing(page) {
-  page.querySelectorAll('.product-card h3').forEach((heading) => {
+  page.querySelectorAll('.product-card h3, .product-modal .modal-head h2').forEach((heading) => {
     const current = heading.textContent?.trim() || ''
     const formatted = formatProductDisplayName(current)
     if (formatted && formatted !== current) heading.textContent = formatted
