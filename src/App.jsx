@@ -1302,7 +1302,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
             <span className="settings-list-icon"><Icon name="sun" size={22}/></span>
             <span className="settings-list-copy"><strong>Brightness</strong><small>Adjust brightness of the app display</small></span>
             <label className="settings-brightness-control">
-              <span className="settings-brightness-value">{brightness}%</span>
+              <span className="settings-brightness-value">{brightness}</span>
               <input type="range" min={BRIGHTNESS_MIN} max={BRIGHTNESS_MAX} step="1" value={brightness} aria-label="Brightness" onChange={(event) => setBrightness(saveBrightness(event.target.value))} />
             </label>
           </div>
