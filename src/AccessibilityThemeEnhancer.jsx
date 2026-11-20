@@ -43,8 +43,14 @@ export default function AccessibilityThemeEnhancer() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
-    const themeColor = document.querySelector('meta[name="theme-color"]')
-    if (themeColor) themeColor.setAttribute('content', theme === 'dark' ? '#0f1411' : '#f1efe7')
+    // Safari only repaints its top bar when the theme-color tag is replaced, not edited.
+    const color = theme === 'dark' ? '#0f1411' : '#f1efe7'
+    document.querySelectorAll('meta[name="theme-color"]').forEach((tag) => tag.remove())
+    const themeColor = document.createElement('meta')
+    themeColor.name = 'theme-color'
+    themeColor.content = color
+    document.head.appendChild(themeColor)
+    document.documentElement.style.backgroundColor = color
     try {
       window.localStorage.setItem(THEME_KEY, theme)
     } catch {
