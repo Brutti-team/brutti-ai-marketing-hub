@@ -229,3 +229,9 @@ button[hidden] {
 .kol-directory .kol-more[open] summary { margin-bottom: 8px; }
 .kol-directory .kol-links { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
 .kol-directory .kol-links a { display: block; text-align: center; padding: 7px 8px; border: 1px solid rgba(127,127,127,.4); border-radius: 10px; text-decoration: none; font-weight: 600; }
+.kol-modal .kol-details { margin: 0; display: grid; gap: 14px; font-size: 1em; line-height: 1.4; }
+.kol-modal .kol-details dt { font-size: .75em; text-transform: uppercase; letter-spacing: .06em; opacity: .65; margin-bottom: 4px; }
+.kol-modal .kol-details dd { margin: 0; }
+.kol-modal .kol-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.kol-modal .kol-links a { display: block; text-align: center; padding: 10px; border: 1px solid rgba(127,127,127,.4); border-radius: 10px; text-decoration: none; font-weight: 600; color: inherit; }
+.kol-modal .modal-head .icon-button { font-size: 1.1em; }

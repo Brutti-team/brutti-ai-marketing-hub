@@ -5,6 +5,7 @@ import { filterKols, normalizeKol, sampleKolSabah } from './lib/kolSabah'
 export default function KolSabahDirectory({ workspaceActive }) {
   const [kols, setKols] = useState(() => sampleKolSabah())
   const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState(null)
   useEffect(() => {
     if (!workspaceActive) return undefined
     let cancelled = false
@@ -27,16 +28,24 @@ export default function KolSabahDirectory({ workspaceActive }) {
               <article key={`${kol.name}-${index}`} className="kol-card">
                 <header><strong>{kol.name}</strong></header>
                 <div className="kol-photo">{kol.image ? <img src={kol.image} alt={kol.name} loading="lazy"/> : <span>{(kol.name.match(/[A-Za-z0-9]+/g) || ['?']).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>}</div>
-                <details className="kol-more"><summary className="button secondary small">Details</summary><dl className="kol-details">
-                  <div><dt>Platform</dt><dd className="kol-links">{[['TikTok', kol.tiktok], ['Instagram', kol.instagram], ['Facebook', kol.facebook], ['YouTube', kol.youtube]].filter(([, url]) => url).map(([label, url]) => <a key={label} href={url} target="_blank" rel="noreferrer">{label}</a>)}{!kol.tiktok && !kol.instagram && !kol.facebook && !kol.youtube && '-'}</dd></div>
-                  <div><dt>No. Tel</dt><dd>{(kol.businessContact.match(/(?:\+?6?0)1[\d\s-]{7,11}\d/) || ['-'])[0]}</dd></div>
-                  <div><dt>Rate</dt><dd>{kol.rate || '-'}</dd></div>
-                </dl></details>
+                <footer><button type="button" className="button secondary small" onClick={() => setSelected(kol)}>Details</button></footer>
               </article>
             )
           })}
         </div>
       )}
+      {selected ? (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
+          <div className="modal plan-modal kol-modal" role="dialog" aria-modal="true" aria-label={`${selected.name} details`}>
+            <div className="modal-head"><div><span className="eyebrow">KOL SABAH</span><h2>{selected.name}</h2></div><button type="button" className="icon-button" aria-label="Close" onClick={() => setSelected(null)}>✕</button></div>
+            <dl className="kol-details">
+                  <div><dt>Platform</dt><dd className="kol-links">{[['TikTok', selected.tiktok], ['Instagram', selected.instagram], ['Facebook', selected.facebook], ['YouTube', selected.youtube]].filter(([, url]) => url).map(([label, url]) => <a key={label} href={url} target="_blank" rel="noreferrer">{label}</a>)}{!selected.tiktok && !selected.instagram && !selected.facebook && !selected.youtube && '-'}</dd></div>
+                  <div><dt>No. Tel</dt><dd>{(selected.businessContact.match(/(?:\+?6?0)1[\d\s-]{7,11}\d/) || ['-'])[0]}</dd></div>
+                  <div><dt>Rate</dt><dd>{selected.rate || '-'}</dd></div>
+                </dl>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
