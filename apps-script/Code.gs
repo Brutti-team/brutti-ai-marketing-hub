@@ -1953,19 +1953,95 @@ function syncNotionProducts_() {
   const table = findNotionTable_(pageId, 0);
   if (!table) throw new Error('No product table was found on the configured Notion page.');
   const rows = notionChildren_(table.id).filter(block => block.type === 'table_row');
-  const products = rows.slice(1).map((block, index) => {
+  const idCol = PRODUCT_HEADERS.indexOf('ID');
+  const nameCol = PRODUCT_HEADERS.indexOf('Product Name');
+  const products = rows.slice(1).map(block => {
     const cells = (block.table_row && block.table_row.cells) || [];
     const values = cells.map(notionCellText_);
-    return [
-      'BR-' + String(index + 1).padStart(3, '0'), clean_(values[1] || ''), clean_(values[2] || ''),
-      clean_(values[3] || ''), clean_(values[4] || ''), clean_(values[5] || ''), clean_(values[6] || ''),
-      clean_(values[7] || ''), 'Verified Notion source'
-    ];
-  }).filter(row => row[1]);
+    const notionId = clean_(values[0] || '');
+    const mapped = {
+      'ID': /^BR-\d+$/i.test(notionId) ? notionId : '',
+      'Product Name': clean_(values[1] || ''),
+      'Category': clean_(values[2] || ''),
+      'Price': clean_(values[3] || ''),
+      'Material': clean_(values[4] || ''),
+      'Dimensions': clean_(values[5] || ''),
+      'Colour': clean_(values[6] || ''),
+      'Status': clean_(values[7] || ''),
+      'Source': 'Verified Notion source',
+      'Image URL': '',
+      'Image Source': '',
+      'Photo Confirmed': ''
+    };
+    return PRODUCT_HEADERS.map(header => mapped[header] || '');
+  }).filter(row => row[nameCol]);
+  if (!products.length) throw new Error('Notion returned no products. Product Library was left unchanged.');
+
   const sheet = ensureSheet_(plannerSpreadsheet_(), PRODUCT_SHEET, PRODUCT_HEADERS);
-  sheet.clearContents();
-  sheet.getRange(1, 1, 1, PRODUCT_HEADERS.length).setValues([PRODUCT_HEADERS]);
-  if (products.length) sheet.getRange(2, 1, products.length, PRODUCT_HEADERS.length).setValues(products);
+  const columnCount = PRODUCT_HEADERS.length;
+  const preserve = ['ID', 'Image URL', 'Image Source', 'Photo Confirmed'];
+  const lastRow = sheet.getLastRow();
+  const existing = lastRow >= 2
+    ? sheet.getRange(2, 1, lastRow - 1, Math.max(columnCount, sheet.getLastColumn())).getValues()
+    : [];
+
+  const usedIds = {};
+  const indexById = {};
+  const indexByName = {};
+  let nextNumber = 1;
+  existing.forEach((row, index) => {
+    const id = clean_(row[idCol] || '');
+    const name = clean_(row[nameCol] || '').toLowerCase();
+    if (id) {
+      usedIds[id] = true;
+      indexById[id] = index;
+    }
+    if (name && indexByName[name] === undefined) indexByName[name] = index;
+    const match = id.match(/^BR-(\d+)$/i);
+    if (match) nextNumber = Math.max(nextNumber, parseInt(match[1], 10) + 1);
+  });
+
+  const updates = [];
+  const appends = [];
+  const claimed = {};
+  products.forEach(incoming => {
+    const incomingId = clean_(incoming[idCol] || '');
+    const incomingName = clean_(incoming[nameCol] || '').toLowerCase();
+    let existingIndex = -1;
+    if (incomingId && indexById[incomingId] !== undefined && !claimed[indexById[incomingId]]) {
+      existingIndex = indexById[incomingId];
+    } else if (incomingName && indexByName[incomingName] !== undefined && !claimed[indexByName[incomingName]]) {
+      existingIndex = indexByName[incomingName];
+    }
+    if (existingIndex >= 0) {
+      claimed[existingIndex] = true;
+      const current = existing[existingIndex].slice();
+      while (current.length < columnCount) current.push('');
+      PRODUCT_HEADERS.forEach((header, col) => {
+        if (preserve.indexOf(header) !== -1) return;
+        current[col] = incoming[col];
+      });
+      updates.push({ rowNumber: existingIndex + 2, values: current.slice(0, columnCount) });
+    } else {
+      let id = incomingId;
+      if (!id || usedIds[id]) {
+        id = 'BR-' + String(nextNumber).padStart(3, '0');
+        nextNumber += 1;
+      }
+      usedIds[id] = true;
+      incoming[idCol] = id;
+      appends.push(incoming.slice(0, columnCount));
+    }
+  });
+
+  updates.forEach(update => {
+    sheet.getRange(update.rowNumber, 1, 1, columnCount).setValues([update.values]);
+  });
+  if (appends.length) {
+    const start = Math.max(sheet.getLastRow() + 1, 2);
+    sheet.getRange(start, 1, appends.length, columnCount).setValues(appends);
+  }
+
   logEvent_('sync_notion_products', '', 'Success', products.length + ' products synced');
   return { count: products.length, products: productRows_(sheet) };
 }
