@@ -35,6 +35,7 @@ import PWAInstallControl from './PWAInstallControl'
 import BmCaptionStudio from './BmCaptionStudio'
 import KolSabahDirectory from './KolSabahDirectory'
 import { contactLinks } from './lib/kolSabah'
+import { BRIGHTNESS_MAX, BRIGHTNESS_MIN, readBrightness, saveBrightness } from './lib/appBrightness'
 import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign } from './lib/marketingToolsStore'
 
 const navigation = [
@@ -146,6 +147,8 @@ function Icon({ name, size = 18 }) {
     key: <><circle cx="8" cy="15" r="4"/><path d="M11 13.5 20 4.5M16 5.5l3 3"/></>,
     bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></>,
     globe: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.6 3 14.4 0 18M12 3c-3 3.6-3 14.4 0 18"/></>,
+    sun: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>,
+    moon: <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5Z"/>,
   }
   return <svg {...props}>{shapes[name] || shapes.file}</svg>
 }
@@ -1249,8 +1252,9 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   const [rememberDevice, setRememberDevice] = useState(false)
   const [connecting, setConnecting] = useState(false)
   const [section, setSection] = useState(null)
+  const [brightness, setBrightness] = useState(readBrightness)
   const settingsSections = [
-    { id: 'display', title: 'Display', description: 'Theme, light/dark mode', icon: 'monitor' },
+    { id: 'display', title: 'Display', description: 'Brightness and light or dark mode', icon: 'monitor' },
     { id: 'access', title: 'Access', description: 'Workspace key, connection and review rules', icon: 'key' },
     { id: 'notification', title: 'Notification', description: 'Action Center reminders', icon: 'bell' },
     { id: 'language', title: 'Language', description: 'Bahasa Melayu / English', icon: 'globe' },
@@ -1292,7 +1296,21 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
         </nav>
       ) : null}
       <div className="settings-section-display" hidden={section !== 'display'}>
-        <section className="panel settings-theme-panel"><div className="panel-heading"><div><span className="eyebrow">DISPLAY MODE</span><h3>Light / Dark</h3></div><div className="settings-theme-slot"/></div></section>
+        <div className="settings-display-list">
+          <div className="settings-display-row">
+            <span className="settings-list-icon"><Icon name="sun" size={22}/></span>
+            <span className="settings-list-copy"><strong>Brightness</strong><small>Adjust brightness of the app display</small></span>
+            <label className="settings-brightness-control">
+              <span className="settings-brightness-value">{brightness}%</span>
+              <input type="range" min={BRIGHTNESS_MIN} max={BRIGHTNESS_MAX} step="1" value={brightness} aria-label="Brightness" onChange={(event) => setBrightness(saveBrightness(event.target.value))} />
+            </label>
+          </div>
+          <div className="settings-display-row">
+            <span className="settings-list-icon"><Icon name="moon" size={22}/></span>
+            <span className="settings-list-copy"><strong>Mode</strong><small>Choose light or dark appearance</small></span>
+            <div className="settings-theme-slot" />
+          </div>
+        </div>
       </div>
       <div className="settings-section-access" hidden={section !== 'access'}>
         <section className="panel cloud-access-panel">
