@@ -819,9 +819,9 @@ function MarketingTools({ workspaceActive, toast }) {
   const moveToSheet = () => run(async () => { const list = await moveLocalCampaignsToSheet(); setLocalCount(0); return list }, 'Local campaigns moved to Google Sheet.')
   return (
     <div className="page marketing-tools-page" data-user-content>
-      <PageHeader title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." actions={<button className="button primary" onClick={() => openDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button>} />
+      <PageHeader title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." />
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
-      <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button></div>
+      <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button><button className="button primary small mt-add-campaign" onClick={() => openDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button></div>
       {view === 'kol-sabah' ? <KolSabahDirectory workspaceActive={workspaceActive} onStartCampaign={startKolCampaign}/> : (<>
       <section className="panel mt-list">
         
