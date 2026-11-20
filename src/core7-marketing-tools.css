@@ -336,3 +336,8 @@ button[hidden] {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }
+
+/* Marketing Tools heading centered (Michelle, 20 Nov 2026) */
+.marketing-tools-page > .page-header { flex-direction: column; align-items: center; text-align: center; }
+.marketing-tools-page > .page-header > div:first-child { max-width: none; }
+.marketing-tools-page > .page-header h1 { margin-top: 0; }
