@@ -348,3 +348,7 @@ button[hidden] {
 .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign { margin-left: auto; height: auto; padding: 8px 14px; border: 0; border-radius: 10px; font-size: 12px; white-space: nowrap; }
 .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign { color: #fff !important; }
 html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign { color: #102118 !important; }
+@media (max-width: 600px) {
+  .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign { min-height: 28px !important; height: 28px !important; padding: 0 9px !important; font-size: 10.5px !important; gap: 4px; border-radius: 8px; }
+  .marketing-tools-page .tab-bar.mt-view > .mt-add-campaign svg { width: 11px !important; height: 11px !important; }
+}
