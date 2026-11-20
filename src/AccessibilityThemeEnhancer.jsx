@@ -82,5 +82,20 @@ export default function AccessibilityThemeEnhancer() {
   }, [])
 
   if (!target) return null
-  return createPortal(<ThemeToggle theme={theme} onChange={setTheme} />, target)
+  const changeTheme = (next) => {
+    if (next === theme) return
+    setTheme(next)
+    // iPhone home-screen apps only repaint the top bar on load, so reload back into Settings > Display.
+    try {
+      window.localStorage.setItem(THEME_KEY, next)
+      window.sessionStorage.setItem('brutti-reopen-display', '1')
+    } catch {
+      // Storage blocked; the mode still applies for this session.
+    }
+    const url = new URL(window.location.href)
+    url.searchParams.set('page', 'settings')
+    window.setTimeout(() => window.location.replace(url.toString()), 120)
+  }
+
+  return createPortal(<ThemeToggle theme={theme} onChange={changeTheme} />, target)
 }

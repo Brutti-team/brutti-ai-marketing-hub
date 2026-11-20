@@ -1270,7 +1270,17 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   const [accessKey, setAccessKey] = useState('')
   const [rememberDevice, setRememberDevice] = useState(false)
   const [connecting, setConnecting] = useState(false)
-  const [section, setSection] = useState(null)
+  const [section, setSection] = useState(() => {
+    try {
+      if (window.sessionStorage.getItem('brutti-reopen-display') === '1') {
+        window.sessionStorage.removeItem('brutti-reopen-display')
+        return 'display'
+      }
+    } catch {
+      // Storage blocked; open Settings normally.
+    }
+    return null
+  })
   const [brightness, setBrightness] = useState(readBrightness)
   const settingsSections = [
     { id: 'display', title: 'Display', description: 'Brightness and light or dark mode', icon: 'monitor' },
@@ -1448,6 +1458,36 @@ function App() {
       .catch((error) => { clearWorkspaceKey(); toast(error.message) })
     return () => { mounted = false }
   }, [setContent, setPlans, toast])
+
+  // Keep laptop and phone in step: reload Sheet data when the app comes back into view and every minute while open.
+  useEffect(() => {
+    if (!workspaceActive) return undefined
+    let busy = false
+    const refresh = async () => {
+      if (busy || document.visibilityState !== 'visible' || activePlan || activeContent) return
+      busy = true
+      try {
+        const workspace = await loadWorkspace()
+        setContent(workspace.content || [])
+        setPlans(workspace.plans || [])
+        if (workspace.products?.length) setProductData(workspace.products)
+        setSharedProductReferences(workspace.references || [])
+      } catch {
+        // Keep showing current data; the next refresh will try again.
+      } finally {
+        busy = false
+      }
+    }
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', refresh)
+    const timer = window.setInterval(refresh, 60 * 1000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', refresh)
+      window.clearInterval(timer)
+    }
+  }, [workspaceActive, activePlan, activeContent, setContent, setPlans])
 
   const connectWorkspace = async (accessKey, rememberDevice = false) => {
     setWorkspaceKey(accessKey, rememberDevice)
