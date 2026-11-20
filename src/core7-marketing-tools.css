@@ -295,16 +295,20 @@ button[hidden] {
 .product-modal .product-modal-visual .product-visual,
 .product-modal .product-modal-visual .product-visual-contain {
   position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
   height: auto !important;
-  aspect-ratio: auto;
-  width: 100%;
-  max-height: none;
+  aspect-ratio: unset;
+  margin-inline: auto;
   border-radius: 12px;
   overflow: hidden;
-  background: #121a16;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: none;
+  filter: none;
+}
+html[data-theme='dark'] .product-modal .product-modal-visual .product-visual,
+html[data-theme='dark'] .product-modal .product-modal-visual .product-visual-contain {
+  filter: none;
 }
 .product-modal .product-modal-visual .photo-status {
   position: absolute;
@@ -315,6 +319,7 @@ button[hidden] {
 }
 .product-modal .product-modal-visual .product-visual img,
 .product-modal .product-modal-visual .product-real-image {
+  display: block;
   position: static !important;
   inset: auto !important;
   width: auto !important;
