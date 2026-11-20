@@ -896,7 +896,39 @@ function BrandLibrary() {
   )
 }
 
-function ProductLibraryVisual({ product, index, savedImage, matches }) {
+
+function slugifyProductName(name = '') {
+  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'photo'
+}
+
+function readVisualPhotoSrc(root) {
+  if (!root) return ''
+  const real = root.querySelector('img.product-real-image')
+  if (real?.getAttribute('src')) return real.currentSrc || real.src
+  const img = [...root.querySelectorAll('img')].find((el) => el.getAttribute('src'))
+  return img ? (img.currentSrc || img.src) : ''
+}
+
+async function downloadProductPhoto(url, product) {
+  const filename = `${product.id || 'product'}-${slugifyProductName(product.name)}.jpg`
+  try {
+    const response = await fetch(url, { mode: 'cors', credentials: 'omit' })
+    if (!response.ok) throw new Error('download failed')
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+  } catch {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
+function ProductLibraryVisual({ product, index, savedImage, matches, fit = 'cover' }) {
   const [hiddenMetaUrl, setHiddenMetaUrl] = useState('')
   const override = photoOverrideFor(product)
   const photo = override ? { src: override.src, source: override.source } : productLibraryPhoto(product, savedImage, matches)
@@ -908,9 +940,10 @@ function ProductLibraryVisual({ product, index, savedImage, matches }) {
     : usingMeta
       ? (photo.platform === 'instagram' ? 'Instagram post photo' : 'Facebook post photo')
       : (override ? 'Product photo · confirmed' : isPostPhoto(product.name) ? 'Facebook post photo' : catalogVisualFor(product.name) ? 'Catalog visual · confirmed' : 'Photo confirmed')
+  const contain = fit === 'contain'
   return (
-    <div className={`product-visual visual-${index % 5}`}>
-      {image ? <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
+    <div className={`product-visual visual-${index % 5}${contain ? ' product-visual-contain' : ''}`}>
+      {image ? <img src={image} alt={product.name} style={contain ? { width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain' } : { width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy={usingMeta ? 'no-referrer' : undefined} onError={usingMeta ? () => setHiddenMetaUrl(photo.src) : undefined} /> : <div className="furniture-shape"><span/><span/><span/></div>}
       <span className="photo-status">{status}</span>
     </div>
   )
@@ -1046,6 +1079,42 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
 
   const selectedImage = selected ? (confirmedImages[selected.id] || catalogVisualFor(selected.name) || selected.imageDataUrl || selected.imageUrl) : ''
   const selectedIndex = selected ? Math.max(0, visible.findIndex((product) => (product.id || product.name) === (selected.id || selected.name))) : 0
+  const modalVisualRef = useRef(null)
+  const [modalPhotoSrc, setModalPhotoSrc] = useState('')
+  const [lightboxSrc, setLightboxSrc] = useState('')
+  useEffect(() => {
+    if (!selected) {
+      setModalPhotoSrc('')
+      setLightboxSrc('')
+      return undefined
+    }
+    let observer
+    let root
+    const sync = () => setModalPhotoSrc(readVisualPhotoSrc(modalVisualRef.current))
+    const attach = () => {
+      root = modalVisualRef.current
+      if (!root) return false
+      sync()
+      observer = new MutationObserver(sync)
+      observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'class'] })
+      root.addEventListener('load', sync, true)
+      return true
+    }
+    const frame = attach() ? 0 : window.requestAnimationFrame(() => attach())
+    const timer = window.setTimeout(sync, 400)
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame)
+      observer?.disconnect()
+      root?.removeEventListener('load', sync, true)
+      window.clearTimeout(timer)
+    }
+  }, [selected, selectedImage])
+  useEffect(() => {
+    if (!lightboxSrc) return undefined
+    const onKey = (event) => { if (event.key === 'Escape') setLightboxSrc('') }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxSrc])
 
   return (
     <div className="page">
@@ -1059,9 +1128,15 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
           <div className="modal plan-modal product-modal" role="dialog" aria-modal="true" aria-label={`${selected.name} details`} data-photo-override={photoOverrideFor(selected) ? '1' : undefined}>
             <div className="modal-head"><div><span className="eyebrow">PRODUCT LIBRARY</span><h2>{selected.name}</h2></div><button type="button" className="icon-button" aria-label="Close" onClick={() => setSelected(null)}>✕</button></div>
-            <div className="product-modal-visual"><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos}/></div>
+            <div className="product-modal-visual" ref={modalVisualRef}><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos} fit="contain"/>{modalPhotoSrc ? <div className="product-photo-actions"><button type="button" className="button secondary small" onClick={() => setLightboxSrc(modalPhotoSrc)}>View full picture</button><button type="button" className="button secondary small" onClick={() => downloadProductPhoto(modalPhotoSrc, selected)}>Download</button></div> : null}</div>
             <div className="product-modal-body"><div><span>{selected.id} · {selected.category || 'Uncategorised'}</span></div><p>{selected.price ? <><strong>{selected.price}</strong><br/></> : null}{selected.material || selected.dimensions ? `${selected.material || ''}${selected.material && selected.dimensions ? ' · ' : ''}${selected.dimensions || ''}` : 'Verified name. Add specifications from the source before making product claims.'}</p><button className="text-button" type="button" onClick={() => { const product = selected; setSelected(null); onUseProduct(product) }}>Create product content <Icon name="arrow" size={15}/></button>{selected.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={async () => { if (await removeReference(selected)) setSelected(null) }}>Delete reference</button></div> : null}</div>
           </div>
+        </div>
+        ) : null}
+        {lightboxSrc ? (
+        <div className="product-lightbox" role="dialog" aria-modal="true" aria-label="Full picture" onMouseDown={(event) => event.target === event.currentTarget && setLightboxSrc('')}>
+          <button type="button" className="icon-button" aria-label="Close" onClick={() => setLightboxSrc('')}>✕</button>
+          <img src={lightboxSrc} alt={selected?.name || 'Product photo'} />
         </div>
         ) : null}
       {!visible.length ? <div className="empty-list">No products match this search.</div> : null}</div></div>

@@ -291,14 +291,74 @@ button[hidden] {
 }
 .product-modal .product-modal-visual {
   margin: 0 0 16px;
+}
+.product-modal .product-modal-visual .product-visual,
+.product-modal .product-modal-visual .product-visual-contain {
+  position: relative;
+  height: auto !important;
+  aspect-ratio: auto;
+  width: 100%;
+  max-height: none;
   border-radius: 12px;
   overflow: hidden;
+  background: #121a16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.product-modal .product-modal-visual .product-visual {
+.product-modal .product-modal-visual .photo-status {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  z-index: 2;
+  margin: 0;
+}
+.product-modal .product-modal-visual .product-visual img,
+.product-modal .product-modal-visual .product-real-image {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
   height: auto !important;
-  aspect-ratio: 1 / 1;
-  width: 100%;
-  max-height: min(52vh, 420px);
+  max-width: 100%;
+  max-height: 65vh;
+  object-fit: contain !important;
+  object-position: center;
+}
+.product-modal .product-modal-visual .product-visual.has-real-product-image img:not(.product-real-image) {
+  display: none;
+}
+.product-modal .product-modal-visual .product-visual.has-real-product-image .product-real-image {
+  opacity: 1;
+}
+.product-modal .product-photo-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.product-modal .product-photo-actions .button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.product-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 52px 16px 16px;
+  background: #0a0e0c;
+}
+.product-lightbox img {
+  max-width: 100%;
+  max-height: calc(100vh - 72px);
+  object-fit: contain;
+}
+.product-lightbox .icon-button {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: #fff;
+  font-size: 1.2em;
 }
 .product-modal .product-modal-body {
   display: grid;
