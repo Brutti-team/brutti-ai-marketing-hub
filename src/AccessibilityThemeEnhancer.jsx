@@ -43,6 +43,8 @@ export default function AccessibilityThemeEnhancer() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
+    const themeColor = document.querySelector('meta[name="theme-color"]')
+    if (themeColor) themeColor.setAttribute('content', theme === 'dark' ? '#0f1411' : '#12372a')
     try {
       window.localStorage.setItem(THEME_KEY, theme)
     } catch {
