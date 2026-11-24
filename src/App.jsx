@@ -42,6 +42,10 @@ import { contactLinks } from './lib/kolSabah'
 import { BRIGHTNESS_MAX, BRIGHTNESS_MIN, readBrightness, saveBrightness } from './lib/appBrightness'
 import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign } from './lib/marketingToolsStore'
 
+// Old static snapshot cards on the home page (e.g. 'Facebook followers 12,001').
+// Hidden for now (Michelle, 24 Nov 2026) because the Meta dashboard replaces them.
+const SHOW_OLD_SNAPSHOT_CARDS = false
+
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
@@ -273,9 +277,11 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
 
       <MetaMarketingDashboard snapshot={metaInsights} syncing={syncingMeta} onRefresh={() => syncDashboardMeta(true)} />
 
-      <div className="stats-grid">
+      {SHOW_OLD_SNAPSHOT_CARDS ? (
+        <div className="stats-grid">
         {verifiedSnapshot.map((stat) => <article className="stat-card" key={stat.label}><div className={`stat-icon ${stat.icon}`}><Icon name={stat.icon}/></div><div><span>{stat.label}</span><strong>{stat.value}</strong><small>{stat.note}</small></div></article>)}
       </div>
+      ) : null}
 
       <div className="dashboard-grid">
         <section className="panel pipeline-panel">
