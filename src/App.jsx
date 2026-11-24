@@ -29,6 +29,8 @@ import {
 } from './lib/googleWorkspace'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
+import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
+import './meta-marketing-dashboard.css'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { preferRepoWebp } from './lib/preferRepoWebp'
 import { PreferWebpImg } from './lib/PreferWebpImg.jsx'
@@ -268,6 +270,8 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   return (
     <div className="page dashboard-page">
       <PageHeader eyebrow="MARKETING CONTROL CENTRE" title={`${greeting}, Michelle.`} description="Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with Assist</button>} />
+
+      <MetaMarketingDashboard snapshot={metaInsights} syncing={syncingMeta} onRefresh={() => syncDashboardMeta(true)} />
 
       <div className="stats-grid">
         {verifiedSnapshot.map((stat) => <article className="stat-card" key={stat.label}><div className={`stat-icon ${stat.icon}`}><Icon name={stat.icon}/></div><div><span>{stat.label}</span><strong>{stat.value}</strong><small>{stat.note}</small></div></article>)}
