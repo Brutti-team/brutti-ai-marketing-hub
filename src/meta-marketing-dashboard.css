@@ -133,3 +133,6 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 .dashboard-page.dashboard-compact > .mmd-shell { margin-top: 0; }
 .dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
 .dashboard-page.dashboard-compact .page-header { margin-bottom: 0; }
+
+/* Month picker sits where the refresh button was. */
+.mmd-select[aria-label='Pilih bulan'] { min-width: 9.5rem; }

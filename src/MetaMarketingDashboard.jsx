@@ -11,10 +11,11 @@ const SHOW_META_SYNC_LINE = false
 const SHOW_META_UNAVAILABLE_CARD = false
 
 const PERIODS = [
-  { days: 7, label: '7 hari lepas' },
-  { days: 28, label: '28 hari lepas' },
-  { days: 90, label: '90 hari lepas' },
+  { days: 7, label: 'Seminggu lepas' },
+  { days: 30, label: 'Sebulan lepas' },
+  { days: 365, label: 'Setahun lepas' },
 ]
+const SHOW_META_REFRESH = false
 const PLATFORMS = [
   { id: 'all', label: 'Semua' },
   { id: 'facebook', label: 'Facebook' },
@@ -90,16 +91,44 @@ function summarise(posts) {
   return { views: sum(posts, 'views'), reach: sum(posts, 'reach'), interactions, posts: posts.length, rate }
 }
 
-function buckets(days, end) {
-  const weekly = days > 31
-  const size = weekly ? 7 : 1
-  const count = Math.ceil(days / size)
+function monthStart(time) {
+  const date = new Date(time)
+  date.setDate(1)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+function addMonths(time, count) {
+  const date = new Date(time)
+  date.setMonth(date.getMonth() + count)
+  return date.getTime()
+}
+function monthKeyOf(time) {
+  const date = new Date(time)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+function monthLabel(keyOrTime) {
+  const date = typeof keyOrTime === 'string'
+    ? new Date(Number(keyOrTime.slice(0, 4)), Number(keyOrTime.slice(5, 7)) - 1, 1)
+    : new Date(keyOrTime)
+  return date.toLocaleDateString('ms-MY', { month: 'short', year: 'numeric' })
+}
+function monthRange(key) {
+  const from = monthStart(new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1).getTime())
+  const to = addMonths(from, 1)
+  return { from, to, prevFrom: addMonths(from, -1), prevTo: from }
+}
+function dayBuckets(from, to) {
   const list = []
-  for (let i = count - 1; i >= 0; i -= 1) {
-    const to = end - i * size * DAY
-    list.push({ from: to - size * DAY, to, label: shortDate(to - DAY) })
+  for (let time = from; time < to; time += DAY) list.push({ from: time, to: time + DAY, label: shortDate(time) })
+  return list
+}
+function monthBuckets(from, to) {
+  const list = []
+  for (let time = monthStart(from); time < to; time = addMonths(time, 1)) {
+    const next = addMonths(time, 1)
+    list.push({ from: Math.max(time, from), to: Math.min(next, to), label: monthLabel(time) })
   }
-  return { list, weekly }
+  return list
 }
 
 function series(posts, bucketList, key) {
@@ -215,18 +244,30 @@ function Kpi({ tone, label, value, delta, note }) {
 }
 
 export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh }) {
-  const [days, setDays] = useState(28)
+  const [days, setDays] = useState(30)
+  const [monthKey, setMonthKey] = useState('')
   const [platform, setPlatform] = useState('all')
   const [sortKey, setSortKey] = useState('interactions')
   const allPosts = useMemo(() => metaDashboardPosts(snapshot), [snapshot])
-  // Period ends at the end of today (local time); previous period is the same length right before it.
+  const monthsWithData = useMemo(() => {
+    const keys = [...new Set(allPosts.map((post) => monthKeyOf(post.time)))]
+    return keys.sort().reverse()
+  }, [allPosts])
+  // Rolling periods end at the end of today (local time). A chosen calendar month is that month only.
   const end = startOfDay(Date.now()) + DAY
   const view = useMemo(() => {
     const byPlatform = platform === 'all' ? allPosts : allPosts.filter((p) => p.platform === platform)
-    const current = byPlatform.filter((p) => p.time >= end - days * DAY && p.time < end)
-    const previous = byPlatform.filter((p) => p.time >= end - 2 * days * DAY && p.time < end - days * DAY)
-    const { list, weekly } = buckets(days, end)
+    const picked = monthKey ? monthRange(monthKey) : null
+    const currentFrom = picked ? picked.from : end - days * DAY
+    const currentTo = picked ? picked.to : end
+    const previousFrom = picked ? picked.prevFrom : end - 2 * days * DAY
+    const previousTo = picked ? picked.prevTo : end - days * DAY
+    const current = byPlatform.filter((p) => p.time >= currentFrom && p.time < currentTo)
+    const previous = byPlatform.filter((p) => p.time >= previousFrom && p.time < previousTo)
+    const byMonth = Boolean(picked) || days > 31
+    const list = byMonth && !picked ? monthBuckets(currentFrom, currentTo) : dayBuckets(currentFrom, currentTo)
     const labels = list.map((b) => b.label)
+    const grain = byMonth && !picked ? 'bulan' : 'hari'
     const fbPosts = current.filter((p) => p.platform === 'facebook')
     const igPosts = current.filter((p) => p.platform === 'instagram')
     const lineSets = platform === 'all'
@@ -237,7 +278,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
       return { type, count: list2.length, avg: list2.length ? (sum(list2, 'interactions') || 0) / list2.length : 0 }
     }).filter((t) => t.count)
     return {
-      current, weekly, labels, lineSets, types,
+      current, grain, labels, lineSets, types,
       now: summarise(current), before: summarise(previous),
       fb: summarise(fbPosts), ig: summarise(igPosts),
       breakdown: [
@@ -248,10 +289,10 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
       ],
       series: (key) => lineSets.map((set) => ({ name: set.name, color: set.color, values: series(set.posts, list, key) })),
     }
-  }, [allPosts, platform, days, end])
+  }, [allPosts, platform, days, monthKey, end])
   const topPosts = [...view.current].sort((a, b) => (b[sortKey] ?? -1) - (a[sortKey] ?? -1)).slice(0, 8)
   const maxBreak = Math.max(1, ...view.breakdown.map((b) => b.value || 0))
-  const periodLabel = PERIODS.find((p) => p.days === days)?.label
+  const periodLabel = monthKey ? monthLabel(monthKey) : PERIODS.find((p) => p.days === days)?.label
   const lastSync = snapshot?.sourceUpdatedAt ? new Date(snapshot.sourceUpdatedAt).toLocaleString('ms-MY') : 'Belum ada'
 
   if (!allPosts.length) {
@@ -269,8 +310,12 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h3>Dashboard Marketing</h3>{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
-          <select className="mmd-select" value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
-          {onRefresh ? <button className="mmd-refresh" onClick={onRefresh} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula'}</button> : null}
+          <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
+          <select className="mmd-select" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} aria-label="Pilih bulan">
+            <option value="">Pilih bulan</option>
+            {monthsWithData.map((key) => <option key={key} value={key}>{monthLabel(key)}</option>)}
+          </select>
+          {SHOW_META_REFRESH && onRefresh ? <button className="mmd-refresh" onClick={onRefresh} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula'}</button> : null}
         </div>
       </div>
 
@@ -284,19 +329,19 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
       <div className="mmd-grid">
         <article className="panel mmd-card mmd-wide">
-          <div className="mmd-card-head"><div><span className="eyebrow">INTERAKSI</span><h4>Interaksi ikut {view.weekly ? 'minggu' : 'hari'}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
+          <div className="mmd-card-head"><div><span className="eyebrow">INTERAKSI</span><h4>Interaksi ikut {view.grain}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
           <LineChart labels={view.labels} lines={view.series('interactions')} />
           <Legend items={view.lineSets} />
         </article>
 
         <article className="panel mmd-card mmd-wide">
-          <div className="mmd-card-head"><div><span className="eyebrow">TONTONAN</span><h4>Views ikut {view.weekly ? 'minggu' : 'hari'}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
+          <div className="mmd-card-head"><div><span className="eyebrow">TONTONAN</span><h4>Views ikut {view.grain}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
           <BarChart labels={view.labels} groups={view.series('views')} />
           <Legend items={view.lineSets} />
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PLATFORM</span><h4>Facebook vs Instagram</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow">PLATFORM</span><h4>Platform Interactions</h4></div></div>
           <Donut parts={[{ name: 'Facebook', color: FB, value: view.fb.interactions || 0 }, { name: 'Instagram', color: IG, value: view.ig.interactions || 0 }]} />
           <div className="mmd-mini-table">
             <div><span /><b>Post</b><b>Views</b><b>Reach</b></div>
@@ -306,13 +351,12 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PECAHAN INTERAKSI</span><h4>Like, komen, share &amp; simpan</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow">PECAHAN INTERAKSI</span></div></div>
           <div className="mmd-hbars">{view.breakdown.map((b) => <div key={b.name}><span>{b.name}</span><i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i><strong>{fmt(b.value)}</strong></div>)}</div>
-          <p className="mmd-note">Facebook tidak beri data “simpan”, jadi simpan dikira dari Instagram sahaja.</p>
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">JENIS CONTENT</span><h4>Purata interaksi setiap post</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow">JENIS CONTENT</span><h4>{"Type of Content's Interaction"}</h4></div></div>
           <div className="mmd-hbars mmd-hbars-alt">{view.types.length ? view.types.map((t) => <div key={t.type}><span>{t.type} <small>({t.count})</small></span><i><b style={{ width: `${Math.round((t.avg / Math.max(1, ...view.types.map((x) => x.avg))) * 100)}%` }} /></i><strong>{fmt(t.avg)}</strong></div>) : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}</div>
         </article>
 
