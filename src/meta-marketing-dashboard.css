@@ -98,8 +98,23 @@
 }
 @media (max-width: 700px) {
   .mmd-head { align-items: stretch; }
-  .mmd-controls { width: 100%; }
-  .mmd-seg { flex: 1; } .mmd-seg button { flex: 1; }
+  .mmd-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    justify-content: center;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .mmd-seg { grid-column: 1 / -1; display: flex; width: 100%; box-sizing: border-box; }
+  .mmd-seg button { flex: 1; }
+  .mmd-shell .mmd-controls select.mmd-select,
+  .mmd-shell .mmd-controls .mmd-select[aria-label='Pilih bulan'] {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+  }
   .mmd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .mmd-kpi { min-height: 96px; padding: 13px; }
   .mmd-kpi strong { font-size: 23px; }
