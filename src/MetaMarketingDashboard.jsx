@@ -341,7 +341,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PLATFORM</span><h4>Platform Interactions</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">Platform Interactions</span></div></div>
           <Donut parts={[{ name: 'Facebook', color: FB, value: view.fb.interactions || 0 }, { name: 'Instagram', color: IG, value: view.ig.interactions || 0 }]} />
           <div className="mmd-mini-table">
             <div><span /><b>Post</b><b>Views</b><b>Reach</b></div>
@@ -356,7 +356,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">JENIS CONTENT</span><h4>{"Type of Content's Interaction"}</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">{"Type of Content's Interaction"}</span></div></div>
           <div className="mmd-hbars mmd-hbars-alt">{view.types.length ? view.types.map((t) => <div key={t.type}><span>{t.type} <small>({t.count})</small></span><i><b style={{ width: `${Math.round((t.avg / Math.max(1, ...view.types.map((x) => x.avg))) * 100)}%` }} /></i><strong>{fmt(t.avg)}</strong></div>) : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}</div>
         </article>
 
@@ -380,12 +380,12 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
             </select>
           </div>
           {topPosts.length ? <div className="mmd-posts">
-            <div className="mmd-post mmd-post-head"><span>Post</span><b>Views</b><b>Reach</b><b>Interaksi</b><b>Komen</b><b>Share</b><span /></div>
+            <div className="mmd-post mmd-post-head"><span>Post</span><b>Views</b><b>Reach</b><b>Interaksi</b><span /></div>
             {topPosts.map((p) => (
               <div className="mmd-post" key={p.id}>
                 <span className="mmd-post-main"><i className={`mmd-badge ${p.platform}`}>{p.platform === 'facebook' ? 'FB' : 'IG'}</i><span><strong>{postDate(p.time)} · {p.type}</strong>{p.caption ? <small>{p.caption}</small> : null}</span></span>
-                <b data-label="Views">{fmt(p.views)}</b><b data-label="Reach">{fmt(p.reach)}</b><b data-label="Interaksi">{fmt(p.interactions)}</b><b data-label="Komen">{fmt(p.comments)}</b><b data-label="Share">{fmt(p.shares)}</b>
-                {p.permalink ? <a className="mmd-link" href={p.permalink} target="_blank" rel="noreferrer">Lihat post ↗</a> : <span />}
+                <b data-label="Views">{fmt(p.views)}</b><b data-label="Reach">{fmt(p.reach)}</b><b data-label="Interaksi">{fmt(p.interactions)}</b>
+                {p.permalink ? <a className="mmd-view-post" href={p.permalink} target="_blank" rel="noreferrer">View post</a> : <span />}
               </div>
             ))}
           </div> : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}
