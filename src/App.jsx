@@ -55,6 +55,9 @@ const SHOW_TODAYS_RECOMMENDATION = false
 // Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_HOME_GREETING_HEADER = false
 
+// Page footer bar ('BRUTTI AI Marketing Hub' / workspace status). Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_APP_FOOTER = false
+
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
@@ -1684,7 +1687,7 @@ function App() {
   return (
     <div className="app-shell">
       <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/>
-      <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main><footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer></div>
+      <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main>{SHOW_APP_FOOTER ? <footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer> : null}</div>
       <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={allProductData}/> : null}
