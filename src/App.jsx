@@ -58,6 +58,13 @@ const SHOW_HOME_GREETING_HEADER = false
 // Page footer bar ('BRUTTI AI Marketing Hub' / workspace status). Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_APP_FOOTER = false
 
+// Analytics item in the sidebar / More drawer. Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_NAV_ANALYTICS = false
+
+// Sidebar / drawer tagline ('Proudly Sabahan. Purposefully Crafted. Responsibly Made.').
+// Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_SIDEBAR_TAGLINE = false
+
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
@@ -191,7 +198,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
         <div className="sidebar-brand"><Logo/><button className="icon-button sidebar-close" onClick={() => setOpen(false)} aria-label="Close menu"><Icon name="close" /></button></div>
         <div className="workspace-label">WORKSPACE</div>
         <nav>
-          {navigation.map((item) => {
+          {navigation.filter((item) => item.id !== 'analytics' || SHOW_NAV_ANALYTICS).map((item) => {
             const count = item.id === 'studio' ? counts.content : item.id === 'products' ? counts.products : null
             return <button key={item.id} className={`nav-link ${page === item.id ? 'active' : ''}`} onClick={() => navigate(item.id)}>
               <Icon name={item.icon}/><span>{item.label}</span>{count !== null ? <em>{count}</em> : null}
@@ -203,7 +210,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
             <div className="system-card-head"><span className="pulse-dot"/><strong>{workspaceActive ? 'Google workspace active' : 'Local workspace active'}</strong></div>
             <p>{workspaceActive ? 'Free Assist templates, Sheets and Drive are ready.' : 'Connect the internal Google workspace to activate shared operations.'}</p>
           </div>
-          <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div>
+          {SHOW_SIDEBAR_TAGLINE ? <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div> : null}
         </div>
       </aside>
     </>
@@ -230,8 +237,8 @@ function MobileBottomNavigation({ page, setPage, openMore }) {
           <Icon name={item.icon}/><small>{item.label}</small>
         </button>
       ))}
-      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Open all sections">
-        <Icon name="menu"/><small>More</small>
+      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Settings">
+        <Icon name="settings"/><small>Settings</small>
       </button>
     </nav>
   )
