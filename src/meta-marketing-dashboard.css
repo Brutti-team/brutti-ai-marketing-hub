@@ -127,3 +127,9 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 .mmd-chart-wrap { width: 100%; min-width: 0; overflow: hidden; }
 .mmd-chart { width: 100%; height: auto; }
 @media (max-width: 700px) { .mmd-chart { height: auto; } .mmd-card-head { flex-wrap: wrap; } }
+
+/* Compact home: greeting header hidden, dashboard starts near the top. */
+.dashboard-page.dashboard-compact { padding-top: 0; }
+.dashboard-page.dashboard-compact > .mmd-shell { margin-top: 0; }
+.dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
+.dashboard-page.dashboard-compact .page-header { margin-bottom: 0; }
