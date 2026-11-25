@@ -1,3 +1,7 @@
+/* Phone and laptop: the More button in the bottom bar opens the drawer,
+   so the top-bar hamburger is hidden on every size. */
+.mobile-menu { display: none !important; }
+
 /* Laptop/desktop: hide the left sidebar and use the same floating bottom
    nav as the phone, so the dashboard can use the full width.
    The sidebar code stays; "More" still opens it as a drawer. Phone styles
