@@ -3,6 +3,9 @@
 .mmd-shell.panel { padding: 18px; }
 .mmd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .mmd-head h3 { margin: 6px 0 2px; font-size: 20px; }
+.mmd-shell .page-header { margin-bottom: 12px; }
+.mmd-shell .page-header > div:first-child { max-width: none; }
+.mmd-shell .page-header h1 { margin-top: 0; }
 .mmd-head small { color: var(--muted); font-size: 12px; }
 .mmd-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .mmd-seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
@@ -116,6 +119,7 @@ html[data-theme='dark'] .mmd-seg, html[data-theme='dark'] .mmd-select, html[data
 html[data-theme='dark'] .mmd-seg button { color: #b8c7bf; }
 html[data-theme='dark'] .mmd-seg button.active { background: #c9ead7; color: #102118; }
 html[data-theme='dark'] .mmd-head small, html[data-theme='dark'] .mmd-note, html[data-theme='dark'] .mmd-legend, html[data-theme='dark'] .mmd-chip, html[data-theme='dark'] .mmd-hbars small, html[data-theme='dark'] .mmd-post-main small, html[data-theme='dark'] .mmd-pending li span, html[data-theme='dark'] .mmd-post-head, html[data-theme='dark'] .mmd-donut li small { color: #b8c7bf; }
+html[data-theme='dark'] .mmd-head h1,
 html[data-theme='dark'] .mmd-head h3, html[data-theme='dark'] .mmd-card-head h4, html[data-theme='dark'] .mmd-post, html[data-theme='dark'] .mmd-hbars, html[data-theme='dark'] .mmd-donut ul, html[data-theme='dark'] .mmd-mini-table { color: #f7f5ee; }
 html[data-theme='dark'] .mmd-chip, html[data-theme='dark'] .mmd-post, html[data-theme='dark'] .mmd-pending li { border-color: #40564a; }
 html[data-theme='dark'] .mmd-chart .mmd-grid, html[data-theme='dark'] .mmd-donut-track { stroke: #40564a; }
@@ -150,8 +154,8 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 /* Compact home: greeting header hidden, dashboard starts near the top. */
 .dashboard-page.dashboard-compact { padding-top: 0; }
 .dashboard-page.dashboard-compact > .mmd-shell { margin-top: 0; }
-.dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
-.dashboard-page.dashboard-compact .page-header { margin-bottom: 0; }
+.dashboard-page.dashboard-compact .mmd-head h1, .dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
+.dashboard-page.dashboard-compact > .page-header { margin-bottom: 0; }
 
 /* Month picker sits where the refresh button was. */
 .mmd-select[aria-label='Pilih bulan'] { min-width: 9.5rem; }
