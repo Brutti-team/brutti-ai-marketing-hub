@@ -1,0 +1,96 @@
+/* Laptop/desktop: hide the left sidebar and use the same floating bottom
+   nav as the phone, so the dashboard can use the full width.
+   The sidebar code stays; "More" still opens it as a drawer. Phone styles
+   in pwa-mobile.css (max-width: 980px) are left unchanged. */
+@media (min-width: 981px) {
+  :root { --sidebar: 0px; }
+
+  .sidebar {
+    width: 278px;
+    transform: translateX(-103%);
+    transition: transform .22s ease;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .sidebar.open { transform: translateX(0); }
+  .mobile-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgba(13, 27, 21, .45);
+  }
+  .mobile-scrim.show { display: block; }
+  .sidebar-close { display: grid; }
+
+  /* The hamburger only opened the sidebar, and More already does that. */
+  .mobile-menu { display: none !important; }
+
+  /* Brand mark in the top bar now that the left sidebar is gone. */
+  .mobile-logo { display: block; }
+  .mobile-logo .logo-mark { width: 34px; height: 34px; }
+  .mobile-logo .logo-lockup { gap: 10px; }
+  .mobile-logo .logo-lockup strong { color: var(--forest); font-size: 11px; }
+  .mobile-logo .logo-lockup small { display: block; color: var(--muted); }
+
+  .app-main > main {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .mobile-bottom-navigation {
+    position: fixed;
+    z-index: 70;
+    left: 50%;
+    right: auto;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(560px, calc(100% - 48px));
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    padding: 7px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 20px;
+    background: rgba(18, 55, 42, .97);
+    box-shadow: 0 14px 45px rgba(18, 55, 42, .29);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-bottom-navigation button {
+    min-width: 0;
+    min-height: 52px;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(255, 255, 255, .62);
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .mobile-bottom-navigation button svg { width: 19px; height: 19px; }
+  .mobile-bottom-navigation button small {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .mobile-bottom-navigation button.active { color: #fff; background: rgba(255, 255, 255, .1); }
+  .mobile-bottom-navigation button.active svg { color: #efb69d; }
+
+  .toast {
+    bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+
+  footer {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+
+  html[data-theme='dark'] .mobile-logo .logo-lockup strong { color: #e4f7ec; }
+  html[data-theme='dark'] .mobile-logo .logo-lockup small { color: #b8c7bf; }
+}

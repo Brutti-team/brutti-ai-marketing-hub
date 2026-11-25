@@ -50,6 +50,11 @@ const SHOW_OLD_SNAPSHOT_CARDS = false
 // Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_TODAYS_RECOMMENDATION = false
 
+// Home greeting block on Papan Pemuka: 'MARKETING CONTROL CENTRE',
+// 'Good afternoon, Michelle.', and the 'Cipta dengan Bantuan' button.
+// Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_HOME_GREETING_HEADER = false
+
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
@@ -276,8 +281,10 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   useEffect(() => { syncDashboardMeta(false) }, [syncDashboardMeta])
   const greeting = greetingForNow()
   return (
-    <div className="page dashboard-page">
+    <div className={`page dashboard-page${SHOW_HOME_GREETING_HEADER ? '' : ' dashboard-compact'}`}>
+      {SHOW_HOME_GREETING_HEADER ? (
       <PageHeader eyebrow="MARKETING CONTROL CENTRE" title={`${greeting}, Michelle.`} description="Plan today’s work, review assisted drafts and keep BRUTTI’s marketing moving from one workspace." actions={<button className="button primary" onClick={newContent}><Icon name="sparkles"/>Create with Assist</button>} />
+      ) : null}
 
       <MetaMarketingDashboard snapshot={metaInsights} syncing={syncingMeta} onRefresh={() => syncDashboardMeta(true)} />
 

@@ -5,6 +5,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 // yet (follows, page visits, follower / non-follower split) are shown as
 // "belum tersedia" instead of estimated numbers.
 
+// Hidden for now (Michelle, 25 Nov 2026). Code kept so they can be turned back on.
+const SHOW_META_DASHBOARD_EYEBROW = false
+const SHOW_META_SYNC_LINE = false
+const SHOW_META_UNAVAILABLE_CARD = false
+
 const PERIODS = [
   { days: 7, label: '7 hari lepas' },
   { days: 28, label: '28 hari lepas' },
@@ -252,7 +257,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   if (!allPosts.length) {
     return (
       <section className="panel mmd-shell" aria-label="Dashboard Meta">
-        <div className="mmd-head"><div><span className="eyebrow">PRESTASI META</span><h3>Dashboard Marketing</h3></div></div>
+        <div className="mmd-head"><div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META</span> : null}<h3>Dashboard Marketing</h3></div></div>
         <p className="settings-copy">{syncing ? 'Sedang membaca data Meta…' : 'Data post Meta belum dapat dibaca. Dashboard akan keluar selepas sync Meta berjaya. Sistem tidak memaparkan angka rekaan.'}</p>
       </section>
     )
@@ -261,7 +266,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   return (
     <section className="mmd-shell" aria-label="Dashboard Meta">
       <div className="mmd-head">
-        <div><span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span><h3>Dashboard Marketing</h3><small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small></div>
+        <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h3>Dashboard Marketing</h3>{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
           <select className="mmd-select" value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
@@ -311,6 +316,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
           <div className="mmd-hbars mmd-hbars-alt">{view.types.length ? view.types.map((t) => <div key={t.type}><span>{t.type} <small>({t.count})</small></span><i><b style={{ width: `${Math.round((t.avg / Math.max(1, ...view.types.map((x) => x.avg))) * 100)}%` }} /></i><strong>{fmt(t.avg)}</strong></div>) : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}</div>
         </article>
 
+        {SHOW_META_UNAVAILABLE_CARD ? (
         <article className="panel mmd-card mmd-pending">
           <div className="mmd-card-head"><div><span className="eyebrow">BELUM TERSEDIA</span><h4>Follows, Visits &amp; follower</h4></div></div>
           <ul>
@@ -320,6 +326,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
           </ul>
           <p className="mmd-note">Angka ini tidak direka. Boleh ditambah kemudian dalam Apps Script (sync Meta) jika diluluskan.</p>
         </article>
+        ) : null}
 
         <article className="panel mmd-card mmd-full">
           <div className="mmd-card-head">
