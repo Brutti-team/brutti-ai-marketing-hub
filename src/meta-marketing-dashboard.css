@@ -3,6 +3,9 @@
 .mmd-shell.panel { padding: 18px; }
 .mmd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .mmd-head h3 { margin: 6px 0 2px; font-size: 20px; }
+.mmd-shell .page-header { margin-bottom: 12px; }
+.mmd-shell .page-header > div:first-child { max-width: none; }
+.mmd-shell .page-header h1 { margin-top: 0; }
 .mmd-head small { color: var(--muted); font-size: 12px; }
 .mmd-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .mmd-seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
@@ -60,7 +63,7 @@
 .mmd-pending li span { color: var(--muted); font-size: 12px; }
 
 .mmd-posts { display: grid; }
-.mmd-post { display: grid; grid-template-columns: minmax(0, 3fr) repeat(5, minmax(56px, .7fr)) 96px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.mmd-post { display: grid; grid-template-columns: minmax(0, 3fr) repeat(3, minmax(56px, .7fr)) 110px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; }
 .mmd-post b { text-align: right; font-weight: 700; }
 .mmd-post-head { border-top: 0; padding-top: 0; color: var(--muted); font-size: 11px; }
 .mmd-post-head b { font-weight: 600; }
@@ -70,6 +73,23 @@
 .mmd-badge { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font: 800 10px 'Manrope', sans-serif; font-style: normal; color: #fff; }
 .mmd-badge.facebook { background: #4f7bd8; } .mmd-badge.instagram { background: #d3628f; }
 .mmd-link { justify-self: end; color: var(--terracotta); font-weight: 700; font-size: 12px; text-decoration: none; white-space: nowrap; }
+.mmd-card-head .eyebrow.mmd-eyebrow-plain { text-transform: none; letter-spacing: 0; }
+.mmd-view-post {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--charcoal);
+  font: 700 12px/1 'Manrope', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.mmd-view-post:hover { background: var(--cream, #fbf9f4); }
 
 @media (max-width: 1100px) {
   .mmd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -78,8 +98,23 @@
 }
 @media (max-width: 700px) {
   .mmd-head { align-items: stretch; }
-  .mmd-controls { width: 100%; }
-  .mmd-seg { flex: 1; } .mmd-seg button { flex: 1; }
+  .mmd-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    justify-content: center;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .mmd-seg { grid-column: 1 / -1; display: flex; width: 100%; box-sizing: border-box; }
+  .mmd-seg button { flex: 1; }
+  .mmd-shell .mmd-controls select.mmd-select,
+  .mmd-shell .mmd-controls .mmd-select[aria-label='Pilih bulan'] {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+  }
   .mmd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .mmd-kpi { min-height: 96px; padding: 13px; }
   .mmd-kpi strong { font-size: 23px; }
@@ -91,7 +126,7 @@
   .mmd-post-main { grid-column: 1 / -1; }
   .mmd-post b { text-align: left; display: grid; font-size: 14px; }
   .mmd-post b::before { content: attr(data-label); color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
-  .mmd-link { grid-column: 1 / -1; justify-self: start; }
+  .mmd-link, .mmd-view-post { grid-column: 1 / -1; justify-self: start; }
 }
 
 /* Dark theme */
@@ -99,6 +134,7 @@ html[data-theme='dark'] .mmd-seg, html[data-theme='dark'] .mmd-select, html[data
 html[data-theme='dark'] .mmd-seg button { color: #b8c7bf; }
 html[data-theme='dark'] .mmd-seg button.active { background: #c9ead7; color: #102118; }
 html[data-theme='dark'] .mmd-head small, html[data-theme='dark'] .mmd-note, html[data-theme='dark'] .mmd-legend, html[data-theme='dark'] .mmd-chip, html[data-theme='dark'] .mmd-hbars small, html[data-theme='dark'] .mmd-post-main small, html[data-theme='dark'] .mmd-pending li span, html[data-theme='dark'] .mmd-post-head, html[data-theme='dark'] .mmd-donut li small { color: #b8c7bf; }
+html[data-theme='dark'] .mmd-head h1,
 html[data-theme='dark'] .mmd-head h3, html[data-theme='dark'] .mmd-card-head h4, html[data-theme='dark'] .mmd-post, html[data-theme='dark'] .mmd-hbars, html[data-theme='dark'] .mmd-donut ul, html[data-theme='dark'] .mmd-mini-table { color: #f7f5ee; }
 html[data-theme='dark'] .mmd-chip, html[data-theme='dark'] .mmd-post, html[data-theme='dark'] .mmd-pending li { border-color: #40564a; }
 html[data-theme='dark'] .mmd-chart .mmd-grid, html[data-theme='dark'] .mmd-donut-track { stroke: #40564a; }
@@ -107,6 +143,8 @@ html[data-theme='dark'] .mmd-hbars-alt i b { background: linear-gradient(90deg, 
 html[data-theme='dark'] .mmd-axis { fill: #b8c7bf; }
 html[data-theme='dark'] .mmd-donut-total { fill: #f7f5ee; }
 html[data-theme='dark'] .mmd-link { color: #f0a684; }
+html[data-theme='dark'] .mmd-view-post { background: #1b2721; border-color: #486154; color: #e4f7ec; }
+html[data-theme='dark'] .mmd-view-post:hover { background: #223129; }
 html[data-theme='dark'] .mmd-tone-mint { background: #234536; } html[data-theme='dark'] .mmd-tone-sky { background: #22344f; }
 html[data-theme='dark'] .mmd-tone-peach { background: #4a3027; } html[data-theme='dark'] .mmd-tone-lilac { background: #352d4d; }
 html[data-theme='dark'] .mmd-tone-butter { background: #463f22; }
@@ -131,8 +169,8 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 /* Compact home: greeting header hidden, dashboard starts near the top. */
 .dashboard-page.dashboard-compact { padding-top: 0; }
 .dashboard-page.dashboard-compact > .mmd-shell { margin-top: 0; }
-.dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
-.dashboard-page.dashboard-compact .page-header { margin-bottom: 0; }
+.dashboard-page.dashboard-compact .mmd-head h1, .dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
+.dashboard-page.dashboard-compact > .page-header { margin-bottom: 0; }
 
 /* Month picker sits where the refresh button was. */
 .mmd-select[aria-label='Pilih bulan'] { min-width: 9.5rem; }

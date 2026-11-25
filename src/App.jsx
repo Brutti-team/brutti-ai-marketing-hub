@@ -58,6 +58,21 @@ const SHOW_HOME_GREETING_HEADER = false
 // Page footer bar ('BRUTTI AI Marketing Hub' / workspace status). Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_APP_FOOTER = false
 
+// Analytics item in the sidebar / More drawer. Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_NAV_ANALYTICS = false
+
+// Sidebar / drawer tagline ('Proudly Sabahan. Purposefully Crafted. Responsibly Made.').
+// Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_SIDEBAR_TAGLINE = false
+
+// Pop-up drawer menu and the bottom-bar Settings (ex-More) button that opens it.
+// Hidden for now (Michelle, 25 Nov 2026). Code kept so they can be turned back on.
+const SHOW_NAV_DRAWER = false
+
+// Content Studio chrome. Hidden for now (Michelle, 25 Nov 2026).
+const SHOW_STUDIO_EYEBROW = false
+const SHOW_STUDIO_TAB_BAR = false
+
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
@@ -191,7 +206,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
         <div className="sidebar-brand"><Logo/><button className="icon-button sidebar-close" onClick={() => setOpen(false)} aria-label="Close menu"><Icon name="close" /></button></div>
         <div className="workspace-label">WORKSPACE</div>
         <nav>
-          {navigation.map((item) => {
+          {navigation.filter((item) => item.id !== 'analytics' || SHOW_NAV_ANALYTICS).map((item) => {
             const count = item.id === 'studio' ? counts.content : item.id === 'products' ? counts.products : null
             return <button key={item.id} className={`nav-link ${page === item.id ? 'active' : ''}`} onClick={() => navigate(item.id)}>
               <Icon name={item.icon}/><span>{item.label}</span>{count !== null ? <em>{count}</em> : null}
@@ -203,7 +218,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
             <div className="system-card-head"><span className="pulse-dot"/><strong>{workspaceActive ? 'Google workspace active' : 'Local workspace active'}</strong></div>
             <p>{workspaceActive ? 'Free Assist templates, Sheets and Drive are ready.' : 'Connect the internal Google workspace to activate shared operations.'}</p>
           </div>
-          <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div>
+          {SHOW_SIDEBAR_TAGLINE ? <div className="tagline">Proudly Sabahan.<br/>Purposefully Crafted.<br/>Responsibly Made.</div> : null}
         </div>
       </aside>
     </>
@@ -230,9 +245,11 @@ function MobileBottomNavigation({ page, setPage, openMore }) {
           <Icon name={item.icon}/><small>{item.label}</small>
         </button>
       ))}
-      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Open all sections">
-        <Icon name="menu"/><small>More</small>
+      {SHOW_NAV_DRAWER ? (
+      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Settings">
+        <Icon name="settings"/><small>Settings</small>
       </button>
+      ) : null}
     </nav>
   )
 }
@@ -719,8 +736,8 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   const visible = content.filter((item) => (filter === 'All' || item.stage === filter) && `${item.title} ${item.product}`.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="page">
-      <PageHeader eyebrow="FREE CONTENT ASSIST" title="Content Studio" description="Write a Bahasa Malaysia caption for Facebook and Instagram from a product or a topic. No paid AI, and empty fields are not invented." />
-      <div className="tab-bar"><button className={`bm-caption-tab ${tab === 'caption' ? 'active' : ''}`} onClick={() => setTab('caption')}><Icon name="sparkles"/>Caption generator</button>{SHOW_LEGACY_STUDIO_TABS ? <><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></> : null}</div>
+      <PageHeader eyebrow={SHOW_STUDIO_EYEBROW ? 'FREE CONTENT ASSIST' : undefined} title="Content Studio" description="Write a Bahasa Malaysia caption for Facebook and Instagram from a product or a topic. No paid AI, and empty fields are not invented." />
+      {SHOW_STUDIO_TAB_BAR ? <div className="tab-bar"><button className={`bm-caption-tab ${tab === 'caption' ? 'active' : ''}`} onClick={() => setTab('caption')}><Icon name="sparkles"/>Caption generator</button>{SHOW_LEGACY_STUDIO_TABS ? <><button className={tab === 'generator' ? 'active' : ''} onClick={() => setTab('generator')}><Icon name="sparkles"/>Free Assist</button><button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Icon name="file"/>Content Library <em>{content.length}</em></button></> : null}</div> : null}
       {tab === 'caption' || !SHOW_LEGACY_STUDIO_TABS ? <BmCaptionStudio productOptions={productOptions} toast={toast} /> : tab === 'generator' ? <GeneratorForm form={generator} setForm={setGenerator} onGenerate={generate} output={output} onOutputChange={setOutput} saveDraft={saveDraft} workspaceActive={workspaceActive} toast={toast} productOptions={productOptions}/> : (
         <section className="panel content-library">
           <div className="library-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search content or product…"/></div><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All</option>{[...pipelineStages, 'Rejected'].map((stage) => <option key={stage}>{stage}</option>)}</select></div>
@@ -1686,7 +1703,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/>
+      {SHOW_NAV_DRAWER ? <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/> : null}
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main>{SHOW_APP_FOOTER ? <footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer> : null}</div>
       <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}

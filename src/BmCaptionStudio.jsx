@@ -5,6 +5,14 @@ import { callMarketingApi } from './lib/googleWorkspace'
 import './bm-caption-studio.css'
 
 const NO_PRODUCT = ''
+
+// Content Studio form chrome. Hidden for now (Michelle, 25 Nov 2026). Code kept.
+const SHOW_STUDIO_STEP_HEADER = false
+const SHOW_STUDIO_TIKTOK_CHECKBOX = false
+const SHOW_STUDIO_GEMINI_NOTE = false
+const SHOW_STUDIO_EMPTY_RESULT = false
+const SHOW_STUDIO_TOPIC_FIELD = false
+const SHOW_STUDIO_TIP_GOAL = false
 const EMPTY_FACT = "not filled, won't be included"
 
 const GOAL_LABELS = {
@@ -14,6 +22,8 @@ const GOAL_LABELS = {
   behind: 'Behind the scenes',
   tips: 'Tip',
 }
+
+const visibleGoals = CAPTION_GOALS.filter((item) => item.id !== 'tips' || SHOW_STUDIO_TIP_GOAL)
 
 function clean(value = '') {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
@@ -108,11 +118,17 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [busy, setBusy] = useState(false)
 
   const product = productOptions.find((item) => optionValue(item) === productId) || null
+  const needsProduct = !SHOW_STUDIO_TOPIC_FIELD
+  const canGenerate = needsProduct ? Boolean(product) : Boolean(product || topic.trim())
 
   const clearResult = () => setResult(null)
 
   const run = async (nextVariation) => {
     if (busy) return
+    if (needsProduct && !product) {
+      toast('Choose a product first.')
+      return
+    }
     if (!product && !topic.trim()) {
       toast('Choose a product or write a topic first.')
       return
@@ -156,6 +172,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
     <div className="bm-caption-studio">
       <div className={`bm-caption-layout ${result ? 'has-output' : ''}`}>
         <form className="bm-caption-form" onSubmit={(event) => { event.preventDefault(); run(0) }}>
+          {SHOW_STUDIO_STEP_HEADER ? (
           <div className="form-section-head">
             <span>01</span>
             <div>
@@ -163,11 +180,12 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
               <p>Bahasa Malaysia, one point, and only facts that are actually filled in.</p>
             </div>
           </div>
+          ) : null}
 
           <label>
             Product
             <select value={productId} onChange={(event) => { setProductId(event.target.value); clearResult() }}>
-              <option value={NO_PRODUCT}>No product — use a topic</option>
+              <option value={NO_PRODUCT}>{SHOW_STUDIO_TOPIC_FIELD ? 'No product — use a topic' : 'Choose a product'}</option>
               {productOptions.filter((item) => item?.name).map((item) => (
                 <option key={optionValue(item)} value={optionValue(item)}>{item.name}</option>
               ))}
@@ -175,7 +193,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </label>
           <FactPreview product={product} />
 
-          {!product ? (
+          {SHOW_STUDIO_TOPIC_FIELD && !product ? (
             <label>
               Topic (if no product)
               <input
@@ -187,14 +205,14 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           ) : null}
 
           <label>
-            Post goal
+            Type of post
             <select value={goal} onChange={(event) => { setGoal(event.target.value); clearResult() }}>
-              {CAPTION_GOALS.map((item) => <option key={item.id} value={item.id}>{GOAL_LABELS[item.id] || item.id}</option>)}
+              {visibleGoals.map((item) => <option key={item.id} value={item.id}>{GOAL_LABELS[item.id] || item.id}</option>)}
             </select>
           </label>
 
           <label>
-            Design note (optional)
+            Note (optional)
             <textarea
               rows="4"
               value={note}
@@ -203,18 +221,22 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             />
           </label>
 
+          {SHOW_STUDIO_TIKTOK_CHECKBOX ? (
           <label className="checkbox-row bm-caption-check">
             <input type="checkbox" checked={showTikTok} onChange={(event) => setShowTikTok(event.target.checked)} />
             <span>Show a short TikTok caption (optional)</span>
           </label>
+          ) : null}
 
           <div className="bm-caption-actions">
-            <button className="button primary" type="submit" disabled={busy}>{busy ? 'Generating…' : 'Generate caption'}</button>
-            <button className="button secondary" type="button" disabled={busy} onClick={() => run(result ? variation + 1 : 1)}>Generate another variation</button>
+            <button className="button primary" type="submit" disabled={busy || !canGenerate}>{busy ? 'Generating…' : 'Generate caption'}</button>
+            <button className="button secondary" type="button" disabled={busy || !canGenerate} onClick={() => run(result ? variation + 1 : 1)}>Generate another variation</button>
           </div>
-          <p className="bm-caption-disclaimer">The generator tries free Gemini first. If Gemini is unavailable, the in-browser template is used. Check the caption before posting. Empty fields are not filled with new numbers or claims.</p>
+          {needsProduct && !product ? <p className="bm-caption-disclaimer">Choose a product first.</p> : null}
+          {SHOW_STUDIO_GEMINI_NOTE ? <p className="bm-caption-disclaimer">The generator tries free Gemini first. If Gemini is unavailable, the in-browser template is used. Check the caption before posting. Empty fields are not filled with new numbers or claims.</p> : null}
         </form>
 
+        {result || SHOW_STUDIO_EMPTY_RESULT ? (
         <section className="bm-caption-results" aria-live="polite">
           <div className="bm-caption-results-head">
             <span className="eyebrow">BAHASA MALAYSIA RESULT</span>
@@ -236,6 +258,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             </div>
           )}
         </section>
+        ) : null}
       </div>
     </div>
   )

@@ -298,7 +298,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   if (!allPosts.length) {
     return (
       <section className="panel mmd-shell" aria-label="Dashboard Meta">
-        <div className="mmd-head"><div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META</span> : null}<h3>Dashboard Marketing</h3></div></div>
+        <div className="page-header mmd-head"><div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META</span> : null}<h1>Dashboard Marketing</h1></div></div>
         <p className="settings-copy">{syncing ? 'Sedang membaca data Meta…' : 'Data post Meta belum dapat dibaca. Dashboard akan keluar selepas sync Meta berjaya. Sistem tidak memaparkan angka rekaan.'}</p>
       </section>
     )
@@ -306,8 +306,8 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
   return (
     <section className="mmd-shell" aria-label="Dashboard Meta">
-      <div className="mmd-head">
-        <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h3>Dashboard Marketing</h3>{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
+      <div className="page-header mmd-head">
+        <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h1>Dashboard Marketing</h1>{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
           <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
@@ -341,7 +341,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PLATFORM</span><h4>Platform Interactions</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">Platform Interactions</span></div></div>
           <Donut parts={[{ name: 'Facebook', color: FB, value: view.fb.interactions || 0 }, { name: 'Instagram', color: IG, value: view.ig.interactions || 0 }]} />
           <div className="mmd-mini-table">
             <div><span /><b>Post</b><b>Views</b><b>Reach</b></div>
@@ -356,7 +356,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">JENIS CONTENT</span><h4>{"Type of Content's Interaction"}</h4></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">{"Type of Content's Interaction"}</span></div></div>
           <div className="mmd-hbars mmd-hbars-alt">{view.types.length ? view.types.map((t) => <div key={t.type}><span>{t.type} <small>({t.count})</small></span><i><b style={{ width: `${Math.round((t.avg / Math.max(1, ...view.types.map((x) => x.avg))) * 100)}%` }} /></i><strong>{fmt(t.avg)}</strong></div>) : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}</div>
         </article>
 
@@ -380,12 +380,12 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
             </select>
           </div>
           {topPosts.length ? <div className="mmd-posts">
-            <div className="mmd-post mmd-post-head"><span>Post</span><b>Views</b><b>Reach</b><b>Interaksi</b><b>Komen</b><b>Share</b><span /></div>
+            <div className="mmd-post mmd-post-head"><span>Post</span><b>Views</b><b>Reach</b><b>Interaksi</b><span /></div>
             {topPosts.map((p) => (
               <div className="mmd-post" key={p.id}>
                 <span className="mmd-post-main"><i className={`mmd-badge ${p.platform}`}>{p.platform === 'facebook' ? 'FB' : 'IG'}</i><span><strong>{postDate(p.time)} · {p.type}</strong>{p.caption ? <small>{p.caption}</small> : null}</span></span>
-                <b data-label="Views">{fmt(p.views)}</b><b data-label="Reach">{fmt(p.reach)}</b><b data-label="Interaksi">{fmt(p.interactions)}</b><b data-label="Komen">{fmt(p.comments)}</b><b data-label="Share">{fmt(p.shares)}</b>
-                {p.permalink ? <a className="mmd-link" href={p.permalink} target="_blank" rel="noreferrer">Lihat post ↗</a> : <span />}
+                <b data-label="Views">{fmt(p.views)}</b><b data-label="Reach">{fmt(p.reach)}</b><b data-label="Interaksi">{fmt(p.interactions)}</b>
+                {p.permalink ? <a className="mmd-view-post" href={p.permalink} target="_blank" rel="noreferrer">View post</a> : <span />}
               </div>
             ))}
           </div> : <p className="mmd-note">Tiada post dalam tempoh ini.</p>}
