@@ -149,6 +149,9 @@ export function DeferredEnhancers() {
   )
 }
 
+if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
+  history.scrollRestoration = 'manual'
+}
 applyBrightness(readBrightness())
 
 createRoot(document.getElementById('root')).render(

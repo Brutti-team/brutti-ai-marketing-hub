@@ -13,6 +13,7 @@
     <script>
       (function () {
         try {
+          if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
           var t = localStorage.getItem('brutti-ui-theme') === 'dark' ? 'dark' : 'light';
           var d = document.documentElement;
           d.dataset.theme = t;
