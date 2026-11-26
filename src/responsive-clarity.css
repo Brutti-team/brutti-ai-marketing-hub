@@ -881,3 +881,8 @@ html[data-theme='dark'] .brutti-notification-count {
 .brutti-notification-item.is-empty .brutti-notification-dot {
   display: none;
 }
+
+/* Empty notifications state: hide the helper line, show only the title */
+.brutti-notification-item.is-empty .brutti-empty-hint {
+  display: none;
+}
