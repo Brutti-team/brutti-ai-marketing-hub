@@ -14,6 +14,8 @@ export const SHOW_MT_STATUS_FIELD = false
 export const SHOW_MT_FORM_EYEBROW = false
 // Marketing Tools campaign form (Bunting/Billboard): show the numeric "Cost (RM)" field. Off: only free-text "Kos (RM)".
 export const SHOW_MT_COST_NUMBER = false
+// Product Library: show the "VERIFIED PRODUCT SOURCE" / "FUTURE REFERENCE" labels, the "Save a past kiosk or project" heading (new form) and the device-only note in the kiosk/project form. Off: hidden.
+export const SHOW_PRODUCT_LIBRARY_LABELS = false
 
 export const GITHUB_DATA_BASE = 'https://brutti-team.github.io/brutti-hub-data/'
 
