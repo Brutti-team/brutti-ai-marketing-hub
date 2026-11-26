@@ -1,8 +1,9 @@
 // Free-tier Gemini caption request. The API key stays in Apps Script.
 // Voice: Brutti Soul Master, with the owner's caption rules over that document.
-// Style examples are real Sep–Oct 2026 posts. They teach rhythm only.
+// Style examples include real posts from 2020–2026 (see src/data/brutti-caption-style.json). They teach rhythm only.
 
 import { CAPTION_GOALS, captionBrief } from './bmCaptionGenerator.js'
+import { styleHookOpeners, styleSystemAddendum } from './bruttiCaptionStyle.js'
 
 export const GEMINI_MODEL = 'gemini-3.5-flash-lite'
 export const STYLE_EXAMPLE_COUNT = 8
@@ -121,12 +122,13 @@ const STYLE_EXAMPLES = [
   },
 ]
 
-const HOOK_OPENERS = [
+const HOOK_OPENERS = [...new Set([
   'Kadang healing tidak perlu jauh-jauh pun.',
   'Pallet lama tidak semestinya jadi waste.',
   'Kek yang sedap patut nampak dari jauh lagi 😋',
   'Kalau tinguk sekali nampak macam kaunter biasa ja kan',
-]
+  ...styleHookOpeners(),
+])]
 
 const SYSTEM_INSTRUCTION = `You write Facebook, Instagram, and TikTok captions for Brutti, a Sabah custom furniture workshop. The voice source is Brutti Soul Master: a friend telling a real scene, not a salesperson and not a corporate brand.
 
@@ -158,6 +160,8 @@ Shape
 - Facebook, Instagram, and TikTok must be three different captions. Same real facts, different opening and rhythm.
 - TikTok must not mention analytics, views, reach, or tontonan.
 - A short phrase from a style example may be reused. Never copy a whole example, and never move that example's materials, prices, stock claims, artisan names, or client names onto this product.
+
+${styleSystemAddendum()}
 
 Output exactly this shape and nothing else:
 

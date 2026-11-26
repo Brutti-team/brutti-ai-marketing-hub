@@ -1,0 +1,372 @@
+{
+  "meta": {
+    "version": "1.0",
+    "title": "Brutti caption style",
+    "source": "META_POST_INSIGHTS, read-only. 7,198 captions with text, 3,544 Facebook and 3,654 Instagram, 11 Oct 2020–18 Nov 2026.",
+    "counts": {
+      "captions": 7198,
+      "facebook": 3544,
+      "instagram": 3654,
+      "empty_or_no_text": 69
+    },
+    "target": "Use the 2025–2026 product-post shape, in the same casual Sabah voice Brutti has used since 2020. Content Studio still writes 4–5 short lines and omits hashtags; Berlys can add the hashtag set below.",
+    "notes": "Figures and quotes come from the live posts. Prices in this file are written as RM… unless a pattern needs a public caption example. Phone numbers are not stored. Client and artisan names are not copied into templates."
+  },
+  "voice": {
+    "language": "About 80% Bahasa Malaysia, 11% English, 2% mixed. Facebook and Instagram use almost the same voice; many posts are cross-posted.",
+    "sabah": "About 1 in 4 captions use Sabah markers (ni, nda, ja, kan, ngam, mau, kasi, bikin, pigi, sudah, kitani). Stronger in 2020–2021 (~32%), still common now (~22–26%).",
+    "person": "First person kami / team Brutti; talk to the reader as kamu. Light humour, like a friend, not a catalogue.",
+    "words_yes": [
+      "ni",
+      "ngam",
+      "ja",
+      "kan",
+      "sudah",
+      "boleh",
+      "bikin",
+      "kasi",
+      "tinguk",
+      "mau",
+      "pigi",
+      "piece",
+      "custom",
+      "simple",
+      "client",
+      "ruang",
+      "nampak",
+      "senang",
+      "kemas"
+    ],
+    "words_no": [
+      "bah",
+      "nak",
+      "mahu",
+      "diperbuat daripada",
+      "reka bentuk",
+      "bersama",
+      "selepas",
+      "anda",
+      "sila",
+      "POV"
+    ],
+    "phrases": [
+      "kalau kamu",
+      "kami buat",
+      "yang kami buat",
+      "jangan lupa",
+      "ready stock",
+      "Hanya di Brutti",
+      "ngam betul",
+      "tahan lama",
+      "senang mau bawa",
+      "terima kasih"
+    ]
+  },
+  "eras": [
+    {
+      "id": "2020-2021",
+      "posts": 923,
+      "shape": "Short and casual, median 4–5 lines and ~200–285 characters. Almost no hashtags. More Sabah dialect. Hooks are everyday jokes or a short scene."
+    },
+    {
+      "id": "2022-2023",
+      "posts": 1619,
+      "shape": "Still fairly short (median 4 lines). Hashtags begin, often place and custom-made tags (#penampang, #kotakinabalu, #custommade, #kkcity)."
+    },
+    {
+      "id": "2024",
+      "posts": 1382,
+      "shape": "The core Brutti hashtag set appears. Median still 4 lines / ~344 characters."
+    },
+    {
+      "id": "2025-2026",
+      "posts": 3274,
+      "shape": "Current house style for product posts: longer (median 8 lines, 500–680 characters), emoji on most posts, a Product Details block when size/material/price is stated, and the core hashtag set after the caption. Content Studio keeps a tighter 4–5 line body and attaches the same Product Details list when those fields are filled."
+    }
+  ],
+  "structure": {
+    "line1": "Short hook, median 31 characters: a question, a tease, a short scene with an emoji, or in live posts sometimes the product name plus ✨ on its own line. Content Studio should open on a hook, not the bare product name.",
+    "body": "Short lines, one thought each. Blank line or a lone '.' is used as a pause in live posts. Tell one scene: who it is for, what the piece does, one real fact.",
+    "details": "From 2025, many product posts end with:\nProduct Details:\n• Size: …\n• Materials: …\n• Finishing: …\n• Price starts from RM…\nOnly include a line when that fact was provided. Never invent a price, size, material or finishing. The app already appends this block.",
+    "length_studio": "4 or 5 short body lines, then Product Details if facts exist. No hashtags in the generated caption.",
+    "platforms": "Write Facebook and Instagram as two different captions with the same facts. TikTok, if used, is shorter and must not mention analytics."
+  },
+  "hooks": {
+    "patterns": [
+      {
+        "id": "question",
+        "share": "about 10%",
+        "how": "A short question that a customer would actually ask."
+      },
+      {
+        "id": "short_plus_emoji",
+        "share": "about 35%",
+        "how": "A short line that ends with ✨ 😍 🤭 or 😆."
+      },
+      {
+        "id": "short_hook",
+        "share": "about 30%",
+        "how": "A tease or open loop, under about 12 words."
+      },
+      {
+        "id": "bts",
+        "share": "rare but strong engagement",
+        "how": "Behind the scene / Part N, for process or workshop stories only. Do not invent a founder story."
+      }
+    ],
+    "openers": [
+      "Banyak juga peminat ni kan? 🤭",
+      "Time for a reveal!",
+      "Do you still remember this piece? 🤭",
+      "Kamu nda pasti cara mau pasang?",
+      "Pieces ni memang power.",
+      "Behind the scene.",
+      "Cantiknya hasil ni 😍",
+      "Kalau tinguk sekali nampak biasa ja kan"
+    ]
+  },
+  "emoji": {
+    "posts_with_emoji_pct": 81,
+    "average_per_post": 3,
+    "studio_rule": "One or two emoji, at the end of a line, not in a row of four. Prefer ✨ 😍 😆 🤭 🤣 ❤️ 👀.",
+    "common": [
+      "✨",
+      "😍",
+      "🤣",
+      "😂",
+      "🤭",
+      "😆",
+      "❤️",
+      "👀",
+      "🔥",
+      "😎",
+      "🤩"
+    ]
+  },
+  "hashtagSets": {
+    "studio": "Do not auto-insert hashtags. Live posts put them after the caption. Berlys can paste a set if needed.",
+    "core": [
+      "#brutti",
+      "#sabahan",
+      "#sabahbrand",
+      "#artisansabah",
+      "#borneo",
+      "#woodworking",
+      "#customwoodworking",
+      "#bespoke",
+      "#kayu"
+    ],
+    "recycle_or_pallet": [
+      "#kayupallet",
+      "#palletwood",
+      "#palletkayu",
+      "#repurposewood",
+      "#recycle",
+      "#kayuterpakai"
+    ],
+    "place": [
+      "#kotakinabalu",
+      "#kkcity",
+      "#penampang"
+    ],
+    "note": "Live posts often use #kotakinablu (a long-running typo, 2,381 times). Prefer #kotakinabalu on new captions."
+  },
+  "cta": {
+    "what_the_posts_do": "WhatsApp is rare (0.6% of captions). DM/inbox is uncommon (1.4%). Location or showroom is mentioned in about 24%. Order/tempah appears in about 7%. A frequent soft close is 'Hanya di Brutti' or 'kalau kamu mau…'.",
+    "studio": "Do not add a WhatsApp number, DM, or inbox line unless the user wrote it in the note. Prefer a soft close.",
+    "variants": [
+      "Hanya di Brutti",
+      "Kalau kamu mau piece ikut ruang kamu, cerita je pada kami.",
+      "Jangan lupa, piece ni custom ikut kamu.",
+      "Nampak simple, tapi ada kerja."
+    ]
+  },
+  "products": {
+    "how": "Say the product name once, in title case, in the body. Materials show up in about half of all posts; size and price are less common (~7% and ~6%) but rise in 2025–2026. Put size, material, finishing and price in Product Details, not in every sentence. Only use numbers the user (or the product library) actually gave.",
+    "from_studio_fields": "The Note and the Product details checklist (Dimensions, Materials & Finishing, Price, plus any row the user adds) are real facts. If a box is empty or unticked, skip it."
+  },
+  "byType": {
+    "highlight": {
+      "aim": "One hook, one reason the piece fits the space, one real detail, then Product Details if facts exist.",
+      "openers": [
+        "Pieces ni memang power.",
+        "Banyak juga yang suka piece ni kan? 🤭",
+        "Ruang kecil, piece biasa tidak muat kan? ✨"
+      ]
+    },
+    "promo": {
+      "aim": "Only mention a price, stock or offer if the user wrote it. Never invent 'ready stock', 'only 1 left', or a discount.",
+      "openers": [
+        "Barang harian, satu sudut dulu. ✨"
+      ]
+    },
+    "customer": {
+      "aim": "Thank the client in general terms. Do not invent a client name, artisan name, or private story.",
+      "openers": [
+        "Ada ruang yang piece biasa tidak muat. ✨",
+        "Terima kasih sebab percaya kerja tangan sini."
+      ]
+    },
+    "behind": {
+      "aim": "Workshop or process only. Do not paste founder biography, health, or pandemic stories into a product caption.",
+      "openers": [
+        "Behind the scene. ✨",
+        "Time for a reveal!",
+        "Dari proses sampai siap. 😍"
+      ]
+    },
+    "tips": {
+      "aim": "One practical tip tied to the product or topic. No invented measurements.",
+      "openers": [
+        "Kamu nda pasti cara mau susun?",
+        "Mula dari barang yang kamu guna setiap hari. ✨"
+      ]
+    }
+  },
+  "topPerforming": {
+    "what_differs": "The top 5% of posts (by engagement, among posts with reach of 200 or more) are 94% BM, slightly more likely to open as a short hook or a 'Part N / behind the scene' story, and a bit less likely to be a long English product list. High-reach posts include product reveals, workshop stories, events such as Tamu Dulu-Dulu, and occasional community stories. Product captions that do well still start short, stay in BM, and name one clear benefit (for example a table that extends for a family gathering).",
+    "do_not_copy": "Do not reuse private or community-crisis stories, voting posts, or medical stories as product templates."
+  },
+  "examples": [
+    {
+      "date": "2020-10-26",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "Cantiknya renovation before&after rumah ni😍😍"
+    },
+    {
+      "date": "2020-11-09",
+      "platform": "facebook",
+      "type": "highlight",
+      "text": "Rumah bajet untuk yg belum berkahwin/forever alone 😍"
+    },
+    {
+      "date": "2020-11-25",
+      "platform": "facebook",
+      "type": "behind",
+      "text": "Behind the scenes setiap kali product photshoot."
+    },
+    {
+      "date": "2025-09-27",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "✨ Meja Dangsanak Extandable ✨\n\nPieces ni memang power sebab buli adjust ikut suka kamu urang.\n\nDari 8ft terus buli jadi 12ft, ngam betul kalau family dinner, gathering sama kawan-kawan ataupun ada majlis ramai orang kan? 😍\n\nPastu top mija ni menggunakan pinewood solid."
+    },
+    {
+      "date": "2026-06-18",
+      "platform": "facebook",
+      "type": "customer",
+      "text": "Another cabinets untuk deliver dan install di Lok Kawi~\n\nClient ni support kami dari first kami mula lagi."
+    },
+    {
+      "date": "2024-07-14",
+      "platform": "instagram",
+      "type": "tips",
+      "text": "Mid-century Interior Design✨\n\nBermula dari Bauhaus movement pada 1940-an dan popular lepas Perang Dunia Kedua, Mid-Century Modern design suka guna bahan natural macam kayu teak dan walnut.\n\nAda siapa suka design mid-century? 🤔"
+    },
+    {
+      "date": "2025-11-23",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "Kiosk Dumowongi?! 🍀\n\nYes, our Dumowongi is back with a new look,\njust a little chubbier this time~ 😆\n\nThe client requested a custom size to perfectly fit their display and products.\nBut as always, foldable is a must! 🥰"
+    },
+    {
+      "date": "2025-03-26",
+      "platform": "instagram",
+      "type": "tips",
+      "text": "Candywall Tutorial by Far ✨️\n\nKamu nda pasti cara mau pasang Candywall? Naa si Far sudah tunjuk tutorial untuk kamu, senang ja kan pasang dia hihi"
+    },
+    {
+      "date": "2026-10-04",
+      "platform": "instagram",
+      "type": "behind",
+      "text": "Custom Wooden Push Cart✨\n\nTime for a reveal! NI la projek Artisan Brutti bulan lepas\n\nTeam buat kiosk untuk vendor yang berniaga dalam mall\n\nSo multifunction in 1 piece kannnn 😆"
+    },
+    {
+      "date": "2025-02-26",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "Banyak juga peminat Rinondomon ni kan? 🤭"
+    },
+    {
+      "date": "2026-03-18",
+      "platform": "instagram",
+      "type": "customer",
+      "text": "Do you still remember this Loft Bed? 🤭\n\nLooks familiar, right~\nOf course it does 😉\nThis is actually the SECOND loft bed our client ordered from us."
+    },
+    {
+      "date": "2025-04-29",
+      "platform": "facebook",
+      "type": "highlight",
+      "text": "Sebenarnya, bukan lighting yang power, tapi Wooden Arch tu yang bikin gambar stand out 🤩\n\nLetak kain, tambah daun sikit, terus siap jadi spot bergambar yang lawa\n\nKayu solid pinewood yang digunakan ringan, tahan, dan mudah dibawa ke mana-mana"
+    },
+    {
+      "date": "2025-08-01",
+      "platform": "facebook",
+      "type": "highlight",
+      "text": "Eh eh okay gais ni namanya Rak Jiwa, baca nama pun tau sudah kan vibenya kena di hati terus\n\nRak Jiwa ni senang kamu mahu pasang, mahu bawa pigi mana-mana pun ndala kamu sakit kepala."
+    },
+    {
+      "date": "2022-03-30",
+      "platform": "instagram",
+      "type": "behind",
+      "text": "Behind the scenes untuk photoshoot bersama Breeze Magazine March 2022 edition 😍"
+    },
+    {
+      "date": "2025-08-09",
+      "platform": "instagram",
+      "type": "customer",
+      "text": "Cerita Tamu Dulu-Dulu ~\n\nSiapa masih ingat tahun lepas, 2024…\ntime Brutti pertama kali jayakan event Tamu Dulu-Dulu di Sabah? 🥹"
+    },
+    {
+      "date": "2025-06-16",
+      "platform": "instagram",
+      "type": "customer",
+      "text": "Sweet Amore Candywall 🍭\n\nRemember the sweet couple who came to pick up this candywall from our place?\nReally loves the big ribbon they added, it makes the whole setup look more cute and sweet 🎀"
+    },
+    {
+      "date": "2020-10-31",
+      "platform": "facebook",
+      "type": "behind",
+      "text": "Honestly... Budak ni punya koordinasi mata & tangan lagi campin dari sa sendiri🤣🤣🤣"
+    },
+    {
+      "date": "2026-10-04",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "Product Details\nMaterials : Solid pine wood , Plywood & Acrylic\nFinishing : Selected high pressure laminate"
+    },
+    {
+      "date": "2025-11-23",
+      "platform": "instagram",
+      "type": "highlight",
+      "text": "Product Details:\n▪️ Materials: Solid Plywood & Solid Pine Wood\n▪️ Finishing: Brutti Green Finishing & Clear Finishing for Slats\n▪️ Price starts from: RM…"
+    },
+    {
+      "date": "2025-04-29",
+      "platform": "facebook",
+      "type": "highlight",
+      "text": "Product details:\n▪️Dimensions: 6.5ft H x 5ft W\n▪️Materials: Solid Pine Wood\n▪️Finishing: Walnut Finishing\n▪️Price starts from RM…"
+    }
+  ],
+  "do": [
+    "Write in casual Bahasa Malaysia, with light Sabah flavour (ni, ngam, ja, kan, mau, kasi, bikin).",
+    "Open on a short hook: a question, a tease, or a one-line scene with a single emoji.",
+    "Name the product once, in title case, in the body.",
+    "Keep body lines short, 4 or 5 of them, one thought per line.",
+    "Put size, material, finishing and price only in Product Details, and only when the user or the library supplied them.",
+    "Use one or two emoji at the end of a line (✨ 😍 😆 🤭).",
+    "Close softly (Hanya di Brutti / kalau kamu mau…) unless the user gave another CTA.",
+    "Keep Facebook and Instagram different, with the same real facts."
+  ],
+  "dont": [
+    "Do not invent prices, sizes, materials, colours, stock, discounts, dates, artisan names or client names.",
+    "Do not open with POV or with the product name alone on line 1.",
+    "Do not use bah, nak, mahu, or stiff words such as diperbuat daripada, reka bentuk, bersama, selepas.",
+    "Do not put hashtags in the generated caption (they belong after the caption, added by a person).",
+    "Do not add a WhatsApp number or a DM line unless the user wrote it.",
+    "Do not copy a whole old caption, and do not move another post's facts onto this product.",
+    "Do not paste founder biography, health stories, or community-crisis stories into a product caption.",
+    "Do not mention analytics, views or reach."
+  ]
+}
