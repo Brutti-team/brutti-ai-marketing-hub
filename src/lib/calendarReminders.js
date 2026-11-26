@@ -37,9 +37,10 @@ export function calendarAlerts(now = new Date()) {
     const when = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute)
     const detail = [plan.date, time].filter(Boolean).join(' · ') + (note.trim() ? ` · ${note.trim()}` : '')
     const base = { level: 'reminder', action: 'Calendar Planner', button: 'Open Calendar', detail, order: when.getTime() }
+    const timeLabel = `${plan.date === tomorrow ? 'Esok' : 'Hari ini'}${time ? ` ${time}` : ''}:`
     if (time && now >= when && now - when < 24 * 3600 * 1000) alerts.push({ ...base, id: `cal-${plan.id}-due`, title: `Reminder: ${plan.title}`, level: 'alert' })
-    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: `Hari ini${time ? ` ${time}` : ''}: ${plan.title}` })
-    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: `Esok${time ? ` ${time}` : ''}: ${plan.title}` })
+    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: plan.title, timeLabel })
+    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: plan.title, timeLabel })
   })
   return alerts.sort((a, b) => a.order - b.order).slice(0, 12)
 }
