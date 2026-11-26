@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
 import { filterSyncedPosts, normaliseSearchPosts, postImageUrl } from './lib/syncedPostSearch'
+import { formatDisplayDateTime } from './lib/formatDate'
 
 // Hidden for now (Michelle, Oct 2026). Set to true to bring the "Find an old post" card back.
 const SHOW_OLD_POST_SEARCH = false
@@ -18,9 +19,7 @@ function metric(value) { return value === null || value === undefined || value =
 function display(value) { return value === null ? '—' : new Intl.NumberFormat('en-MY').format(value) }
 function formatDate(value) {
   if (!value) return 'Date unavailable'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value)
-  return new Intl.DateTimeFormat('en-MY', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kuala_Lumpur' }).format(date)
+  return formatDisplayDateTime(value) || String(value)
 }
 function contentType(value) {
   const format = String(value || 'post').toLowerCase()

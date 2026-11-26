@@ -1,3 +1,4 @@
+import { formatDisplayDateFromKey, formatDisplayTimeFromHm } from './formatDate'
 import { parsePlanObjective } from './plannerNote'
 // Calendar Planner reminders (Michelle, 26 Nov). Reads the same planner notes the calendar saves
 // (localStorage 'brutti-plans-v2', mirrored from the Daily Planner sheet when connected). The time of a note is
@@ -35,11 +36,12 @@ export function calendarAlerts(now = new Date()) {
     const { time, hour, minute, note } = splitNote(plan)
     const day = parseDay(plan.date)
     const when = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute)
-    const detail = [plan.date, time].filter(Boolean).join(' · ') + (note.trim() ? ` · ${note.trim()}` : '')
+    const timeLabel = time ? formatDisplayTimeFromHm(time) : ''
+    const detail = [formatDisplayDateFromKey(plan.date), timeLabel].filter(Boolean).join(' · ') + (note.trim() ? ` · ${note.trim()}` : '')
     const base = { level: 'reminder', action: 'Calendar Planner', button: 'Open Calendar', detail, order: when.getTime() }
     if (time && now >= when && now - when < 24 * 3600 * 1000) alerts.push({ ...base, id: `cal-${plan.id}-due`, title: `Reminder: ${plan.title}`, level: 'alert' })
-    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: `Hari ini${time ? ` ${time}` : ''}: ${plan.title}` })
-    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: `Esok${time ? ` ${time}` : ''}: ${plan.title}` })
+    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: `Hari ini${timeLabel ? ` ${timeLabel}` : ''}: ${plan.title}` })
+    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: `Esok${timeLabel ? ` ${timeLabel}` : ''}: ${plan.title}` })
   })
   return alerts.sort((a, b) => a.order - b.order).slice(0, 12)
 }
@@ -75,12 +77,14 @@ export function fireDueSystemNotifications(prefs, now = new Date()) {
     const day = parseDay(plan.date)
     const when = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute)
     const eve = new Date(day.getFullYear(), day.getMonth(), day.getDate() - 1, EVE_HOUR, 0)
-    const body = [time, note.trim()].filter(Boolean).join(' · ') || 'Calendar Planner'
+    const timeLabel = time ? formatDisplayTimeFromHm(time) : ''
+    const dateLabel = formatDisplayDateFromKey(plan.date)
+    const body = [timeLabel, note.trim()].filter(Boolean).join(' · ') || 'Calendar Planner'
     ;[[`${plan.id}-on`, when, plan.title], [`${plan.id}-eve`, eve, `Esok: ${plan.title}`]].forEach(([key, at, title]) => {
       if (sent.has(key) || now < at || now - at > WINDOW_MS) return
       sent.add(key)
       changed = true
-      show(title, key.endsWith('-eve') ? `${plan.date}${time ? ` ${time}` : ''}` : body, `brutti-cal-${key}`)
+      show(title, key.endsWith('-eve') ? `${dateLabel}${timeLabel ? ` ${timeLabel}` : ''}` : body, `brutti-cal-${key}`)
     })
   })
   if (changed) {

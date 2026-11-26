@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { formatDisplayTime } from './lib/formatDate'
 
 // Historical Smart Timing
 // Source: supplied Facebook export reaction activity.
@@ -50,7 +51,7 @@ function ceilToStep(minutes, step = PRACTICAL_STEP_MINUTES) {
 }
 
 function formatTime(date) {
-  return date.toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return formatDisplayTime(date)
 }
 
 function dateKey(date) {
