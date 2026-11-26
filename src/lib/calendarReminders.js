@@ -32,14 +32,15 @@ export function calendarAlerts(now = new Date()) {
   const tomorrow = dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1))
   const alerts = []
   readPlans().forEach((plan) => {
-    const { time, hour, minute, note } = splitNote(plan)
+    const { time, hour, minute } = splitNote(plan)
     const day = parseDay(plan.date)
     const when = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute)
-    const detail = [plan.date, time].filter(Boolean).join(' · ') + (note.trim() ? ` · ${note.trim()}` : '')
+    // Panel only shows title + date/time. Note text stays in the planner; OS notifications keep their own body.
+    const detail = [plan.date, time].filter(Boolean).join(' · ')
     const base = { level: 'reminder', action: 'Calendar Planner', button: 'Open Calendar', detail, order: when.getTime() }
     if (time && now >= when && now - when < 24 * 3600 * 1000) alerts.push({ ...base, id: `cal-${plan.id}-due`, title: `Reminder: ${plan.title}`, level: 'alert' })
-    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: `Hari ini${time ? ` ${time}` : ''}: ${plan.title}` })
-    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: `Esok${time ? ` ${time}` : ''}: ${plan.title}` })
+    else if (plan.date === today && !(time && now >= when)) alerts.push({ ...base, id: `cal-${plan.id}-today`, title: plan.title })
+    else if (plan.date === tomorrow) alerts.push({ ...base, id: `cal-${plan.id}-tomorrow`, title: plan.title })
   })
   return alerts.sort((a, b) => a.order - b.order).slice(0, 12)
 }
