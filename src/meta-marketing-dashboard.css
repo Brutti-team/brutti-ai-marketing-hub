@@ -52,7 +52,7 @@
 
 .mmd-hbars { display: grid; gap: 11px; }
 .mmd-hbars > div { display: grid; grid-template-columns: minmax(96px, 1.1fr) 2fr auto; gap: 10px; align-items: center; font-size: 13px; }
-.mmd-hbars > div.mmd-hbar-share { grid-template-columns: 1fr; gap: 8px; }
+.mmd-hbars > div.mmd-hbar-share, .mmd-hbars > div.mmd-hbar-expand { grid-template-columns: 1fr; gap: 8px; }
 .mmd-hbar-toggle {
   display: grid;
   grid-template-columns: minmax(96px, 1.1fr) 2fr auto;
@@ -213,3 +213,28 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 .mmd-head > div:first-child { position: relative; }
 .mmd-head .mmd-updating { position: absolute; left: 2px; bottom: 100%; margin-bottom: 0; white-space: nowrap; font-size: 11px; opacity: .65; pointer-events: none; animation: mmd-updating-pulse 1.6s ease-in-out infinite; }
 @keyframes mmd-updating-pulse { 0%, 100% { opacity: .35; } 50% { opacity: .75; } }
+
+.mmd-axis.is-dense { font-size: 9px; }
+
+.mmd-tip-root { position: relative; }
+.mmd-tip {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 11px;
+  background: #1b2420;
+  color: #f4f1ea;
+  font: 500 11px/1.35 'Manrope', 'DM Sans', sans-serif;
+  box-shadow: 0 8px 20px rgba(0,0,0,.28);
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.mmd-month-pickers { display: flex; gap: 8px; align-items: center; }
+.mmd-select[aria-label='Pilih tahun'] { min-width: 6.5rem; }
+@media (max-width: 700px) {
+  .mmd-month-pickers { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .mmd-shell .mmd-controls .mmd-select[aria-label='Pilih tahun'] { width: 100%; min-width: 0; max-width: none; box-sizing: border-box; }
+}

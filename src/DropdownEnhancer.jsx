@@ -6,6 +6,19 @@ import { useEffect } from 'react'
 // or sets its value, or listens for its "change" event, keeps working exactly as before.
 // To keep a native select somewhere, give it the attribute data-dd-native.
 
+// Search box (magnifier + "Search…") inside the shared dropdown panel.
+// Hidden on Settings, Content Studio and Dashboard (Michelle, 26 Nov 2026). Set true to show again.
+const SHOW_SETTINGS_SEARCH = false
+const SHOW_STUDIO_SEARCH = false
+const SHOW_DASHBOARD_SEARCH = false
+
+function showDropdownSearch(select) {
+  if (select.closest('.settings-page')) return SHOW_SETTINGS_SEARCH
+  if (select.closest('.content-studio-page, .bm-caption-studio, .bm-caption-form, .content-library')) return SHOW_STUDIO_SEARCH
+  if (select.closest('.mmd-shell, .dashboard-page')) return SHOW_DASHBOARD_SEARCH
+  return true
+}
+
 let uid = 0
 const ctrls = new Map()
 const SEARCH_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>'
@@ -27,6 +40,8 @@ function readOptions(select) {
     index: option.index,
     text: (option.textContent || '').trim(),
     disabled: option.disabled,
+    group: option.parentElement?.tagName === 'OPTGROUP' ? String(option.parentElement.label || '').trim() : '',
+    lock: option.hasAttribute('data-lock-keep') || option.hasAttribute('data-user-content') || Boolean(option.closest('[data-lock-keep], [data-user-content]')),
   }))
 }
 
@@ -42,15 +57,17 @@ function createControl(select) {
   trigger.setAttribute('aria-controls', `${id}-panel`)
   const value = document.createElement('span')
   value.className = 'dd-value'
-  value.setAttribute('data-lock-keep', '')
-  trigger.append(value)
+  const hint = document.createElement('span')
+  hint.className = 'dd-hint'
+  hint.hidden = true
+  trigger.append(value, hint)
   wrapper.append(trigger)
   select.after(wrapper)
   select.classList.add('dd-native')
   select.tabIndex = -1
   select.setAttribute('aria-hidden', 'true')
 
-  const ctrl = { id, select, wrapper, trigger, value, panel: null, open: false, query: '', active: -1, shown: [], signature: '' }
+  const ctrl = { id, select, wrapper, trigger, value, hint, panel: null, open: false, query: '', active: -1, shown: [], signature: '' }
   trigger.addEventListener('click', () => (ctrl.open ? closePanel(ctrl, true) : openPanel(ctrl)))
   trigger.addEventListener('keydown', (event) => {
     if (ctrl.open) return
@@ -65,11 +82,22 @@ function createControl(select) {
 }
 
 function syncControl(ctrl) {
-  const { select, trigger, value, wrapper } = ctrl
+  const { select, trigger, value, hint, wrapper } = ctrl
   const selected = select.options[select.selectedIndex]
   const text = selected ? (selected.textContent || '').trim() : ''
+  const group = selected?.parentElement?.tagName === 'OPTGROUP' ? String(selected.parentElement.label || '').trim() : ''
   if (value.textContent !== text) value.textContent = text
-  trigger.title = text
+  if (group) {
+    hint.textContent = group
+    hint.hidden = false
+  } else {
+    hint.textContent = ''
+    hint.hidden = true
+  }
+  const lock = selected && (selected.hasAttribute('data-lock-keep') || selected.hasAttribute('data-user-content') || selected.closest('[data-lock-keep], [data-user-content]'))
+  if (lock) { value.setAttribute('data-lock-keep', ''); hint.setAttribute('data-lock-keep', '') }
+  else { value.removeAttribute('data-lock-keep'); hint.removeAttribute('data-lock-keep') }
+  trigger.title = group ? `${text} ${group}`.trim() : text
   const name = labelText(select)
   if (name && trigger.getAttribute('aria-label') !== name) trigger.setAttribute('aria-label', name)
   if (trigger.disabled !== select.disabled) trigger.disabled = select.disabled
@@ -87,24 +115,29 @@ function openPanel(ctrl) {
   const panel = document.createElement('div')
   panel.className = 'dd-panel'
   panel.id = `${ctrl.id}-panel`
-  const search = document.createElement('div')
-  search.className = 'dd-search'
-  search.innerHTML = SEARCH_ICON
-  const input = document.createElement('input')
-  input.type = 'text'
-  input.className = 'dd-search-input'
-  input.placeholder = 'Search…'
-  input.setAttribute('aria-label', 'Search')
-  input.setAttribute('autocomplete', 'off')
-  input.setAttribute('autocapitalize', 'off')
-  input.setAttribute('spellcheck', 'false')
-  search.append(input)
   const list = document.createElement('ul')
   list.className = 'dd-list'
   list.setAttribute('role', 'listbox')
   const name = labelText(ctrl.select)
   if (name) list.setAttribute('aria-label', name)
-  panel.append(search, list)
+  let input = null
+  if (showDropdownSearch(ctrl.select)) {
+    const search = document.createElement('div')
+    search.className = 'dd-search'
+    search.innerHTML = SEARCH_ICON
+    input = document.createElement('input')
+    input.type = 'text'
+    input.className = 'dd-search-input'
+    input.placeholder = 'Search…'
+    input.setAttribute('aria-label', 'Search')
+    input.setAttribute('autocomplete', 'off')
+    input.setAttribute('autocapitalize', 'off')
+    input.setAttribute('spellcheck', 'false')
+    search.append(input)
+    panel.append(search, list)
+  } else {
+    panel.append(list)
+  }
   if (ctrl.select.closest('.app-language-control, [data-lock-keep]')) panel.setAttribute('data-lock-keep', '')
   document.body.append(panel)
   Object.assign(ctrl, { panel, input, list, open: true, query: '' })
@@ -112,7 +145,7 @@ function openPanel(ctrl) {
   ctrl.wrapper.classList.add('is-open')
   renderList(ctrl)
   placePanel(ctrl)
-  input.addEventListener('input', () => { ctrl.query = input.value; renderList(ctrl, true) })
+  if (input) input.addEventListener('input', () => { ctrl.query = input.value; renderList(ctrl, true) })
   list.addEventListener('mousedown', (event) => event.preventDefault())
   list.addEventListener('click', (event) => {
     const row = event.target.closest('[data-index]')
@@ -127,7 +160,7 @@ function openPanel(ctrl) {
   document.addEventListener('keydown', onKeyDown, true)
   window.addEventListener('resize', onReposition)
   window.addEventListener('scroll', onReposition, true)
-  if (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) input.focus({ preventScroll: true })
+  if (input && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) input.focus({ preventScroll: true })
 }
 
 let active = null
@@ -136,7 +169,7 @@ function renderList(ctrl, keepActive) {
   const { select, list } = ctrl
   const query = ctrl.query.trim().toLowerCase()
   const options = readOptions(select)
-  ctrl.shown = options.filter((option) => !query || option.text.toLowerCase().includes(query))
+  ctrl.shown = options.filter((option) => !query || option.text.toLowerCase().includes(query) || option.group.toLowerCase().includes(query))
   list.textContent = ''
   if (!ctrl.shown.length) {
     const empty = document.createElement('li')
@@ -146,12 +179,21 @@ function renderList(ctrl, keepActive) {
     ctrl.active = -1
     return
   }
+  let lastGroup = null
   ctrl.shown.forEach((option) => {
+    if (option.group && option.group !== lastGroup) {
+      const header = document.createElement('li')
+      header.className = 'dd-group'
+      header.setAttribute('aria-hidden', 'true')
+      header.textContent = option.group
+      list.append(header)
+      lastGroup = option.group
+    }
     const row = document.createElement('li')
     row.className = 'dd-option'
     row.id = `${ctrl.id}-o${option.index}`
     row.setAttribute('role', 'option')
-    row.setAttribute('data-lock-keep', '')
+    if (option.lock) row.setAttribute('data-lock-keep', '')
     row.dataset.index = String(option.index)
     row.textContent = option.text
     const selected = option.index === select.selectedIndex
@@ -174,9 +216,9 @@ function paintActive(ctrl, scroll) {
   const row = ctrl.active >= 0 ? list.querySelector(`[data-index="${ctrl.active}"]`) : null
   if (row) {
     row.classList.add('is-active')
-    input.setAttribute('aria-activedescendant', row.id)
+    input?.setAttribute('aria-activedescendant', row.id)
     if (scroll) row.scrollIntoView({ block: 'nearest' })
-  } else input.removeAttribute('aria-activedescendant')
+  } else input?.removeAttribute('aria-activedescendant')
 }
 
 function setActive(ctrl, index, scroll = true) {

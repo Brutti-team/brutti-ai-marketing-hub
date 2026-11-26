@@ -114,14 +114,19 @@
 .planner-summary.dynamic-planner-summary > div:first-child strong.month-title-big { display: block; margin-left: 0; font-size: 26px; line-height: 1.15; }
 @media (max-width: 600px) { .planner-summary.dynamic-planner-summary > div:first-child strong.month-title-big { font-size: 21px; } }
 
-/* Planner header: "Content Calendar" is the visible heading; the Campaign Planner h1 stays
-   in the DOM (other enhancers find the page by it) but is visually hidden. */
+/* Old: the Calendar Planner h1 was clipped and the uppercase sans eyebrow was the visible
+   title (Michelle, before 26 Nov 2026). Kept here commented in intent: the h1 is visible
+   again and matches Marketing Dashboard typography. Set the eyebrow display if SHOW_PLANNER_HEADER_EYEBROW is on. */
 .planner-month-page .page-header h1 {
-  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
-.planner-month-page .page-header .eyebrow { display: block; font-size: 30px; line-height: 1.15; letter-spacing: .05em; }
-@media (max-width: 600px) { .planner-month-page .page-header .eyebrow { font-size: 22px; } }
+.planner-month-page .page-header .eyebrow { display: none; }
 
 /* Theme toggle lives in Settings; workspace chip stays in DOM (notification check) but hidden. */
 .topbar .topbar-workspace-chip[hidden] { display: none !important; }

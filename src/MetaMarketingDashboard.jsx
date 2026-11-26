@@ -12,6 +12,8 @@ const SHOW_META_DASHBOARD_EYEBROW = false
 const SHOW_META_SYNC_LINE = false
 const SHOW_META_UNAVAILABLE_CARD = false
 const SHOW_SAVES_BREAKDOWN = false
+// Month and year pickers on the dashboard header. Hidden (Michelle, 26 Nov 2026). Set true to show them again.
+const SHOW_DASHBOARD_MONTH_PICKER = false
 
 const PERIODS = [
   { days: 7, label: 'Seminggu lepas' },
@@ -37,9 +39,9 @@ function sum(list, key) {
   const values = list.map((item) => item[key]).filter((value) => value !== null)
   return values.length ? values.reduce((total, value) => total + value, 0) : null
 }
-function shareSplit(name, posts) {
+function metricSplit(name, posts, key) {
   if (!posts.length) return { name, value: 0, available: true }
-  const value = sum(posts, 'shares')
+  const value = sum(posts, key)
   return { name, value, available: value !== null }
 }
 function fmt(value) {
@@ -60,7 +62,48 @@ function contentType(format) {
   return 'Post'
 }
 function startOfDay(time) { const d = new Date(time); d.setHours(0, 0, 0, 0); return d.getTime() }
-function shortDate(time) { return formatDisplayDate(time) }
+function shortDate(time) {
+  // Chart axis: day and month only (28-10), so a week of labels can all fit (Michelle, 26 Nov 2026).
+  const full = formatDisplayDate(time)
+  const match = String(full).match(/^(\d{2}-\d{2})-\d{4}$/)
+  return match ? match[1] : full
+}
+function monthName(key) {
+  const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1)
+  return date.toLocaleDateString('en-GB', { month: 'short' })
+}
+function MonthSelect({ value, onChange, months }) {
+  return (
+    <select className="mmd-select" value={value} onChange={onChange} aria-label="Pilih bulan">
+      <option value="">Pilih bulan</option>
+      {months.map((key) => <option key={key} value={key}>{monthName(key)}</option>)}
+    </select>
+  )
+}
+function YearSelect({ value, onChange, years }) {
+  return (
+    <select className="mmd-select" value={value} onChange={onChange} aria-label="Pilih tahun">
+      {years.map((year) => <option key={year} value={year}>{year}</option>)}
+    </select>
+  )
+}
+function MonthYearControls({ year, onYearChange, month, onMonthChange, years, months }) {
+  return (
+    <div className="mmd-month-pickers">
+      <YearSelect value={year} onChange={(event) => onYearChange(event.target.value)} years={years} />
+      <MonthSelect value={month} onChange={(event) => onMonthChange(event.target.value)} months={months} />
+    </div>
+  )
+}
+function labelStep(count, width) {
+  // Show a label on every day when they fit. A week always shows all 7; a month shows all
+  // days when each label has at least 28px, otherwise skip just enough to stay readable.
+  if (count <= 14) return 1
+  const inner = Math.max(120, width - 52)
+  const minPx = 28
+  if (inner / count >= minPx) return 1
+  return Math.max(1, Math.ceil(count / Math.max(1, Math.floor(inner / minPx))))
+}
 function postDate(value) { return formatDisplayDateTime(value) }
 
 function metaDashboardPosts(snapshot) {
@@ -116,6 +159,10 @@ function monthLabel(keyOrTime) {
     : new Date(keyOrTime)
   return date.toLocaleDateString('ms-MY', { month: 'short', year: 'numeric' })
 }
+function fullMonthLabel(key) {
+  const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1)
+  return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+}
 function monthRange(key) {
   const from = monthStart(new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1).getTime())
   const to = addMonths(from, 1)
@@ -162,65 +209,107 @@ function useWidth(fallback = 640) {
   return [ref, width]
 }
 
+
+function useChartTip() {
+  const [tip, setTip] = useState(null)
+  const show = (event, text) => {
+    const root = event.currentTarget.closest('.mmd-tip-root')
+    if (!root) return
+    const box = root.getBoundingClientRect()
+    let x = event.clientX - box.left + 12
+    let y = event.clientY - box.top - 38
+    if (x + 190 > box.width) x = Math.max(8, box.width - 190)
+    if (x < 8) x = 8
+    if (y < 8) y = event.clientY - box.top + 16
+    setTip({ text, x, y })
+  }
+  const hide = () => setTip(null)
+  const node = tip ? <div className="mmd-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div> : null
+  return { show, hide, node }
+}
+
 function LineChart({ labels, lines, height = 190 }) {
   const [ref, width] = useWidth()
+  const { show, hide, node } = useChartTip()
   const pad = { l: 40, r: 12, t: 12, b: 26 }
   const max = niceMax(Math.max(0, ...lines.flatMap((line) => line.values)))
   const x = (i) => pad.l + (labels.length <= 1 ? 0 : (i * (width - pad.l - pad.r)) / (labels.length - 1))
   const y = (v) => pad.t + (height - pad.t - pad.b) * (1 - v / max)
   const ticks = [0, max / 2, max]
-  const every = Math.max(1, Math.ceil(labels.length / Math.max(3, Math.floor(width / 90))))
+  const every = labelStep(labels.length, width)
+  const dense = labels.length > 10 && every === 1
   return (
-    <div ref={ref} className="mmd-chart-wrap"><svg className="mmd-chart" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img">
-      {ticks.map((t) => <g key={t}><line className="mmd-grid" x1={pad.l} x2={width - pad.r} y1={y(t)} y2={y(t)} /><text className="mmd-axis" x={pad.l - 6} y={y(t) + 4} textAnchor="end">{fmt(t)}</text></g>)}
-      {labels.map((label, i) => (i % every === 0 || i === labels.length - 1) ? <text key={label + i} className="mmd-axis" x={x(i)} y={height - 6} textAnchor="middle">{label}</text> : null)}
-      {lines.map((line) => (
-        <g key={line.name}>
-          <path d={`M${line.values.map((v, i) => `${x(i)},${y(v)}`).join(' L')} L${x(line.values.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill={line.color} opacity=".10" />
-          <polyline fill="none" stroke={line.color} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" points={line.values.map((v, i) => `${x(i)},${y(v)}`).join(' ')} vectorEffect="non-scaling-stroke" />
-          {line.values.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r={labels.length > 31 ? 0 : 2.6} fill={line.color}><title>{`${line.name} · ${labels[i]}: ${fmt(v)}`}</title></circle>)}
-        </g>
-      ))}
-    </svg></div>
+    <div ref={ref} className="mmd-chart-wrap mmd-tip-root" onPointerLeave={hide}>
+      <svg className="mmd-chart" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img">
+        {ticks.map((t) => <g key={t}><line className="mmd-grid" x1={pad.l} x2={width - pad.r} y1={y(t)} y2={y(t)} /><text className="mmd-axis" x={pad.l - 6} y={y(t) + 4} textAnchor="end">{fmt(t)}</text></g>)}
+        {labels.map((label, i) => (i % every === 0 || i === labels.length - 1) ? <text key={label + i} className={`mmd-axis${dense ? ' is-dense' : ''}`} x={x(i)} y={height - 6} textAnchor="middle">{label}</text> : null)}
+        {lines.map((line) => (
+          <g key={line.name}>
+            <path d={`M${line.values.map((v, i) => `${x(i)},${y(v)}`).join(' L')} L${x(line.values.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill={line.color} opacity=".10" />
+            <polyline fill="none" stroke={line.color} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" points={line.values.map((v, i) => `${x(i)},${y(v)}`).join(' ')} vectorEffect="non-scaling-stroke" />
+            {line.values.map((v, i) => {
+              const text = `${line.name} · ${labels[i]}: ${fmt(v)}`
+              return (
+                <g key={i} onPointerEnter={(event) => show(event, text)} onPointerMove={(event) => show(event, text)}>
+                  <circle cx={x(i)} cy={y(v)} r={labels.length > 31 ? 0 : 2.6} fill={line.color} />
+                  <circle cx={x(i)} cy={y(v)} r="9" fill="transparent" />
+                </g>
+              )
+            })}
+          </g>
+        ))}
+      </svg>
+      {node}
+    </div>
   )
 }
 
 function BarChart({ labels, groups, height = 190 }) {
   const [ref, width] = useWidth()
+  const { show, hide, node } = useChartTip()
   const pad = { l: 40, r: 12, t: 12, b: 26 }
   const max = niceMax(Math.max(0, ...groups.flatMap((g) => g.values)))
   const slot = (width - pad.l - pad.r) / Math.max(1, labels.length)
   const barW = Math.max(2, Math.min(22, (slot * 0.72) / groups.length))
   const y = (v) => pad.t + (height - pad.t - pad.b) * (1 - v / max)
-  const every = Math.max(1, Math.ceil(labels.length / Math.max(3, Math.floor(width / 90))))
+  const every = labelStep(labels.length, width)
+  const dense = labels.length > 10 && every === 1
   return (
-    <div ref={ref} className="mmd-chart-wrap"><svg className="mmd-chart" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img">
-      {[0, max / 2, max].map((t) => <g key={t}><line className="mmd-grid" x1={pad.l} x2={width - pad.r} y1={y(t)} y2={y(t)} /><text className="mmd-axis" x={pad.l - 6} y={y(t) + 4} textAnchor="end">{fmt(t)}</text></g>)}
-      {labels.map((label, i) => {
-        const center = pad.l + slot * i + slot / 2
-        const start = center - (barW * groups.length) / 2
-        return (
-          <g key={label + i}>
-            {groups.map((g, gi) => <rect key={g.name} x={start + gi * barW} y={y(g.values[i])} width={barW - 1} height={Math.max(0, y(0) - y(g.values[i]))} rx="2" fill={g.color}><title>{`${g.name} · ${label}: ${fmt(g.values[i])}`}</title></rect>)}
-            {(i % every === 0 || i === labels.length - 1) ? <text className="mmd-axis" x={center} y={height - 6} textAnchor="middle">{label}</text> : null}
-          </g>
-        )
-      })}
-    </svg></div>
+    <div ref={ref} className="mmd-chart-wrap mmd-tip-root" onPointerLeave={hide}>
+      <svg className="mmd-chart" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img">
+        {[0, max / 2, max].map((t) => <g key={t}><line className="mmd-grid" x1={pad.l} x2={width - pad.r} y1={y(t)} y2={y(t)} /><text className="mmd-axis" x={pad.l - 6} y={y(t) + 4} textAnchor="end">{fmt(t)}</text></g>)}
+        {labels.map((label, i) => {
+          const center = pad.l + slot * i + slot / 2
+          const start = center - (barW * groups.length) / 2
+          return (
+            <g key={label + i}>
+              {groups.map((g, gi) => {
+                const text = `${g.name} · ${label}: ${fmt(g.values[i])}`
+                return <rect key={g.name} x={start + gi * barW} y={y(g.values[i])} width={barW - 1} height={Math.max(0, y(0) - y(g.values[i]))} rx="2" fill={g.color} onPointerEnter={(event) => show(event, text)} onPointerMove={(event) => show(event, text)} />
+              })}
+              {(i % every === 0 || i === labels.length - 1) ? <text className={`mmd-axis${dense ? ' is-dense' : ''}`} x={center} y={height - 6} textAnchor="middle">{label}</text> : null}
+            </g>
+          )
+        })}
+      </svg>
+      {node}
+    </div>
   )
 }
 
 function Donut({ parts }) {
+  const { show, hide, node } = useChartTip()
   const total = parts.reduce((t, p) => t + p.value, 0)
   const r = 52; const c = 2 * Math.PI * r
   let offset = 0
   return (
-    <div className="mmd-donut">
+    <div className="mmd-donut mmd-tip-root" onPointerLeave={hide}>
       <svg viewBox="0 0 140 140" role="img">
         <circle cx="70" cy="70" r={r} fill="none" className="mmd-donut-track" strokeWidth="18" />
         {total > 0 ? parts.map((p) => {
           const len = (p.value / total) * c
-          const el = <circle key={p.name} cx="70" cy="70" r={r} fill="none" stroke={p.color} strokeWidth="18" strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offset} transform="rotate(-90 70 70)"><title>{`${p.name}: ${fmt(p.value)}`}</title></circle>
+          const text = `${p.name}: ${fmt(p.value)}`
+          const el = <circle key={p.name} cx="70" cy="70" r={r} fill="none" stroke={p.color} strokeWidth="18" strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offset} transform="rotate(-90 70 70)" style={{ pointerEvents: 'stroke' }} onPointerEnter={(event) => show(event, text)} onPointerMove={(event) => show(event, text)} />
           offset += len
           return el
         }) : null}
@@ -228,6 +317,7 @@ function Donut({ parts }) {
         <text x="70" y="84" textAnchor="middle" className="mmd-axis">interaksi</text>
       </svg>
       <ul>{parts.map((p) => <li key={p.name}><i style={{ background: p.color }} /><span>{p.name}</span><strong>{fmt(p.value)}</strong><small>{total ? `${Math.round((p.value / total) * 100)}%` : '—'}</small></li>)}</ul>
+      {node}
     </div>
   )
 }
@@ -250,9 +340,10 @@ function Kpi({ tone, label, value, delta, note }) {
 export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh }) {
   const [days, setDays] = useState(30)
   const [monthKey, setMonthKey] = useState('')
+  const [yearKey, setYearKey] = useState('')
   const [platform, setPlatform] = useState('all')
   const [sortKey, setSortKey] = useState('interactions')
-  const [shareOpen, setShareOpen] = useState(false)
+  const [openBreaks, setOpenBreaks] = useState({})
   const wasEmpty = useRef(true)
   // Older posts live in yearly archive files; fetch them only when the chosen
   // period (or its comparison period) reaches past the recent window.
@@ -285,6 +376,18 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
     const keys = [...new Set(allPosts.map((post) => monthKeyOf(post.time)))]
     return keys.sort().reverse()
   }, [allPosts])
+  const yearsWithData = useMemo(() => [...new Set(monthsWithData.map((key) => key.slice(0, 4)))], [monthsWithData])
+  const fallbackYear = yearsWithData.includes(String(new Date().getFullYear()))
+    ? String(new Date().getFullYear())
+    : (yearsWithData[0] || String(new Date().getFullYear()))
+  const selectedYear = (monthKey && monthKey.slice(0, 4)) || (yearKey && yearsWithData.includes(yearKey) ? yearKey : fallbackYear)
+  const monthsForYear = monthsWithData.filter((key) => key.startsWith(`${selectedYear}-`))
+  const changeYear = (year) => {
+    setYearKey(year)
+    if (!monthKey) return
+    const next = `${year}-${monthKey.slice(5, 7)}`
+    setMonthKey(monthsWithData.includes(next) ? next : '')
+  }
   useEffect(() => {
     if (wasEmpty.current && allPosts.length) {
       wasEmpty.current = false
@@ -331,20 +434,47 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
       now: summarise(current), before: summarise(previous),
       fb: summarise(fbPosts), ig: summarise(igPosts),
       breakdown: [
-        { name: 'Reaksi / Like', value: sum(current, 'reactions') },
-        { name: 'Komen', value: sum(current, 'comments') },
+        { id: 'reactions', name: 'Suka', value: sum(current, 'reactions'), split: [
+          metricSplit('Facebook', fbPosts, 'reactions'),
+          metricSplit('Instagram', igPosts, 'reactions'),
+        ] },
+        { id: 'comments', name: 'Komen', value: sum(current, 'comments'), split: [
+          metricSplit('Facebook', fbPosts, 'comments'),
+          metricSplit('Instagram', igPosts, 'comments'),
+        ] },
         { id: 'share', name: 'Share', value: sum(current, 'shares'), split: [
-          shareSplit('Facebook', fbPosts),
-          shareSplit('Instagram', igPosts),
+          metricSplit('Facebook', fbPosts, 'shares'),
+          metricSplit('Instagram', igPosts, 'shares'),
         ] },
         ...(SHOW_SAVES_BREAKDOWN ? [{ name: 'Simpan (IG sahaja)', value: sum(igPosts, 'saves') }] : []),
       ],
       series: (key) => lineSets.map((set) => ({ name: set.name, color: set.color, values: series(set.posts, list, key) })),
     }
   }, [allPosts, platform, days, monthKey, end])
-  const topPosts = [...view.current].sort((a, b) => (b[sortKey] ?? -1) - (a[sortKey] ?? -1)).slice(0, 8)
   const maxBreak = Math.max(1, ...view.breakdown.map((b) => b.value || 0))
-  const periodLabel = monthKey ? monthLabel(monthKey) : PERIODS.find((p) => p.days === days)?.label
+  // Interactions / Views by day always show the last 7 calendar days, independent of the period selector.
+  const weekView = useMemo(() => {
+    const byPlatform = platform === 'all' ? allPosts : allPosts.filter((p) => p.platform === platform)
+    const from = end - 7 * DAY
+    const list = dayBuckets(from, end)
+    const current = byPlatform.filter((p) => p.time >= from && p.time < end)
+    const fbPosts = current.filter((p) => p.platform === 'facebook')
+    const igPosts = current.filter((p) => p.platform === 'instagram')
+    const lineSets = platform === 'all'
+      ? [{ name: 'Facebook', color: FB, posts: fbPosts }, { name: 'Instagram', color: IG, posts: igPosts }]
+      : [{ name: platform === 'facebook' ? 'Facebook' : 'Instagram', color: platform === 'facebook' ? FB : IG, posts: current }]
+    return {
+      labels: list.map((b) => b.label),
+      lineSets,
+      series: (key) => lineSets.map((set) => ({ name: set.name, color: set.color, values: series(set.posts, list, key) })),
+    }
+  }, [allPosts, platform, end])
+  // Top posts follow the month picker, or the current calendar month when none is chosen.
+  const topMonthKey = monthKey || monthKeyOf(Date.now())
+  const topMonth = monthRange(topMonthKey)
+  const topMonthPosts = (platform === 'all' ? allPosts : allPosts.filter((p) => p.platform === platform))
+    .filter((p) => p.time >= topMonth.from && p.time < topMonth.to)
+  const topPosts = [...topMonthPosts].sort((a, b) => (b[sortKey] ?? -1) - (a[sortKey] ?? -1)).slice(0, 8)
   const lastSync = snapshot?.sourceUpdatedAt ? formatDisplayDateTime(snapshot.sourceUpdatedAt) : 'Belum ada'
 
   if (!allPosts.length) {
@@ -355,10 +485,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
           <div className="mmd-controls">
             <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
             <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
-            <select className="mmd-select" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} aria-label="Pilih bulan">
-              <option value="">Pilih bulan</option>
-              {monthsWithData.map((key) => <option key={key} value={key}>{monthLabel(key)}</option>)}
-            </select>
+            {SHOW_DASHBOARD_MONTH_PICKER ? <MonthYearControls year={selectedYear} onYearChange={changeYear} month={monthKey} onMonthChange={(key) => setMonthKey(key)} years={yearsWithData} months={monthsForYear} /> : null}
           </div>
         </div>
         <p className="settings-copy">{syncing ? 'Sedang membaca data Meta…' : 'Data post Meta belum dapat dibaca. Dashboard akan keluar selepas sync Meta berjaya. Sistem tidak memaparkan angka rekaan.'}</p>
@@ -373,10 +500,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
           <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
-          <select className="mmd-select" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} aria-label="Pilih bulan">
-            <option value="">Pilih bulan</option>
-            {monthsWithData.map((key) => <option key={key} value={key}>{monthLabel(key)}</option>)}
-          </select>
+          {SHOW_DASHBOARD_MONTH_PICKER ? <MonthYearControls year={selectedYear} onYearChange={changeYear} month={monthKey} onMonthChange={(key) => setMonthKey(key)} years={yearsWithData} months={monthsForYear} /> : null}
           {SHOW_META_REFRESH && onRefresh ? <button className="mmd-refresh" onClick={onRefresh} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula'}</button> : null}
         </div>
       </div>
@@ -391,15 +515,15 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
       <div className="mmd-grid">
         <article className="panel mmd-card mmd-wide">
-          <div className="mmd-card-head"><div><span className="eyebrow">INTERAKSI</span><h4>Interaksi ikut {view.grain}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
-          <LineChart labels={view.labels} lines={view.series('interactions')} />
-          <Legend items={view.lineSets} />
+          <div className="mmd-card-head"><div><span className="eyebrow">INTERAKSI</span><h4>Interaksi ikut hari</h4></div><span className="mmd-chip">Last 7 days</span></div>
+          <LineChart labels={weekView.labels} lines={weekView.series('interactions')} />
+          <Legend items={weekView.lineSets} />
         </article>
 
         <article className="panel mmd-card mmd-wide">
-          <div className="mmd-card-head"><div><span className="eyebrow">TONTONAN</span><h4>Views ikut {view.grain}</h4></div><span className="mmd-chip">{periodLabel}</span></div>
-          <BarChart labels={view.labels} groups={view.series('views')} />
-          <Legend items={view.lineSets} />
+          <div className="mmd-card-head"><div><span className="eyebrow">TONTONAN</span><h4>Views ikut hari</h4></div><span className="mmd-chip">Last 7 days</span></div>
+          <BarChart labels={weekView.labels} groups={weekView.series('views')} />
+          <Legend items={weekView.lineSets} />
         </article>
 
         <article className="panel mmd-card">
@@ -414,15 +538,15 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
         <article className="panel mmd-card">
           <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">Pecahan Interaksi</span></div></div>
-          <div className="mmd-hbars">{view.breakdown.map((b) => b.id === 'share' ? (
-            <div key={b.name} className="mmd-hbar-share">
-              <button type="button" className="mmd-hbar-toggle" aria-expanded={shareOpen} aria-controls="mmd-share-split" onClick={() => setShareOpen((open) => !open)}>
+          <div className="mmd-hbars">{view.breakdown.map((b) => b.split ? (
+            <div key={b.name} className="mmd-hbar-expand">
+              <button type="button" className="mmd-hbar-toggle" aria-expanded={Boolean(openBreaks[b.id])} aria-controls={`mmd-${b.id}-split`} onClick={() => setOpenBreaks((cur) => ({ ...cur, [b.id]: !cur[b.id] }))}>
                 <span>{b.name}</span>
                 <i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i>
                 <strong>{fmt(b.value)}</strong>
               </button>
-              {shareOpen ? (
-                <div id="mmd-share-split" className="mmd-hbar-split">
+              {openBreaks[b.id] ? (
+                <div id={`mmd-${b.id}-split`} className="mmd-hbar-split">
                   {b.split.map((part) => (
                     <div key={part.name}>
                       <span>{part.name}</span>
@@ -457,7 +581,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
         <article className="panel mmd-card mmd-full">
           <div className="mmd-card-head">
-            <div><span className="eyebrow">SETIAP POST</span><h4>Post terbaik · {periodLabel}</h4></div>
+            <div><span className="eyebrow">TOP POSTING BY MONTH</span><h4>{fullMonthLabel(topMonthKey)}</h4></div>
             <select className="mmd-select" value={sortKey} onChange={(e) => setSortKey(e.target.value)} aria-label="Susun ikut">
               <option value="interactions">Ikut interaksi</option><option value="views">Ikut views</option><option value="reach">Ikut reach</option><option value="time">Terbaru</option>
             </select>
