@@ -13,6 +13,8 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const CHIP_LIMIT = 2
 // Hidden (Michelle, 26 Nov): the Type dropdown in the add-note form. Set to true to show it again. Existing type is kept on edit.
 const SHOW_NOTE_TYPE = false
+// Hidden (Michelle, 26 Nov 2026): "More options" on the add/edit note form. Set true to show it again. It opened the full campaign plan editor.
+const SHOW_PLANNER_MORE_OPTIONS = false
 const NOTE_TYPES = ['Brand Awareness', 'Product Highlight', 'Educational', 'Behind the Scenes', 'Customer Story']
 // Chip colours rotate by note id (type is hidden now), so the calendar looks varied like the reference design.
 const TONES = ['blue', 'green', 'purple', 'orange', 'pink']
@@ -59,7 +61,7 @@ function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
         {SHOW_NOTE_TYPE ? <label>Type<select value={form.type} onChange={update('type')}>{[...new Set([...NOTE_TYPES, form.type])].map((type) => <option key={type} value={type}>{type}</option>)}</select></label> : null}
         <label>Notes<textarea rows="3" value={form.note} onChange={update('note')}/></label>
         <PlannerChecklist items={form.items} onChange={(items) => setForm((current) => ({ ...current, items }))}/>
-        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}<button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })}>More options</button></div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
+        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}{SHOW_PLANNER_MORE_OPTIONS ? <button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })}>More options</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
       </form>
     </div>
   )

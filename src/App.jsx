@@ -36,7 +36,7 @@ import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForN
 import { formatDisplayDate, formatDisplayDateFromKey, formatDisplayDateTime, formatDisplayTime } from './lib/formatDate'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
-import { SHOW_GOOGLE_CONNECT, SHOW_PRODUCT_LIBRARY_LABELS, SHOW_PRODUCT_PHOTO_NOTE, SHOW_PRODUCT_MODAL_EYEBROW, SHOW_PRODUCT_PHOTO_BADGE, SHOW_CREATE_PRODUCT_CONTENT, SHOW_MT_COST_NUMBER, SHOW_MT_FORM_EYEBROW, SHOW_MT_STATUS_FIELD, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
+import { SHOW_GOOGLE_CONNECT, SHOW_PRODUCT_LIBRARY_LABELS, SHOW_PRODUCT_PHOTO_NOTE, SHOW_PRODUCT_MODAL_EYEBROW, SHOW_PRODUCT_PHOTO_BADGE, SHOW_CREATE_PRODUCT_CONTENT, SHOW_PRODUCT_ID_BADGE, SHOW_MT_COST_NUMBER, SHOW_MT_FORM_EYEBROW, SHOW_MT_STATUS_FIELD, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
 import './meta-marketing-dashboard.css'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { preferRepoWebp } from './lib/preferRepoWebp'
@@ -1078,6 +1078,8 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const [confirmedImages, setConfirmedImages] = useState({})
   const [metaPosts, setMetaPosts] = useState([])
   const [selected, setSelected] = useState(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  useEffect(() => { setDetailsOpen(false) }, [selected])
   useEffect(() => {
     if (!workspaceActive && !USE_GITHUB_DATA) {
       setMetaPosts([])
@@ -1119,7 +1121,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     })
     return candidate ? [{ ...item, candidates: [candidate] }] : []
   }), [imageSuggestions, allProductsWithCatalog])
-  const visible = allProductsWithCatalog.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''}`.toLowerCase().includes(query.toLowerCase())).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }))
+  const visible = allProductsWithCatalog.filter((product) => (category === 'All' || product.category === category) && `${product.name} ${product.category} ${product.price || ''} ${product.material || ''} ${product.id || ''}`.toLowerCase().includes(query.toLowerCase())).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }))
 
   const blankReference = () => ({ id: '', name: '', category: PRODUCT_CATEGORY_OPTIONS[0], location: '', notes: '', imageDataUrl: '', imageName: '', existingImageUrl: '', driveFileId: '', driveUrl: '' })
   const closeReferenceForm = () => {
@@ -1231,7 +1233,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   }, [lightboxSrc])
 
   return (
-    <div className="page">
+    <div className="page product-library-page">
       <PageHeader eyebrow={SHOW_PRODUCT_LIBRARY_LABELS ? 'VERIFIED PRODUCT SOURCE' : undefined} title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." />
       <div className="product-library-top">
         <div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div>
@@ -1250,7 +1252,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
           <div className="modal plan-modal product-modal" role="dialog" aria-modal="true" aria-label={`${selected.name} details`} data-photo-override={photoOverrideFor(selected) ? '1' : undefined}>
             <div className="modal-head"><div>{SHOW_PRODUCT_MODAL_EYEBROW ? <span className="eyebrow">PRODUCT LIBRARY</span> : null}<h2>{selected.name}</h2></div><button type="button" className="icon-button" aria-label="Close" onClick={() => setSelected(null)}>✕</button></div>
             <div className="product-modal-visual" ref={modalVisualRef}><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos} fit="contain"/>{modalPhotoSrc ? <div className="product-photo-actions"><button type="button" className="button secondary small" onClick={() => setLightboxSrc(modalPhotoSrc)}>View full picture</button><button type="button" className="button secondary small" onClick={() => downloadProductPhoto(modalPhotoSrc, selected)}>Download</button></div> : null}</div>
-            <div className="product-modal-body"><div><span>{selected.id}{selected.category ? ` · ${selected.category}` : ''}</span></div>{SHOW_CREATE_PRODUCT_CONTENT ? <button className="text-button" type="button" onClick={() => { const product = selected; setSelected(null); onUseProduct(product) }}>Create product content <Icon name="arrow" size={15}/></button> : null}<div className="product-details-block"><h3>Product details</h3>{selected.dimensions ? <div className="product-detail-row"><span>Dimensions</span><p>{selected.dimensions}</p></div> : null}{selected.material ? <div className="product-detail-row"><span>Materials</span><p>{selected.material}</p></div> : null}{String(selected.price || '').trim() ? <div className="product-detail-row"><span>Price</span><p>{selected.price}</p></div> : null}</div>{selected.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={async () => { if (await removeReference(selected)) setSelected(null) }}>Delete reference</button></div> : null}</div>
+            <div className="product-modal-body">{SHOW_PRODUCT_ID_BADGE || selected.category ? <div><span>{[SHOW_PRODUCT_ID_BADGE ? selected.id : '', selected.category].filter(Boolean).join(' · ')}</span></div> : null}{SHOW_CREATE_PRODUCT_CONTENT ? <button className="text-button" type="button" onClick={() => { const product = selected; setSelected(null); onUseProduct(product) }}>Create product content <Icon name="arrow" size={15}/></button> : null}{(selected.dimensions || selected.material || String(selected.price || '').trim()) ? <div className="product-details-block"><button type="button" className="product-details-toggle" aria-expanded={detailsOpen} onClick={() => setDetailsOpen((open) => !open)}>Product details</button>{detailsOpen ? <div className="product-details-list">{selected.dimensions ? <div className="product-detail-row"><span>Dimensions</span><p>{selected.dimensions}</p></div> : null}{selected.material ? <div className="product-detail-row"><span>Materials</span><p>{selected.material}</p></div> : null}{String(selected.price || '').trim() ? <div className="product-detail-row"><span>Price</span><p>{selected.price}</p></div> : null}</div> : null}</div> : null}{selected.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={async () => { if (await removeReference(selected)) setSelected(null) }}>Delete reference</button></div> : null}</div>
           </div>
         </div>
         ) : null}
@@ -1357,6 +1359,8 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
 
 // Hidden for now (Michelle, Nov 2026). Set to true to show the Integrations list in Settings again.
 const SHOW_SETTINGS_INTEGRATIONS = false
+// Settings list: Access row (key icon, "Data source and review rules"). Hidden (Michelle, 26 Nov 2026). Set true to show it again. Access panel code is kept.
+const SHOW_SETTINGS_ACCESS = false
 // Old static Reminders card, replaced by the notifications panel (Michelle, Nov 2026). Set to true to show it again.
 const SHOW_LEGACY_NOTIFICATION_PANEL = false
 
@@ -1413,7 +1417,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
       ) : null}
       {!section ? (
         <nav className="settings-list" aria-label="Settings">
-          {settingsSections.map((item) => (
+          {settingsSections.filter((item) => item.id !== 'access' || SHOW_SETTINGS_ACCESS).map((item) => (
             <button type="button" className="settings-list-row" key={item.id} onClick={() => setSection(item.id)}>
               <span className="settings-list-icon"><Icon name={item.icon} size={22}/></span>
               <span className="settings-list-copy"><strong>{item.title}</strong><small>{item.description}</small></span>
@@ -1439,7 +1443,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
           </div>
         </div>
       </div>
-      <div className="settings-section-access" hidden={section !== 'access'}>
+      <div className="settings-section-access" hidden={section !== 'access' || !SHOW_SETTINGS_ACCESS}>
         {SHOW_GOOGLE_CONNECT ? <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3 className="system-copy-hidden">{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
         {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Remember this device</label><small className="settings-copy">Use this only on your own device. The workspace key will stay saved here until you disconnect.</small><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}

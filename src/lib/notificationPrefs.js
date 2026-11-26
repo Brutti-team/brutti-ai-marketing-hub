@@ -10,6 +10,7 @@ export const NOTIFICATION_DEFAULTS = {
   calendar: true, // alert ids: cal-* (Calendar Planner note reminders, bell + system notification)
   showBell: true, // show the bell icon in the top bar
   dnd: false, // do not disturb: hide the red count, reminders stay in the list
+  systemOptOut: false, // Settings → System notifications "Don't allow": stop pop-up reminders in the app (browser permission is kept)
 }
 
 // Which preference controls which reminder id produced by NotificationCenterEnhancer.

@@ -24,6 +24,8 @@ export const SHOW_PRODUCT_MODAL_EYEBROW = false
 export const SHOW_PRODUCT_PHOTO_BADGE = false
 // Product Library detail modal: "Create product content" link. Off: hidden; Product details list is shown instead.
 export const SHOW_CREATE_PRODUCT_CONTENT = false
+// Product Library cards and detail modal: show the product ID/SKU badge (e.g. BR-181). Off: hidden. Search still matches by ID.
+export const SHOW_PRODUCT_ID_BADGE = false
 
 export const GITHUB_DATA_BASE = 'https://brutti-team.github.io/brutti-hub-data/'
 

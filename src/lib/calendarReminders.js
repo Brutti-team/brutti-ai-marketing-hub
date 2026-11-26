@@ -73,7 +73,7 @@ async function show(title, body, tag) {
 
 // Fire system notifications that are due and not yet sent on this device.
 export function fireDueSystemNotifications(prefs, now = new Date()) {
-  if (notificationPermission() !== 'granted' || !prefs.enabled || !prefs.calendar || prefs.dnd) return
+  if (notificationPermission() !== 'granted' || !prefs.enabled || !prefs.calendar || prefs.dnd || prefs.systemOptOut) return
   const sent = readNotified()
   let changed = false
   readPlans().forEach((plan) => {

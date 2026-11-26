@@ -4,6 +4,20 @@
 .notif-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 72px; padding: 14px 16px; }
 .notif-controls { display: flex; align-items: center; gap: 10px; }
 .notif-state { color: var(--ink); font-size: 13px; font-weight: 600; min-width: 2.2em; text-align: right; }
+.notif-allow-select {
+  min-width: 132px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line, #e3e0d8);
+  border-radius: 9px;
+  background: var(--paper, #fffefa);
+  color: var(--ink, #202522);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .notif-switch { position: relative; width: 44px; height: 24px; flex: none; padding: 0; border: 1.5px solid var(--muted); border-radius: 999px; background: transparent; cursor: pointer; transition: background .15s, border-color .15s; }
 .notif-switch i { position: absolute; top: 50%; left: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transform: translateY(-50%); transition: left .15s, background .15s, width .15s, height .15s; }
 .notif-switch.is-on { background: var(--forest); border-color: var(--forest); }
