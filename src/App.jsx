@@ -910,7 +910,7 @@ function MarketingTools({ workspaceActive, toast }) {
   }
   const moveToSheet = () => run(async () => { const list = await moveLocalCampaignsToSheet(); setLocalCount(0); return list }, 'Local campaigns moved to Google Sheet.')
   return (
-    <div className="page marketing-tools-page" data-user-content>
+    <div className="page marketing-tools-page">
       <PageHeader title="Marketing Tools" description="Track Bunting, Billboard and KOL campaigns with cost and status." />
       {workspaceActive && localCount > 0 ? <p className="mt-storage-note">{localCount} campaign{localCount === 1 ? ' is' : 's are'} still saved only in this browser. <button className="button secondary small" disabled={busy} onClick={moveToSheet}>Move to Sheet</button></p> : null}
       <div className="tab-bar mt-view"><button className={view === 'campaigns' ? 'active' : ''} onClick={() => setView('campaigns')}>Campaigns</button><button className={view === 'kol-sabah' ? 'active' : ''} onClick={() => setView('kol-sabah')}>KOL Sabah</button><button className="button primary small mt-add-campaign" onClick={() => openDraft(blankMarketingCampaign())}><Icon name="plus"/>Add campaign</button></div>
@@ -919,7 +919,7 @@ function MarketingTools({ workspaceActive, toast }) {
         
         {visible.length === 0 ? <div className="mt-empty"><strong>No campaigns yet.</strong><p>Click “Add campaign” to record your first {filter === 'All' ? 'Bunting, Billboard or KOL' : filter} campaign.</p></div> : (
           <div className="mt-poster-grid">
-            {visible.map((item) => <button type="button" key={item.id} className="mt-poster-card" onClick={() => openDraft(item)} aria-label={`Buka ${item.name}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy"/> : <span className="mt-poster-empty">Tiada poster</span>}<strong>{item.name}</strong></button>)}
+            {visible.map((item) => <button type="button" key={item.id} className="mt-poster-card" onClick={() => openDraft(item)} aria-label={`Buka ${item.name}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy"/> : <span className="mt-poster-empty">Tiada poster</span>}<strong data-user-content>{item.name}</strong></button>)}
           </div>
         )}
       </section>

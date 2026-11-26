@@ -47,6 +47,9 @@ export function calendarAlerts(now = new Date()) {
   return alerts.sort((a, b) => a.order - b.order).slice(0, 12)
 }
 
+// Phone / browser notifications are shown outside the page, so they follow the App language setting here.
+const uiLanguage = () => { try { return window.localStorage.getItem('brutti-ui-language-v1') === 'en' ? 'en' : 'bm' } catch { return 'bm' } }
+
 export const notificationsSupported = () => typeof window !== 'undefined' && 'Notification' in window
 export const notificationPermission = () => (notificationsSupported() ? Notification.permission : 'unsupported')
 export async function requestNotificationPermission() {
@@ -80,8 +83,8 @@ export function fireDueSystemNotifications(prefs, now = new Date()) {
     const eve = new Date(day.getFullYear(), day.getMonth(), day.getDate() - 1, EVE_HOUR, 0)
     const timeLabel = time ? formatDisplayTimeFromHm(time) : ''
     const dateLabel = formatDisplayDateFromKey(plan.date)
-    const body = [timeLabel, note.trim()].filter(Boolean).join(' · ') || 'Calendar Planner'
-    ;[[`${plan.id}-on`, when, plan.title], [`${plan.id}-eve`, eve, `Esok: ${plan.title}`]].forEach(([key, at, title]) => {
+    const body = [timeLabel, note.trim()].filter(Boolean).join(' · ') || (uiLanguage() === 'en' ? 'Calendar Planner' : 'Perancang Kalendar')
+    ;[[`${plan.id}-on`, when, plan.title], [`${plan.id}-eve`, eve, `${uiLanguage() === 'en' ? 'Tomorrow' : 'Esok'}: ${plan.title}`]].forEach(([key, at, title]) => {
       if (sent.has(key) || now < at || now - at > WINDOW_MS) return
       sent.add(key)
       changed = true

@@ -232,7 +232,7 @@ export default function NotificationCenterEnhancer() {
           </button>
           {open ? (
             <div className="brutti-notification-popover" role="dialog" aria-label="Marketing reminders" onClick={(event) => event.stopPropagation()}>
-              <div className="brutti-notification-heading"><strong data-lock-keep="">Notifications</strong>{alerts.length ? <button type="button" onClick={markAllRead}>Mark all read</button> : null}</div>
+              <div className="brutti-notification-heading"><strong>Notifications</strong>{alerts.length ? <button type="button" onClick={markAllRead}>Mark all read</button> : null}</div>
               {alerts.length
                 ? alerts.map((alert) => <NotificationItem key={alert.id} alert={alert} onSelect={handleSelect} onRead={markRead} />)
                 : <div className="brutti-notification-item"><span className="brutti-notification-dot" /><span><strong>Tiada reminder urgent sekarang</strong><small>{prefs.enabled ? 'Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.' : 'Notifikasi dimatikan dalam Tetapan.'}</small></span></div>}
