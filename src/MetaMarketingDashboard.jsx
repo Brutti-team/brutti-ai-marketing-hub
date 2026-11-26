@@ -345,7 +345,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   return (
     <section className="mmd-shell" aria-label="Dashboard Meta">
       <div className="page-header mmd-head">
-        <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h1>Dashboard Marketing</h1>{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
+        <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META · FACEBOOK &amp; INSTAGRAM</span> : null}<h1>Dashboard Marketing</h1>{syncing ? <small className="mmd-updating" role="status">Mengemas kini…</small> : null}{SHOW_META_SYNC_LINE ? <small>Sync terakhir: {lastSync} · {fmt(allPosts.length)} post</small> : null}</div>
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
           <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
