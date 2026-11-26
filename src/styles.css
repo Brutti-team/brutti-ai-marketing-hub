@@ -28,6 +28,20 @@ body { margin: 0; min-width: 320px; min-height: 100vh; overflow-anchor: none; ba
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(201,111,74,.24); outline-offset: 2px; }
+
+/* Lining numerals in the serif heading font so digits match letter height (Michelle, 26 Nov 2026). */
+h1, h2, h3,
+.logo-mark span,
+.tagline,
+.brand-monogram,
+.brand-card blockquote,
+.month-title-big,
+.product-card h3,
+.product-modal .modal-head h2 {
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+
 ::selection { background: rgba(201,111,74,.2); }
 
 .app-shell { min-height: 100vh; }

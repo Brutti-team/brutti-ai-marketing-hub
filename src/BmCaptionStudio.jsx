@@ -21,6 +21,8 @@ const SHOW_STUDIO_VARIATION_BUTTON = false
 const SHOW_STUDIO_PRODUCT_HINT = false
 // Product details checklist under Note (Michelle, 26 Nov). Rows are editable; nothing is prefilled except the labels.
 const SHOW_STUDIO_PRODUCT_DETAILS = true
+// Include checkboxes on each Product details row. Hidden (Michelle, 26 Nov 2026). Set true to show them again. Filling a value still marks the row as included.
+const SHOW_STUDIO_DETAIL_CHECKBOX = false
 const DEFAULT_DETAIL_ROWS = ['Dimensions', 'Materials & Finishing', 'Price']
 // The prefilled row names follow the App language setting. The text sent to the caption generator always uses the English names.
 const DETAIL_ROW_LABELS_BM = { Dimensions: 'Dimensi', 'Materials & Finishing': 'Bahan & Kemasan', Price: 'Harga' }
@@ -286,7 +288,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             <span className="bm-details-title">Product details</span>
             {detailRows.map((row, index) => (
               <div className={`bm-details-row ${row.done ? 'is-done' : ''}`} key={index}>
-                <input type="checkbox" checked={row.done} onChange={(event) => setRow(index, { done: event.target.checked })} aria-label="Include" />
+                {SHOW_STUDIO_DETAIL_CHECKBOX ? <input type="checkbox" checked={row.done} onChange={(event) => setRow(index, { done: event.target.checked })} aria-label="Include" /> : null}
                 <input type="text" className="bm-details-label" value={row.label} onChange={(event) => setRow(index, { label: event.target.value })} aria-label="Detail name" />
                 <input type="text" className="bm-details-value" value={row.value} placeholder="Fill in" onChange={(event) => setRow(index, { value: event.target.value, done: event.target.value.trim() ? true : row.done })} aria-label="Detail value" />
                 <button type="button" className="bm-details-remove" aria-label="Remove item" title="Remove item" onClick={() => { setDetailRows((rows) => rows.filter((_, at) => at !== index)); clearResult() }}>×</button>

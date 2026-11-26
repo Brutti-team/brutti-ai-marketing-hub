@@ -43,7 +43,18 @@ export default function NotificationSettingsCard() {
   const [prefs, setPrefs] = useState(readNotificationPrefs)
   const [expanded, setExpanded] = useState(true)
   const [permission, setPermission] = useState(notificationPermission)
-  const allow = async () => setPermission(await requestNotificationPermission())
+  const systemChoice = prefs.systemOptOut || permission !== 'granted' ? 'deny' : 'allow'
+  const onSystemChoice = async (event) => {
+    const value = event.target.value
+    if (value === 'deny') {
+      setPrefs(saveNotificationPrefs({ systemOptOut: true }))
+      return
+    }
+    setPrefs(saveNotificationPrefs({ systemOptOut: false }))
+    if (permission !== 'granted' && permission !== 'unsupported') {
+      setPermission(await requestNotificationPermission())
+    }
+  }
 
   useEffect(() => {
     const sync = () => setPrefs(readNotificationPrefs())
@@ -90,10 +101,15 @@ export default function NotificationSettingsCard() {
           <span className="settings-list-icon"><BellGlyph /></span>
           <span className="settings-list-copy">
             <strong>System notifications</strong>
-            <small>{permission === 'granted' ? 'Calendar Planner reminders pop up on this device while the app is open.' : permission === 'denied' ? 'Blocked in the browser settings. Allow notifications for this site there.' : permission === 'unsupported' ? 'This browser does not support notifications. On iPhone, add the app to the Home Screen first.' : 'Allow pop-up reminders for Calendar Planner notes on this device.'}</small>
+            <small>{prefs.systemOptOut ? 'Pop-up reminders are turned off in the app.' : permission === 'granted' ? 'Calendar Planner reminders pop up on this device while the app is open.' : permission === 'denied' ? 'Blocked in the browser settings. Allow notifications for this site there.' : permission === 'unsupported' ? 'This browser does not support notifications. On iPhone, add the app to the Home Screen first.' : 'Allow pop-up reminders for Calendar Planner notes on this device.'}</small>
           </span>
           <span className="notif-controls">
-            {permission === 'granted' ? <span className="notif-state">Allowed</span> : permission === 'default' ? <button type="button" className="button secondary small notif-allow" onClick={allow}>Allow notifications</button> : <span className="notif-state">{permission === 'denied' ? 'Blocked' : 'Not supported'}</span>}
+            {permission === 'unsupported' ? <span className="notif-state">Not supported</span> : (
+              <select className="notif-allow-select" aria-label="System notifications" value={systemChoice} onChange={onSystemChoice}>
+                <option value="allow">Allow</option>
+                <option value="deny">Don't allow</option>
+              </select>
+            )}
           </span>
         </div>
       </section>

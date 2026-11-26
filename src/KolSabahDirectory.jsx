@@ -16,7 +16,7 @@ export default function KolSabahDirectory({ workspaceActive }) {
       .catch(() => { /* Apps Script action not deployed yet: keep bundled sample data. */ })
     return () => { cancelled = true }
   }, [workspaceActive])
-  const visible = filterKols(kols, query, 'All')
+  const visible = filterKols(kols, query, 'All').slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }))
   return (
     <section className="panel kol-directory">
       <div className="panel-heading"><div><span className="eyebrow">KOL SABAH DIRECTORY</span><h3>{visible.length} of {kols.length}</h3></div></div>
