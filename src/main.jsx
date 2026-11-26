@@ -5,6 +5,7 @@ import Core7MarketingTools from './Core7MarketingTools.jsx'
 import AccessibilityThemeEnhancer from './AccessibilityThemeEnhancer.jsx'
 import { applyBrightness, readBrightness } from './lib/appBrightness'
 import LowRiskSafeUiEnhancer from './LowRiskSafeUiEnhancer.jsx'
+import DropdownEnhancer from './DropdownEnhancer.jsx'
 import './styles.css'
 import './core7-marketing-tools.css'
 import './box-polish.css'
@@ -28,6 +29,7 @@ import './low-risk-safe-ui.css'
 import './dark-mode-contrast-pass-3.css'
 import './campaign-planner-month.css'
 import './planner-calendar-modern.css'
+import './dropdown-style.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
@@ -160,6 +162,7 @@ createRoot(document.getElementById('root')).render(
     <App />
     <Core7MarketingTools />
     <AccessibilityThemeEnhancer />
+    <DropdownEnhancer />
     <DeferredEnhancers />
   </StrictMode>,
 )

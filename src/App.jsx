@@ -277,7 +277,7 @@ function Topbar({ setOpen, workspaceActive }) {
   return (
     <header className="topbar">
       <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" /></button><div className="mobile-logo"><Logo/></div></div>
-      <div className="topbar-status"><PWAInstallControl/><span className={`status-chip topbar-workspace-chip ${workspaceActive ? 'connected' : 'local'}`} hidden><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span><div className="avatar">MC</div></div>
+      <div className="topbar-status"><PWAInstallControl/><span className={`status-chip topbar-workspace-chip ${workspaceActive ? 'connected' : 'local'}`} hidden><span/>{workspaceActive ? 'Google connected' : 'Local mode'}</span>{SHOW_USER_AVATAR ? <div className="avatar">MC</div> : null}</div>
     </header>
   )
 }
@@ -1060,6 +1060,12 @@ function ProductLibraryVisual({ product, index, savedImage, matches, fit = 'cove
   )
 }
 
+// Round MC avatar in the top bar. Hidden (Michelle, 26 Nov 2026). It is only a label with no click action. Set true to show it again.
+const SHOW_USER_AVATAR = false
+
+// Edit button next to View full picture / Download in the Product Library detail view (Michelle, 26 Nov 2026).
+const SHOW_PRODUCT_EDIT_BUTTON = true
+
 // Hidden for now (Michelle, Oct 2026). Set to true to bring the Meta image matching card back.
 const SHOW_META_IMAGE_MATCHING = false
 
@@ -1104,7 +1110,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
     try { const result = await confirmProductImageMatch(productId, postId); setConfirmedImages((current) => ({ ...current, [productId]: result.imageUrl })); toast('Padanan disahkan dan disimpan ke Product Library.') } catch (error) { toast(error.message) }
   }
   const categories = ['All', ...PRODUCT_CATEGORY_OPTIONS]
-  const allProductsWithCatalog = useMemo(() => [...productData, ...catalogProductRecords.filter((catalog) => !productData.some((product) => canonicalProductKey(product.name) === canonicalProductKey(catalog.name))).filter((catalog, index, list) => list.findIndex((entry) => canonicalProductKey(entry.name) === canonicalProductKey(catalog.name)) === index)], [productData])
+  const allProductsWithCatalog = useMemo(() => [...productData, ...catalogProductRecords.filter((catalog) => !productData.some((product) => canonicalProductKey(product.name) === canonicalProductKey(catalog.name) || (product.id && String(product.id) === String(catalog.id)))).filter((catalog, index, list) => list.findIndex((entry) => canonicalProductKey(entry.name) === canonicalProductKey(catalog.name)) === index)], [productData])
   const metaPhotos = useMemo(() => matchProductPhotos(allProductsWithCatalog, metaPosts), [allProductsWithCatalog, metaPosts])
   const strictSuggestions = useMemo(() => imageSuggestions.flatMap((item) => {
     const product = allProductsWithCatalog.find((entry) => String(entry.id) === String(item.productId))
@@ -1138,14 +1144,23 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
       notes: product.material || '',
       imageDataUrl: '',
       imageName: product.imageName || '',
-      existingImageUrl: product.imageDataUrl || '',
+      existingImageUrl: product.imageDataUrl || (product.isReference ? '' : product.imageUrl || catalogVisualFor(product.name) || ''),
       driveFileId: product.driveFileId || '',
       driveUrl: product.driveUrl || '',
       isRemoteReference: Boolean(product.isRemoteReference),
+      // Set when an existing library product (not a saved reference) is being edited: the save keeps its ID and other fields.
+      baseProduct: product.isReference ? null : product,
     })
     setImageError('')
     setShowReferenceForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  // Form "Edit" button: type the name of a product that already exists and press Edit to load it for editing.
+  const loadExistingByName = () => {
+    const typed = canonicalProductKey(reference.name || '')
+    const match = typed ? allProductsWithCatalog.find((product) => canonicalProductKey(product.name) === typed) : null
+    if (match) editReference(match)
+    else toast(typed ? 'Product not found. Type the exact product name, or open the product and press Edit.' : 'Type the product name first, or open a product and press Edit.')
   }
   const handleImage = (event) => {
     const file = event.target.files?.[0]
@@ -1181,6 +1196,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
         driveUrl: reference.driveUrl,
         removeImage: Boolean(reference.driveFileId && !reference.imageDataUrl && !reference.existingImageUrl),
         isRemoteReference: reference.isRemoteReference,
+        baseProduct: reference.baseProduct || null,
       })
       closeReferenceForm()
     } finally {
@@ -1242,7 +1258,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
         {SHOW_SYNC_NOTION_PRODUCTS && workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}
         <button className="button primary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add product</button>
       </div>
-      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}>{SHOW_PRODUCT_LIBRARY_LABELS || reference.id ? <div className="panel-heading"><div>{SHOW_PRODUCT_LIBRARY_LABELS ? <span className="eyebrow">FUTURE REFERENCE</span> : null}<h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div> : null}<form onSubmit={saveReference}><div className="product-ref-fields"><label className="form-label-center">Product name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))}/></label><label className="form-label-center">Category of products<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}>{(PRODUCT_CATEGORY_OPTIONS.includes(reference.category) || !reference.category ? PRODUCT_CATEGORY_OPTIONS : [reference.category, ...PRODUCT_CATEGORY_OPTIONS]).map((option) => <option key={option} value={option}>{option}</option>)}</select></label><label className="form-label-center">Location<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label className="form-label-center product-ref-notes">Notes<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label className="form-label-center">Image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions product-ref-actions">{SHOW_PRODUCT_LIBRARY_LABELS ? <span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : USE_GITHUB_DATA ? 'Disimpan dalam peranti ini sahaja (tidak dikongsi dengan team).' : 'Connect Google Workspace to save a shared team reference.'}</span> : null}<div className="product-ref-buttons"><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : 'Save'}</button><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button secondary" type="button">Edit</button></div></div></form></section> : null}
+      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}>{SHOW_PRODUCT_LIBRARY_LABELS || reference.id ? <div className="panel-heading"><div>{SHOW_PRODUCT_LIBRARY_LABELS ? <span className="eyebrow">FUTURE REFERENCE</span> : null}<h3>{reference.baseProduct ? 'Edit product' : reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div> : null}<form onSubmit={saveReference}><div className="product-ref-fields"><label className="form-label-center">Product name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))}/></label><label className="form-label-center">Category of products<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}>{(PRODUCT_CATEGORY_OPTIONS.includes(reference.category) || !reference.category ? PRODUCT_CATEGORY_OPTIONS : [reference.category, ...PRODUCT_CATEGORY_OPTIONS]).map((option) => <option key={option} value={option}>{option}</option>)}</select></label><label className="form-label-center">Location<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label className="form-label-center product-ref-notes">Notes<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label className="form-label-center">Image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions product-ref-actions">{SHOW_PRODUCT_LIBRARY_LABELS ? <span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : USE_GITHUB_DATA ? 'Disimpan dalam peranti ini sahaja (tidak dikongsi dengan team).' : 'Connect Google Workspace to save a shared team reference.'}</span> : null}<div className="product-ref-buttons"><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : 'Save'}</button><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button secondary" type="button" onClick={loadExistingByName}>Edit</button></div></div></form></section> : null}
       {SHOW_META_IMAGE_MATCHING ? <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar daripada post Brutti</h3><p className="settings-copy">Hanya padanan nama produk atau SKU yang jelas dipaparkan. Sahkan secara manual sebelum gambar baharu menggantikan sumber katalog atau Notion.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{strictSuggestions.length ? <div className="image-suggestion-list">{strictSuggestions.map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · Nama atau SKU jelas` : 'Tiada cadangan yakin'}</small><span className="confidence-badge strong">Jelas</span></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : null}</article>})}</div> : <p className="settings-copy">{imageSuggestions.length ? 'Tiada padanan nama atau SKU yang jelas dalam post yang sudah disync.' : 'Tekan “Cari padanan Meta” untuk scan semua caption Meta yang sudah disync.'}</p>}</section> : null}
       <div className="product-browse">
       {SHOW_PRODUCT_PHOTO_NOTE ? <p className="settings-copy">Kad tanpa gambar akan paparkan foto daripada post Facebook atau Instagram yang sudah disync, hanya jika kapsyen menyebut nama produk atau SKU dengan jelas. Padanan yang tidak jelas kekal placeholder.</p> : null}
@@ -1251,7 +1267,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
           <div className="modal plan-modal product-modal" role="dialog" aria-modal="true" aria-label={`${selected.name} details`} data-photo-override={photoOverrideFor(selected) ? '1' : undefined}>
             <div className="modal-head"><div>{SHOW_PRODUCT_MODAL_EYEBROW ? <span className="eyebrow">PRODUCT LIBRARY</span> : null}<h2>{selected.name}</h2></div><button type="button" className="icon-button" aria-label="Close" onClick={() => setSelected(null)}>✕</button></div>
-            <div className="product-modal-visual" ref={modalVisualRef}><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos} fit="contain"/>{modalPhotoSrc ? <div className="product-photo-actions"><button type="button" className="button secondary small" onClick={() => setLightboxSrc(modalPhotoSrc)}>View full picture</button><button type="button" className="button secondary small" onClick={() => downloadProductPhoto(modalPhotoSrc, selected)}>Download</button></div> : null}</div>
+            <div className="product-modal-visual" ref={modalVisualRef}><ProductLibraryVisual product={selected} index={selectedIndex} savedImage={selectedImage} matches={metaPhotos} fit="contain"/>{modalPhotoSrc || SHOW_PRODUCT_EDIT_BUTTON ? <div className="product-photo-actions">{modalPhotoSrc ? <><button type="button" className="button secondary small" onClick={() => setLightboxSrc(modalPhotoSrc)}>View full picture</button><button type="button" className="button secondary small" onClick={() => downloadProductPhoto(modalPhotoSrc, selected)}>Download</button></> : null}{SHOW_PRODUCT_EDIT_BUTTON ? <button type="button" className="button secondary small" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit</button> : null}</div> : null}</div>
             <div className="product-modal-body">{SHOW_PRODUCT_ID_BADGE || selected.category ? <div><span>{[SHOW_PRODUCT_ID_BADGE ? selected.id : '', selected.category].filter(Boolean).join(' · ')}</span></div> : null}{SHOW_CREATE_PRODUCT_CONTENT ? <button className="text-button" type="button" onClick={() => { const product = selected; setSelected(null); onUseProduct(product) }}>Create product content <Icon name="arrow" size={15}/></button> : null}{(selected.dimensions || selected.material || String(selected.price || '').trim()) ? <div className="product-details-block"><button type="button" className="product-details-toggle" aria-expanded={detailsOpen} onClick={() => setDetailsOpen((open) => !open)}>Product details</button>{detailsOpen ? <div className="product-details-list">{selected.dimensions ? <div className="product-detail-row"><span>Dimensions</span><p>{selected.dimensions}</p></div> : null}{selected.material ? <div className="product-detail-row"><span>Materials</span><p>{selected.material}</p></div> : null}{String(selected.price || '').trim() ? <div className="product-detail-row"><span>Price</span><p>{selected.price}</p></div> : null}</div> : null}</div> : null}{selected.isReference ? <div className="row-actions" style={{ marginTop: 12 }}><button className="button secondary small" type="button" onClick={() => { const product = selected; setSelected(null); editReference(product) }}>Edit reference</button><button className="button danger-subtle small" type="button" onClick={async () => { if (await removeReference(selected)) setSelected(null) }}>Delete reference</button></div> : null}</div>
           </div>
         </div>
@@ -1659,8 +1675,30 @@ function App() {
     }
   }
 
-  const allProductData = useMemo(() => [...sharedProductReferences, ...customProducts, ...productData], [sharedProductReferences, customProducts, productData])
+  const allProductData = useMemo(() => {
+    const overridden = new Set([...sharedProductReferences, ...customProducts].map((item) => String(item.id)))
+    return [...sharedProductReferences, ...customProducts, ...productData.filter((item) => !overridden.has(String(item.id)))]
+  }, [sharedProductReferences, customProducts, productData])
   const saveProductReference = async (reference) => {
+    // Editing an existing library product (from products.json or the catalog): keep its ID and every field the form does not show,
+    // and store the change as an override in this browser. The shared data file is not changed from the app.
+    if (reference.baseProduct) {
+      const base = reference.baseProduct
+      const edited = {
+        ...base,
+        id: base.id || `edited-${Date.now()}`,
+        name: reference.name,
+        category: reference.category,
+        dimensions: reference.location || '',
+        material: reference.notes || '',
+        isEdited: true,
+      }
+      if (reference.imageDataUrl) Object.assign(edited, { imageDataUrl: reference.imageDataUrl, imageName: reference.imageName || '', photoConfirmed: true })
+      else if (!reference.existingImageUrl) Object.assign(edited, { imageDataUrl: '', imageUrl: '', imageName: '' })
+      setCustomProducts((items) => items.some((item) => item.id === edited.id) ? items.map((item) => item.id === edited.id ? edited : item) : [edited, ...items])
+      toast('Product updated in this browser. It is not shared with the team yet.')
+      return edited
+    }
     const localItem = {
       id: reference.id || `reference-${Date.now()}`,
       name: reference.name,

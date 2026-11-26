@@ -811,3 +811,6 @@ html[data-theme='dark'] .settings-list-icon {
 }
 .product-detail-row p { margin: 0; color: var(--charcoal, #202522); font-size: 12px; line-height: 1.5; }
 .product-modal .product-modal-body > div > span { text-transform: none; letter-spacing: normal; }
+
+/* Product detail modal: category text (e.g. Tables & Kitchen Counters) is centered (Michelle, 26 Nov 2026). */
+.product-modal .product-modal-body > div > span { display: block; text-align: center; }
