@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brutti-hub-shell-v18'
+const CACHE_NAME = 'brutti-hub-shell-v19'
 const APP_SCOPE = '/brutti-ai-marketing-hub/'
 const CORE_ASSETS = [
   APP_SCOPE,
@@ -76,6 +76,18 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => cached)
       return cached || network
+    }),
+  )
+})
+
+// Calendar Planner reminders: tapping a notification opens or focuses the app.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = (event.notification.data && event.notification.data.url) || APP_SCOPE
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const open = clients.find((client) => client.url.startsWith(self.location.origin + APP_SCOPE))
+      return open ? open.focus() : self.clients.openWindow(target)
     }),
   )
 })

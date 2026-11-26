@@ -13,7 +13,7 @@ const PAGE_DESCRIPTIONS = {
     bm: 'Buat dan asah caption Facebook ikut gaya Brutti, kemudian hantar untuk semakan manusia.',
     en: 'Create and refine Facebook captions in Brutti style, then send them for human review.',
   },
-  'Campaign Planner': {
+  'Calendar Planner': {
     bm: 'Planner mingguan untuk operasi content Brutti setiap hari.',
     en: 'A weekly planner for Brutti’s daily content operations.',
   },

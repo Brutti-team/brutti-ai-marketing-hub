@@ -27,6 +27,7 @@ import {
   confirmProductImageMatch,
   setWorkspaceKey,
 } from './lib/googleWorkspace'
+import PlannerMonthCalendar from './PlannerMonthCalendar'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
@@ -80,7 +81,7 @@ const SHOW_STUDIO_TAB_BAR = false
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
-  { id: 'planner', label: 'Campaign Planner', icon: 'calendar' },
+  { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'marketing-tools', label: 'Marketing Tools', icon: 'box' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
   { id: 'products', label: 'Product Library', icon: 'box' },
@@ -232,7 +233,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
 const mobileNavigation = [
   { id: 'dashboard', label: 'Home', icon: 'dashboard' },
   { id: 'studio', label: 'Content', icon: 'sparkles' },
-  { id: 'planner', label: 'Planner', icon: 'calendar' },
+  { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'products', label: 'Product Library', icon: 'box' },
 ]
 
@@ -752,10 +753,12 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   )
 }
 
+// Old month grid is kept (hidden, not deleted). Set to true to bring it back instead of the modern calendar.
+const SHOW_CLASSIC_MONTH_GRID = false
 const MONTH_CELL_LIMIT = 3
 const MONTH_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
+function CampaignPlanner({ plans, openPlan, newPlan, deletePlan, savePlan }) {
   const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()))
   const [expandedDay, setExpandedDay] = useState('')
   const today = localDateKey()
@@ -765,9 +768,10 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
   const moveMonth = (step) => setMonthAnchor((current) => addMonths(current, step))
   return (
     <div className="page planner-month-page">
-      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Monthly content calendar for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
+      <PageHeader eyebrow="Calendar Planner" title="Calendar Planner" description="Calendar for marketing work: events, important posts and reminders." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
       <div className="planner-summary dynamic-planner-summary"><div><strong className="month-title-big">{formatMonthTitle(monthAnchor)}</strong></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button><button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
-      <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section>
+      {!SHOW_CLASSIC_MONTH_GRID ? <PlannerMonthCalendar plans={plans} monthAnchor={monthAnchor} onSavePlan={savePlan} onDeletePlan={deletePlan} onMoreOptions={openPlan}/> : null}
+      {SHOW_CLASSIC_MONTH_GRID ? <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section> : null}
       <div className="planner-bottom-grid"><section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">SMART CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea,index) => <article key={idea.title}><span className="campaign-index">{String(index+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(today, idea)}>Plan idea</button></article>)}</div></section><section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} total items</h3></div></div><div className="compact-plan-list">{[...plans].sort((a,b) => a.date.localeCompare(b.date)).map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{dateFromKey(plan.date).toLocaleDateString('en-MY',{day:'2-digit',month:'short'})}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section></div>
     </div>
   )
@@ -1437,6 +1441,9 @@ function ContentEditor({ item, onClose, onSave, toast, workspaceActive }) {
   )
 }
 
+// Hidden (Michelle, 26 Nov): Content type, Channel and Product fields in the plan form. Set to true to show them again.
+const SHOW_PLAN_TYPE_CHANNEL_PRODUCT = false
+
 function PlanEditor({ item, onClose, onSave, onDelete, productOptions }) {
   const [draft, setDraft] = useState(item)
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
@@ -1446,8 +1453,9 @@ function PlanEditor({ item, onClose, onSave, onDelete, productOptions }) {
         <div className="modal-head"><div><span className="eyebrow">CAMPAIGN PLANNER</span><h2>{draft.id ? 'Edit content plan' : 'Add content plan'}</h2></div><button type="button" className="icon-button" onClick={onClose}><Icon name="close"/></button></div>
         <label>Plan title<input required value={draft.title} onChange={update('title')} placeholder="e.g. AHTAM XL product highlight"/></label>
         <div className="two-fields"><label>Date<input required type="date" value={draft.date} onChange={update('date')}/></label><label>Status<select value={draft.status} onChange={update('status')}><option>Idea</option><option>Draft</option><option>Review</option><option>Approved</option><option>Scheduled</option><option>Published</option></select></label></div>
-        <div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option></select></label><label>Channel<select value={draft.channel} onChange={update('channel')}><option>Facebook</option></select></label></div>
-        <label>Product<select value={draft.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label>
+        {SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <><div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option></select></label><label>Channel<select value={draft.channel} onChange={update('channel')}><option>Facebook</option></select></label></div>
+        <label>Product<select value={draft.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label></> : null}
+        {!SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <label>Notes<textarea rows="4" value={String(draft.objective || '').replace(/^@\d{2}:\d{2}\s?/, '')} onChange={(event) => { const time = String(draft.objective || '').match(/^@\d{2}:\d{2}\s?/)?.[0] || ''; const value = event.target.value; setDraft((current) => ({ ...current, objective: time + value })) }} data-user-content/></label> : null}
         <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit">Save plan</button></div></div>
       </form>
     </div>
@@ -1648,7 +1656,8 @@ function App() {
       setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? next : item) : [...items, next])
       setActivePlan(null)
       toast(workspaceActive ? 'Planner saved to BRUTTI DAILY CONTENT PLANNER.' : 'Planner updated locally.')
-    } catch (error) { toast(error.message) }
+      return true
+    } catch (error) { toast(error.message); return false }
   }
   const deletePlan = async (id) => {
     try {
@@ -1700,7 +1709,7 @@ function App() {
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} workspaceActive={workspaceActive} integrations={integrations} onUseIdea={usePerformanceIdea} toast={toast} />,
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
-    planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
+    planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} savePlan={savePlan} />,
     'marketing-tools': <MarketingTools workspaceActive={workspaceActive} toast={toast} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} toast={toast} />,

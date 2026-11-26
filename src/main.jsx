@@ -27,6 +27,7 @@ import './content-studio-v2.css'
 import './low-risk-safe-ui.css'
 import './dark-mode-contrast-pass-3.css'
 import './campaign-planner-month.css'
+import './planner-calendar-modern.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
@@ -67,7 +68,7 @@ function preloadForPage(label) {
     loadContentStudioUi()
     loadSoulCaption()
   }
-  if (label === 'Campaign Planner') {
+  if (label === 'Calendar Planner') {
     loadHistoricalTiming()
   }
   if (label === 'Product Library') {
@@ -135,7 +136,7 @@ export function DeferredEnhancers() {
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
-      {page === 'Dashboard' || page === 'Campaign Planner' ? <HistoricalPostingTimeEnhancer /> : null}
+      {page === 'Dashboard' || page === 'Calendar Planner' ? <HistoricalPostingTimeEnhancer /> : null}
       {page === 'Content Studio' ? <ContentStudioUiSimplifier /> : null}
       {page === 'Content Studio' ? <SoulCaptionStabilizer /> : null}
       {page === 'Product Library' ? <ProductImageEnhancer /> : null}

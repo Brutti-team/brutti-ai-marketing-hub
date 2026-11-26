@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { calendarAlerts, fireDueSystemNotifications } from './lib/calendarReminders'
 import { ALERT_PREF_BY_ID, NOTIFICATION_PREFS_EVENT, readNotificationPrefs } from './lib/notificationPrefs'
 
 const READ_KEY = 'brutti-action-center-read-v1'
@@ -80,7 +81,7 @@ function readDashboardSignals() {
       level: 'reminder',
       title: `${plannedCount} posting ada dalam plan hari ini`,
       detail: 'Pastikan content, visual dan approval siap sebelum masa posting.',
-      action: 'Campaign Planner',
+      action: 'Calendar Planner',
       button: 'Open Planner',
     })
   }
@@ -151,7 +152,7 @@ export default function NotificationCenterEnhancer() {
 
       // Master switch and per-type checkboxes from Settings → Notification.
       const nextAlerts = prefs.enabled
-        ? readDashboardSignals().filter((alert) => !readKeys.has(alertKey(alert)) && prefs[ALERT_PREF_BY_ID[alert.id]] !== false)
+        ? [...readDashboardSignals(), ...calendarAlerts()].filter((alert) => !readKeys.has(alertKey(alert)) && prefs[ALERT_PREF_BY_ID[alert.id] || (alert.id.startsWith('cal-') ? 'calendar' : '')] !== false)
         : []
       setAlerts((current) => alertsMatch(current, nextAlerts) ? current : nextAlerts)
     }
@@ -163,6 +164,15 @@ export default function NotificationCenterEnhancer() {
       window.clearInterval(timer)
     }
   }, [readKeys, prefs])
+
+  // System notifications for Calendar Planner notes (only after the user allowed them in Settings → Notifikasi).
+  useEffect(() => {
+    const run = () => fireDueSystemNotifications(prefs)
+    run()
+    const timer = window.setInterval(run, 20000)
+    document.addEventListener('visibilitychange', run)
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', run) }
+  }, [prefs])
 
   useEffect(() => {
     const sync = () => setPrefs(readNotificationPrefs())
