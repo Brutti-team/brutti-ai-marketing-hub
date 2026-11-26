@@ -208,3 +208,8 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 
 /* Month picker sits where the refresh button was. */
 .mmd-select[aria-label='Pilih bulan'] { min-width: 9.5rem; }
+
+/* Subtle "updating" note while fresh Meta data loads behind the saved snapshot. Takes no space, so nothing shifts. */
+.mmd-head > div:first-child { position: relative; }
+.mmd-head .mmd-updating { position: absolute; left: 2px; bottom: 100%; margin-bottom: 0; white-space: nowrap; font-size: 11px; opacity: .65; pointer-events: none; animation: mmd-updating-pulse 1.6s ease-in-out infinite; }
+@keyframes mmd-updating-pulse { 0%, 100% { opacity: .35; } 50% { opacity: .75; } }

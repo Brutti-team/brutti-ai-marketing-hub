@@ -202,7 +202,66 @@ export async function confirmProductImageMatch(productId, postId) {
   return callMarketingApi('confirm_product_image_match', { productId: String(productId), postId: String(postId) })
 }
 
-export async function loadPublicMetaInsights() {
+const metaSnapshotKey = 'brutti-meta-dashboard-snapshot-v1'
+const metaSnapshotMaxPosts = 1500
+const metaSnapshotMaxAgeMs = 400 * 24 * 60 * 60 * 1000
+const metaReuseMs = 60 * 1000
+let metaInFlight = null
+let metaLastResult = null
+let metaLastAt = 0
+
+// Small device-local copy of what the Meta dashboard needs (no image URLs, short captions),
+// so the dashboard can show instantly while fresh data loads in the background.
+function trimMetaPost(post) {
+  return {
+    sourceId: post?.sourceId, platform: post?.platform, createdTime: post?.createdTime,
+    message: String(post?.message || '').slice(0, 220), permalink: post?.permalink, format: post?.format,
+    views: post?.views ?? null, reach: post?.reach ?? null, reactions: post?.reactions ?? null, comments: post?.comments ?? null,
+    shares: post?.shares ?? null, saves: post?.saves ?? null, engagement: post?.engagement ?? null,
+  }
+}
+
+function buildMetaSnapshot(data) {
+  const cutoff = Date.now() - metaSnapshotMaxAgeMs
+  const recent = (list) => (Array.isArray(list) ? list : [])
+    .filter((post) => { const time = new Date(post?.createdTime || '').getTime(); return Number.isFinite(time) && time >= cutoff })
+    .sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime())
+    .slice(0, metaSnapshotMaxPosts)
+    .map(trimMetaPost)
+  return {
+    sourceUpdatedAt: data?.sourceUpdatedAt || null,
+    syncedPostCount: data?.syncedPostCount || 0,
+    facebook: { topPosts: recent(data?.facebook?.topPosts) },
+    instagram: { topPosts: recent(data?.instagram?.topPosts) },
+  }
+}
+
+export function readMetaDashboardSnapshot() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(metaSnapshotKey) || 'null')
+    const snapshot = saved?.data
+    const count = (snapshot?.facebook?.topPosts?.length || 0) + (snapshot?.instagram?.topPosts?.length || 0)
+    return count ? snapshot : null
+  } catch {
+    return null
+  }
+}
+
+export function clearMetaDashboardSnapshot() {
+  try { window.localStorage.removeItem(metaSnapshotKey) } catch { /* optional */ }
+  metaLastResult = null
+  metaLastAt = 0
+}
+
+function saveMetaDashboardSnapshot(data) {
+  try {
+    window.localStorage.setItem(metaSnapshotKey, JSON.stringify({ savedAt: Date.now(), data: buildMetaSnapshot(data) }))
+  } catch {
+    // Browser quota is optional; the dashboard just loads normally next time.
+  }
+}
+
+async function downloadPublicMetaInsights() {
   const requestUrl = metaInsightsRequestUrl()
   if (!requestUrl) throw new Error('Google Apps Script is not configured yet.')
   const response = await fetch(requestUrl, { method: 'GET', redirect: 'follow' })
@@ -226,7 +285,23 @@ export async function loadPublicMetaInsights() {
   } catch {
     // Browser quota is optional; the live snapshot remains usable.
   }
+  saveMetaDashboardSnapshot(data)
   return data
+}
+
+// One page load should download the big Meta payload once. Callers that arrive while a
+// download is running share it, and callers within a minute reuse the result.
+// { fresh: true } skips the reuse (used right after a Meta sync).
+export function loadPublicMetaInsights({ fresh = false } = {}) {
+  if (!fresh && metaInFlight) return metaInFlight
+  if (!fresh && metaLastResult && Date.now() - metaLastAt < metaReuseMs) return Promise.resolve(metaLastResult)
+  const request = downloadPublicMetaInsights().then((data) => {
+    metaLastResult = data
+    metaLastAt = Date.now()
+    return data
+  }).finally(() => { if (metaInFlight === request) metaInFlight = null })
+  metaInFlight = request
+  return request
 }
 
 
