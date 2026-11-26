@@ -1,5 +1,5 @@
 /* Meta marketing dashboard (Dashboard page). Light defaults, dark overrides below. */
-.mmd-shell { display: grid; gap: 14px; margin: 0 0 18px; }
+.mmd-shell { display: grid; gap: 14px; margin: 0 0 18px; overflow-anchor: none; }
 .mmd-shell.panel { padding: 18px; }
 .mmd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .mmd-head h3 { margin: 6px 0 2px; font-size: 20px; }
@@ -52,6 +52,40 @@
 
 .mmd-hbars { display: grid; gap: 11px; }
 .mmd-hbars > div { display: grid; grid-template-columns: minmax(96px, 1.1fr) 2fr auto; gap: 10px; align-items: center; font-size: 13px; }
+.mmd-hbars > div.mmd-hbar-share { grid-template-columns: 1fr; gap: 8px; }
+.mmd-hbar-toggle {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.1fr) 2fr auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.mmd-hbar-toggle:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.mmd-hbar-toggle span { display: inline-flex; align-items: center; gap: 6px; }
+.mmd-hbar-toggle span::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .65;
+  margin-top: -3px;
+}
+.mmd-hbar-toggle[aria-expanded='true'] span::after { transform: rotate(-135deg); margin-top: 2px; }
+.mmd-hbar-split { display: grid; gap: 8px; padding-left: 12px; }
+.mmd-hbar-split > div { display: grid; grid-template-columns: minmax(96px, 1.1fr) 2fr auto; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.mmd-hbar-split i { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; display: block; }
+.mmd-hbar-split i b { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #c96f4a, #e3a07f); }
 .mmd-hbars i { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; display: block; }
 .mmd-hbars i b { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #c96f4a, #e3a07f); }
 .mmd-hbars-alt i b { background: linear-gradient(90deg, #12372a, #5f8f78); }
@@ -167,7 +201,7 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
 @media (max-width: 700px) { .mmd-chart { height: auto; } .mmd-card-head { flex-wrap: wrap; } }
 
 /* Compact home: greeting header hidden, dashboard starts near the top. */
-.dashboard-page.dashboard-compact { padding-top: 0; }
+.dashboard-page.dashboard-compact { padding-top: 0; overflow-anchor: none; }
 .dashboard-page.dashboard-compact > .mmd-shell { margin-top: 0; }
 .dashboard-page.dashboard-compact .mmd-head h1, .dashboard-page.dashboard-compact .mmd-head h3 { margin-top: 0; }
 .dashboard-page.dashboard-compact > .page-header { margin-bottom: 0; }
