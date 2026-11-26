@@ -474,15 +474,6 @@ textarea {
   line-height: 1.4;
 }
 
-.brutti-notification-when {
-  display: block;
-  margin-top: 3px;
-  color: var(--ui-text);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
 .brutti-notification-item small {
   display: block;
   margin-top: 3px;

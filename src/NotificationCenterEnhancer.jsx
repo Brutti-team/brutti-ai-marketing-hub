@@ -97,7 +97,6 @@ function alertsMatch(current, next) {
       && alert.id === candidate.id
       && alert.level === candidate.level
       && alert.title === candidate.title
-      && alert.timeLabel === candidate.timeLabel
       && alert.detail === candidate.detail
       && alert.action === candidate.action
       && alert.button === candidate.button
@@ -110,7 +109,6 @@ function NotificationItem({ alert, onSelect, onRead }) {
       <span className="brutti-notification-dot" />
       <button type="button" className="brutti-notification-copy" onClick={() => onSelect(alert)}>
         <strong>{alert.title}</strong>
-        {alert.timeLabel ? <span className="brutti-notification-when">{alert.timeLabel}</span> : null}
         <small>{alert.detail}</small>
       </button>
       <button type="button" className="brutti-notification-read" onClick={() => onRead(alert)}>Mark read</button>
