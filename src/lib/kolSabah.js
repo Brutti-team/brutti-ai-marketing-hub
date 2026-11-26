@@ -35,14 +35,25 @@ export function normalizeKol(record) {
   return kol
 }
 
-export const sampleKolSabah = () => parseCsv(sampleCsv).slice(1).map(kolFromValues).filter((k) => k.name)
+// Hidden from the KOL Sabah directory (Michelle, 26 Nov 2026). Full records stay in
+// brutti-hub-data git history (commit before feat/hide-kol-records).
+export const HIDDEN_KOL_NAMES = new Set([
+  'Rolands John (Roland & Ayen)',
+  'Sharleen Petra (Ayen)',
+  'Cora Jean Cantwell',
+])
+
+export const isHiddenKol = (kol) => HIDDEN_KOL_NAMES.has(String(kol?.name || '').trim())
+
+export const sampleKolSabah = () => parseCsv(sampleCsv).slice(1).map(kolFromValues).filter((k) => k.name && !isHiddenKol(k))
 
 // Split the free-text niche into short filter tags ("Musician & vlogger; Sabah lifestyle" -> first segment).
 export const primaryNiche = (niche) => (niche || '').split(/[;/(]/)[0].trim() || 'Unspecified'
 
 export function filterKols(list, query, niche) {
   const q = query.trim().toLowerCase()
-  return list.filter((kol) => (niche === 'All' || primaryNiche(kol.niche) === niche)
+  return list.filter((kol) => !isHiddenKol(kol)
+    && (niche === 'All' || primaryNiche(kol.niche) === niche)
     && (!q || [kol.name, kol.handle, kol.niche, kol.location, kol.notes].join(' ').toLowerCase().includes(q)))
 }
 
