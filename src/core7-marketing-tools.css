@@ -506,20 +506,25 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
 .settings-back {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   grid-column: 1;
   justify-self: start;
   margin: 0;
-  padding: 0;
+  padding: 8px 8px 8px 0;
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
+  font-size: 16px;
   font-weight: 650;
+  line-height: 1.2;
+  min-height: 40px;
   cursor: pointer;
 }
 
 .settings-back svg {
+  width: 22px;
+  height: 22px;
   transform: rotate(180deg);
 }
 
@@ -546,16 +551,16 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
   .settings-back {
     order: 2;
     align-self: start;
-    min-height: 40px;
-    padding: 8px 8px 8px 0;
-    gap: 6px;
-    font-size: 16px;
-    line-height: 1.2;
+    min-height: 0;
+    padding: 0;
+    gap: 4px;
+    font-size: inherit;
+    line-height: inherit;
   }
 
   .settings-back svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 }
 
