@@ -90,3 +90,7 @@ html[data-theme='dark'] .pcal-cell.is-outside .pcal-num { color: #6f7a73; }
 html[data-theme='dark'] .pcal-cell.is-today .pcal-num { background: #f1f4f2; color: #171d1a; }
 html[data-theme='dark'] .pcal-chip { background: color-mix(in srgb, var(--c) 22%, #171d1a); color: #eef2ef; }
 html[data-theme='dark'] .pcal-chip small, html[data-theme='dark'] .pcal-more { color: #aab5ae; }
+
+/* Keep the floating bottom nav from covering the last calendar rows (Michelle, 26 Nov). */
+.planner-month-page { padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 600px) { .planner-month-page { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); } }
