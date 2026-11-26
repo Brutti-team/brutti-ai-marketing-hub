@@ -12,6 +12,8 @@ import {
 import {
   callMarketingApi,
   loadPublicMetaInsights,
+  readMetaDashboardSnapshot,
+  clearMetaDashboardSnapshot,
   clearWorkspaceKey,
   deleteGoogleContent,
   deleteGooglePlan,
@@ -284,23 +286,32 @@ function Dashboard({ content, plans, navigate, openContent, newContent, workspac
   const stageCounts = pipelineStages.map((stage) => ({ stage, count: content.filter((item) => item.stage === stage).length }))
   const today = localDateKey()
   const upcoming = [...plans].filter((plan) => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4)
-  const [metaInsights, setMetaInsights] = useState(null)
+  // Show the last saved Meta snapshot straight away, then refresh it in the background.
+  const [metaInsights, setMetaInsights] = useState(() => readMetaDashboardSnapshot())
   const [syncingMeta, setSyncingMeta] = useState(false)
+  const metaRuns = useRef(0)
+  const metaSyncStarted = useRef(false)
   const [selectedIdea, setSelectedIdea] = useState(null)
   const dashboardIdeas = useMemo(() => performanceIdeasFromInsights(metaInsights), [metaInsights])
   const syncDashboardMeta = useCallback(async (force = false) => {
+    metaRuns.current += 1
     setSyncingMeta(true)
     try {
-      const snapshot = await loadPublicMetaInsights()
+      // Shares one download with any other Meta request that is already running.
+      const snapshot = await loadPublicMetaInsights({ fresh: force })
       setMetaInsights(snapshot)
       const lastSync = snapshot?.sourceUpdatedAt ? new Date(snapshot.sourceUpdatedAt).getTime() : 0
       const stale = !lastSync || (Date.now() - lastSync) > (6 * 60 * 60 * 1000)
-      if ((force || stale) && workspaceActive && integrations.meta) {
+      if ((force || stale) && workspaceActive && integrations.meta && (force || !metaSyncStarted.current)) {
+        metaSyncStarted.current = true
         await callMarketingApi('sync_meta_insights')
-        setMetaInsights(await loadPublicMetaInsights())
+        setMetaInsights(await loadPublicMetaInsights({ fresh: true }))
       }
-    } catch { /* Dashboard remains usable when Meta is unavailable. */ }
-    finally { setSyncingMeta(false) }
+    } catch { /* Dashboard keeps showing the saved snapshot when Meta is unavailable. */ }
+    finally {
+      metaRuns.current -= 1
+      if (metaRuns.current <= 0) setSyncingMeta(false)
+    }
   }, [workspaceActive, integrations.meta])
   useEffect(() => { syncDashboardMeta(false) }, [syncDashboardMeta])
   const greeting = greetingForNow()
@@ -1569,6 +1580,7 @@ function App() {
 
   const disconnectWorkspace = () => {
     clearWorkspaceKey()
+    clearMetaDashboardSnapshot()
     setWorkspaceActive(false)
     setIntegrations({ appsScript:false, sheets:false, drive:false, notion:false, meta:false })
     setContent(initialContent)
