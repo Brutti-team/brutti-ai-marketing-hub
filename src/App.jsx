@@ -1355,8 +1355,12 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   return (
     <div className="page settings-page">
       <PageHeader title="Settings" description={activeSection ? activeSection.description : 'Choose a setting to review or update.'} />
-      {section ? <button type="button" className="settings-back" onClick={() => setSection(null)}><Icon name="chevron" size={18}/><span>Settings</span></button> : null}
-      {section ? <h2 className="settings-section-title">{activeSection?.title}</h2> : null}
+      {section ? (
+        <div className="settings-subhead">
+          <button type="button" className="settings-back" onClick={() => setSection(null)} aria-label="Back"><Icon name="chevron" size={18}/><span>Back</span></button>
+          <h2 className="settings-section-title">{activeSection?.title}</h2>
+        </div>
+      ) : null}
       {!section ? (
         <nav className="settings-list" aria-label="Settings">
           {settingsSections.map((item) => (
