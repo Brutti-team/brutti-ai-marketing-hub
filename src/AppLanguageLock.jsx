@@ -242,7 +242,7 @@ const PAIRS = [
   ['Content must be approved before scheduling or publishing.', 'Kandungan mesti diluluskan sebelum dijadualkan atau diterbitkan.'],
   ['Flag prices, promotions, delivery dates and KPI without sources.', 'Tandakan harga, promosi, tarikh penghantaran dan KPI tanpa sumber.'],
   ['Other platforms remain disabled until data and connections exist.', 'Platform lain kekal dimatikan sehingga data dan sambungan tersedia.'],
-  ["Add kiosk / project", "Tambah kiosk / projek"],
+  ["Add product", "Tambah produk"],
   ["FUTURE REFERENCE", "RUJUKAN MASA DEPAN"],
   ["Save a past kiosk or project", "Simpan kiosk atau projek terdahulu"],
   ["Edit kiosk or project reference", "Sunting rujukan kiosk atau projek"],
