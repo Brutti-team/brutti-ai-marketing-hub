@@ -12,6 +12,8 @@ export const USE_GEMINI_ASSIST = false
 export const SHOW_MT_STATUS_FIELD = false
 // Marketing Tools campaign form: show the small "MARKETING TOOLS" label above the title.
 export const SHOW_MT_FORM_EYEBROW = false
+// Marketing Tools campaign form (Bunting/Billboard): show the numeric "Cost (RM)" field. Off: only free-text "Kos (RM)".
+export const SHOW_MT_COST_NUMBER = false
 
 export const GITHUB_DATA_BASE = 'https://brutti-team.github.io/brutti-hub-data/'
 
