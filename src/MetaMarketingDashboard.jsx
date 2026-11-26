@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const SHOW_META_DASHBOARD_EYEBROW = false
 const SHOW_META_SYNC_LINE = false
 const SHOW_META_UNAVAILABLE_CARD = false
+const SHOW_SAVES_BREAKDOWN = false
 
 const PERIODS = [
   { days: 7, label: 'Seminggu lepas' },
@@ -33,6 +34,11 @@ function num(value) {
 function sum(list, key) {
   const values = list.map((item) => item[key]).filter((value) => value !== null)
   return values.length ? values.reduce((total, value) => total + value, 0) : null
+}
+function shareSplit(name, posts) {
+  if (!posts.length) return { name, value: 0, available: true }
+  const value = sum(posts, 'shares')
+  return { name, value, available: value !== null }
 }
 function fmt(value) {
   if (value === null || value === undefined) return '—'
@@ -248,11 +254,30 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   const [monthKey, setMonthKey] = useState('')
   const [platform, setPlatform] = useState('all')
   const [sortKey, setSortKey] = useState('interactions')
+  const [shareOpen, setShareOpen] = useState(false)
+  const wasEmpty = useRef(true)
   const allPosts = useMemo(() => metaDashboardPosts(snapshot), [snapshot])
   const monthsWithData = useMemo(() => {
     const keys = [...new Set(allPosts.map((post) => monthKeyOf(post.time)))]
     return keys.sort().reverse()
   }, [allPosts])
+  useEffect(() => {
+    if (wasEmpty.current && allPosts.length) {
+      wasEmpty.current = false
+      const pin = () => {
+        const html = document.documentElement
+        const prev = html.style.scrollBehavior
+        html.style.scrollBehavior = 'auto'
+        window.scrollTo(0, 0)
+        html.style.scrollBehavior = prev
+      }
+      pin()
+      const frame = window.requestAnimationFrame(pin)
+      const timer = window.setTimeout(pin, 50)
+      return () => { window.cancelAnimationFrame(frame); window.clearTimeout(timer) }
+    }
+    if (!allPosts.length) wasEmpty.current = true
+  }, [allPosts.length])
   // Rolling periods end at the end of today (local time). A chosen calendar month is that month only.
   const end = startOfDay(Date.now()) + DAY
   const view = useMemo(() => {
@@ -284,8 +309,11 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
       breakdown: [
         { name: 'Reaksi / Like', value: sum(current, 'reactions') },
         { name: 'Komen', value: sum(current, 'comments') },
-        { name: 'Share', value: sum(current, 'shares') },
-        { name: 'Simpan (IG sahaja)', value: sum(current.filter((p) => p.platform === 'instagram'), 'saves') },
+        { id: 'share', name: 'Share', value: sum(current, 'shares'), split: [
+          shareSplit('Facebook', fbPosts),
+          shareSplit('Instagram', igPosts),
+        ] },
+        ...(SHOW_SAVES_BREAKDOWN ? [{ name: 'Simpan (IG sahaja)', value: sum(igPosts, 'saves') }] : []),
       ],
       series: (key) => lineSets.map((set) => ({ name: set.name, color: set.color, values: series(set.posts, list, key) })),
     }
@@ -298,7 +326,17 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   if (!allPosts.length) {
     return (
       <section className="panel mmd-shell" aria-label="Dashboard Meta">
-        <div className="page-header mmd-head"><div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META</span> : null}<h1>Dashboard Marketing</h1></div></div>
+        <div className="page-header mmd-head">
+          <div>{SHOW_META_DASHBOARD_EYEBROW ? <span className="eyebrow">PRESTASI META</span> : null}<h1>Dashboard Marketing</h1></div>
+          <div className="mmd-controls">
+            <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
+            <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
+            <select className="mmd-select" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} aria-label="Pilih bulan">
+              <option value="">Pilih bulan</option>
+              {monthsWithData.map((key) => <option key={key} value={key}>{monthLabel(key)}</option>)}
+            </select>
+          </div>
+        </div>
         <p className="settings-copy">{syncing ? 'Sedang membaca data Meta…' : 'Data post Meta belum dapat dibaca. Dashboard akan keluar selepas sync Meta berjaya. Sistem tidak memaparkan angka rekaan.'}</p>
       </section>
     )
@@ -351,8 +389,29 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PECAHAN INTERAKSI</span></div></div>
-          <div className="mmd-hbars">{view.breakdown.map((b) => <div key={b.name}><span>{b.name}</span><i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i><strong>{fmt(b.value)}</strong></div>)}</div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">Pecahan Interaksi</span></div></div>
+          <div className="mmd-hbars">{view.breakdown.map((b) => b.id === 'share' ? (
+            <div key={b.name} className="mmd-hbar-share">
+              <button type="button" className="mmd-hbar-toggle" aria-expanded={shareOpen} aria-controls="mmd-share-split" onClick={() => setShareOpen((open) => !open)}>
+                <span>{b.name}</span>
+                <i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i>
+                <strong>{fmt(b.value)}</strong>
+              </button>
+              {shareOpen ? (
+                <div id="mmd-share-split" className="mmd-hbar-split">
+                  {b.split.map((part) => (
+                    <div key={part.name}>
+                      <span>{part.name}</span>
+                      <i>{part.available ? <b style={{ width: `${Math.round(((part.value || 0) / maxBreak) * 100)}%` }} /> : null}</i>
+                      <strong>{part.available ? fmt(part.value) : 'tiada data'}</strong>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div key={b.name}><span>{b.name}</span><i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i><strong>{fmt(b.value)}</strong></div>
+          ))}</div>
         </article>
 
         <article className="panel mmd-card">
