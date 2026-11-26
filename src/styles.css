@@ -228,6 +228,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .form-section-head strong { display: block; font-size: 11px; }
 .form-section-head p { color: var(--muted); font-size: 8.5px; margin: 3px 0 0; }
 label { display: flex; flex-direction: column; gap: 6px; color: #515753; font-size: 9px; font-weight: 700; }
+.form-label-center { text-align: center; }
+.product-ref-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 11px; margin-bottom: 13px; }
+.product-ref-fields .product-ref-notes { grid-column: 1 / -1; }
 input, select, textarea { width: 100%; border: 1px solid #dcdad4; border-radius: 8px; color: var(--charcoal); background: #fffefa; padding: 10px 11px; font-size: 10px; transition: .15s; }
 input, select { min-height: 38px; }
 textarea { resize: vertical; line-height: 1.6; }
@@ -550,6 +553,7 @@ footer span:first-child { color: #646a66; font-weight: 700; }
   .review-queue > button { grid-template-columns: 32px 1fr 18px; }
   .review-queue .status-pill { grid-column: 2; }
   .two-fields { grid-template-columns: 1fr; }
+  .product-ref-fields { grid-template-columns: 1fr; }
   .generator-form, .generator-output { padding: 18px; }
   .generator-output { min-height: 500px; }
   .output-actions { flex-wrap: wrap; }
