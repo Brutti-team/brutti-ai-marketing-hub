@@ -119,7 +119,7 @@ export default function NotificationSettingsCard() {
           <span className="settings-list-icon"><Moon /></span>
           <span className="settings-list-copy">
             <strong>Do not disturb</strong>
-            <small>Hide the red count on the bell; reminders stay in the list</small>
+            <small>Hide the red count on the bell, reminders stay in the list</small>
           </span>
           <span className="notif-controls">
             <span className="notif-state">{prefs.dnd ? 'On' : 'Off'}</span>

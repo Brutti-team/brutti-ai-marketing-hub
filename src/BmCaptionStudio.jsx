@@ -229,6 +229,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </div>
           ) : null}
 
+          <div className="bm-caption-row">
           {SHOW_STUDIO_PRODUCT_DROPDOWN ? (
           <label>
             Product
@@ -255,6 +256,13 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             </datalist>
           </label>
           )}
+          <label>
+            Type of post
+            <select value={goal} onChange={(event) => { setGoal(event.target.value); clearResult() }}>
+              {visibleGoals.map((item) => <option key={item.id} value={item.id}>{GOAL_LABELS[item.id] || item.id}</option>)}
+            </select>
+          </label>
+          </div>
           <FactPreview product={product} />
 
           {SHOW_STUDIO_TOPIC_FIELD && !product ? (
@@ -267,13 +275,6 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
               />
             </label>
           ) : null}
-
-          <label>
-            Type of post
-            <select value={goal} onChange={(event) => { setGoal(event.target.value); clearResult() }}>
-              {visibleGoals.map((item) => <option key={item.id} value={item.id}>{GOAL_LABELS[item.id] || item.id}</option>)}
-            </select>
-          </label>
 
           <label>
             Note

@@ -10,6 +10,13 @@
 .bm-caption-form { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
 .bm-caption-form label { font-size: 13px; }
 .bm-caption-form > label { text-align: center; }
+.bm-caption-form .bm-caption-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.bm-caption-form .bm-caption-row > label { text-align: center; }
+.bm-caption-form .bm-caption-row > label input,
+.bm-caption-form .bm-caption-row > label select { text-align: start; }
+@media (max-width: 600px) {
+  .bm-caption-form .bm-caption-row { grid-template-columns: 1fr; }
+}
 .bm-caption-form > label input,
 .bm-caption-form > label select,
 .bm-caption-form > label textarea { text-align: start; }

@@ -231,3 +231,10 @@ html[data-theme='dark'] .mmd-up { color: #7fe0a8; } html[data-theme='dark'] .mmd
   white-space: nowrap;
   max-width: 240px;
 }
+
+.mmd-month-pickers { display: flex; gap: 8px; align-items: center; }
+.mmd-select[aria-label='Pilih tahun'] { min-width: 6.5rem; }
+@media (max-width: 700px) {
+  .mmd-month-pickers { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .mmd-shell .mmd-controls .mmd-select[aria-label='Pilih tahun'] { width: 100%; min-width: 0; max-width: none; box-sizing: border-box; }
+}

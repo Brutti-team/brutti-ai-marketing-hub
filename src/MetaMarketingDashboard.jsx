@@ -12,6 +12,8 @@ const SHOW_META_DASHBOARD_EYEBROW = false
 const SHOW_META_SYNC_LINE = false
 const SHOW_META_UNAVAILABLE_CARD = false
 const SHOW_SAVES_BREAKDOWN = false
+// Month and year pickers on the dashboard header. Hidden (Michelle, 26 Nov 2026). Set true to show them again.
+const SHOW_DASHBOARD_MONTH_PICKER = false
 
 const PERIODS = [
   { days: 7, label: 'Seminggu lepas' },
@@ -70,26 +72,27 @@ function monthName(key) {
   const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1)
   return date.toLocaleDateString('en-GB', { month: 'short' })
 }
-function monthGroupsOf(keys) {
-  const groups = []
-  for (const key of keys) {
-    const year = key.slice(0, 4)
-    const last = groups[groups.length - 1]
-    if (!last || last.year !== year) groups.push({ year, keys: [key] })
-    else last.keys.push(key)
-  }
-  return groups
-}
 function MonthSelect({ value, onChange, months }) {
   return (
     <select className="mmd-select" value={value} onChange={onChange} aria-label="Pilih bulan">
       <option value="">Pilih bulan</option>
-      {monthGroupsOf(months).map((group) => (
-        <optgroup key={group.year} label={group.year}>
-          {group.keys.map((key) => <option key={key} value={key}>{monthName(key)}</option>)}
-        </optgroup>
-      ))}
+      {months.map((key) => <option key={key} value={key}>{monthName(key)}</option>)}
     </select>
+  )
+}
+function YearSelect({ value, onChange, years }) {
+  return (
+    <select className="mmd-select" value={value} onChange={onChange} aria-label="Pilih tahun">
+      {years.map((year) => <option key={year} value={year}>{year}</option>)}
+    </select>
+  )
+}
+function MonthYearControls({ year, onYearChange, month, onMonthChange, years, months }) {
+  return (
+    <div className="mmd-month-pickers">
+      <YearSelect value={year} onChange={(event) => onYearChange(event.target.value)} years={years} />
+      <MonthSelect value={month} onChange={(event) => onMonthChange(event.target.value)} months={months} />
+    </div>
   )
 }
 function labelStep(count, width) {
@@ -155,6 +158,10 @@ function monthLabel(keyOrTime) {
     ? new Date(Number(keyOrTime.slice(0, 4)), Number(keyOrTime.slice(5, 7)) - 1, 1)
     : new Date(keyOrTime)
   return date.toLocaleDateString('ms-MY', { month: 'short', year: 'numeric' })
+}
+function fullMonthLabel(key) {
+  const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1)
+  return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 }
 function monthRange(key) {
   const from = monthStart(new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1).getTime())
@@ -333,6 +340,7 @@ function Kpi({ tone, label, value, delta, note }) {
 export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh }) {
   const [days, setDays] = useState(30)
   const [monthKey, setMonthKey] = useState('')
+  const [yearKey, setYearKey] = useState('')
   const [platform, setPlatform] = useState('all')
   const [sortKey, setSortKey] = useState('interactions')
   const [openBreaks, setOpenBreaks] = useState({})
@@ -368,6 +376,18 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
     const keys = [...new Set(allPosts.map((post) => monthKeyOf(post.time)))]
     return keys.sort().reverse()
   }, [allPosts])
+  const yearsWithData = useMemo(() => [...new Set(monthsWithData.map((key) => key.slice(0, 4)))], [monthsWithData])
+  const fallbackYear = yearsWithData.includes(String(new Date().getFullYear()))
+    ? String(new Date().getFullYear())
+    : (yearsWithData[0] || String(new Date().getFullYear()))
+  const selectedYear = (monthKey && monthKey.slice(0, 4)) || (yearKey && yearsWithData.includes(yearKey) ? yearKey : fallbackYear)
+  const monthsForYear = monthsWithData.filter((key) => key.startsWith(`${selectedYear}-`))
+  const changeYear = (year) => {
+    setYearKey(year)
+    if (!monthKey) return
+    const next = `${year}-${monthKey.slice(5, 7)}`
+    setMonthKey(monthsWithData.includes(next) ? next : '')
+  }
   useEffect(() => {
     if (wasEmpty.current && allPosts.length) {
       wasEmpty.current = false
@@ -414,7 +434,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
       now: summarise(current), before: summarise(previous),
       fb: summarise(fbPosts), ig: summarise(igPosts),
       breakdown: [
-        { id: 'reactions', name: 'Reaksi / Like', value: sum(current, 'reactions'), split: [
+        { id: 'reactions', name: 'Suka', value: sum(current, 'reactions'), split: [
           metricSplit('Facebook', fbPosts, 'reactions'),
           metricSplit('Instagram', igPosts, 'reactions'),
         ] },
@@ -455,7 +475,6 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   const topMonthPosts = (platform === 'all' ? allPosts : allPosts.filter((p) => p.platform === platform))
     .filter((p) => p.time >= topMonth.from && p.time < topMonth.to)
   const topPosts = [...topMonthPosts].sort((a, b) => (b[sortKey] ?? -1) - (a[sortKey] ?? -1)).slice(0, 8)
-  const topMonthLabel = monthLabel(topMonthKey)
   const lastSync = snapshot?.sourceUpdatedAt ? formatDisplayDateTime(snapshot.sourceUpdatedAt) : 'Belum ada'
 
   if (!allPosts.length) {
@@ -466,7 +485,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
           <div className="mmd-controls">
             <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
             <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
-            <MonthSelect value={monthKey} onChange={(e) => setMonthKey(e.target.value)} months={monthsWithData} />
+            {SHOW_DASHBOARD_MONTH_PICKER ? <MonthYearControls year={selectedYear} onYearChange={changeYear} month={monthKey} onMonthChange={(key) => setMonthKey(key)} years={yearsWithData} months={monthsForYear} /> : null}
           </div>
         </div>
         <p className="settings-copy">{syncing ? 'Sedang membaca data Meta…' : 'Data post Meta belum dapat dibaca. Dashboard akan keluar selepas sync Meta berjaya. Sistem tidak memaparkan angka rekaan.'}</p>
@@ -481,7 +500,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         <div className="mmd-controls">
           <div className="mmd-seg" role="group" aria-label="Platform">{PLATFORMS.map((p) => <button key={p.id} className={platform === p.id ? 'active' : ''} onClick={() => setPlatform(p.id)}>{p.label}</button>)}</div>
           <select className="mmd-select" value={String(days)} onChange={(e) => { setMonthKey(''); setDays(Number(e.target.value)) }} aria-label="Tempoh">{PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}</select>
-          <MonthSelect value={monthKey} onChange={(e) => setMonthKey(e.target.value)} months={monthsWithData} />
+          {SHOW_DASHBOARD_MONTH_PICKER ? <MonthYearControls year={selectedYear} onYearChange={changeYear} month={monthKey} onMonthChange={(key) => setMonthKey(key)} years={yearsWithData} months={monthsForYear} /> : null}
           {SHOW_META_REFRESH && onRefresh ? <button className="mmd-refresh" onClick={onRefresh} disabled={syncing}>{syncing ? 'Menyelaras…' : 'Muat semula'}</button> : null}
         </div>
       </div>
@@ -562,7 +581,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
 
         <article className="panel mmd-card mmd-full">
           <div className="mmd-card-head">
-            <div><span className="eyebrow">TOP POSTING BY MONTH</span><h4>Post terbaik · {topMonthLabel}</h4></div>
+            <div><span className="eyebrow">TOP POSTING BY MONTH</span><h4>{fullMonthLabel(topMonthKey)}</h4></div>
             <select className="mmd-select" value={sortKey} onChange={(e) => setSortKey(e.target.value)} aria-label="Susun ikut">
               <option value="interactions">Ikut interaksi</option><option value="views">Ikut views</option><option value="reach">Ikut reach</option><option value="time">Terbaru</option>
             </select>

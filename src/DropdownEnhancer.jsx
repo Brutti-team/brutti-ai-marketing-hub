@@ -6,6 +6,19 @@ import { useEffect } from 'react'
 // or sets its value, or listens for its "change" event, keeps working exactly as before.
 // To keep a native select somewhere, give it the attribute data-dd-native.
 
+// Search box (magnifier + "Search…") inside the shared dropdown panel.
+// Hidden on Settings, Content Studio and Dashboard (Michelle, 26 Nov 2026). Set true to show again.
+const SHOW_SETTINGS_SEARCH = false
+const SHOW_STUDIO_SEARCH = false
+const SHOW_DASHBOARD_SEARCH = false
+
+function showDropdownSearch(select) {
+  if (select.closest('.settings-page')) return SHOW_SETTINGS_SEARCH
+  if (select.closest('.content-studio-page, .bm-caption-studio, .bm-caption-form, .content-library')) return SHOW_STUDIO_SEARCH
+  if (select.closest('.mmd-shell, .dashboard-page')) return SHOW_DASHBOARD_SEARCH
+  return true
+}
+
 let uid = 0
 const ctrls = new Map()
 const SEARCH_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>'
@@ -102,24 +115,29 @@ function openPanel(ctrl) {
   const panel = document.createElement('div')
   panel.className = 'dd-panel'
   panel.id = `${ctrl.id}-panel`
-  const search = document.createElement('div')
-  search.className = 'dd-search'
-  search.innerHTML = SEARCH_ICON
-  const input = document.createElement('input')
-  input.type = 'text'
-  input.className = 'dd-search-input'
-  input.placeholder = 'Search…'
-  input.setAttribute('aria-label', 'Search')
-  input.setAttribute('autocomplete', 'off')
-  input.setAttribute('autocapitalize', 'off')
-  input.setAttribute('spellcheck', 'false')
-  search.append(input)
   const list = document.createElement('ul')
   list.className = 'dd-list'
   list.setAttribute('role', 'listbox')
   const name = labelText(ctrl.select)
   if (name) list.setAttribute('aria-label', name)
-  panel.append(search, list)
+  let input = null
+  if (showDropdownSearch(ctrl.select)) {
+    const search = document.createElement('div')
+    search.className = 'dd-search'
+    search.innerHTML = SEARCH_ICON
+    input = document.createElement('input')
+    input.type = 'text'
+    input.className = 'dd-search-input'
+    input.placeholder = 'Search…'
+    input.setAttribute('aria-label', 'Search')
+    input.setAttribute('autocomplete', 'off')
+    input.setAttribute('autocapitalize', 'off')
+    input.setAttribute('spellcheck', 'false')
+    search.append(input)
+    panel.append(search, list)
+  } else {
+    panel.append(list)
+  }
   if (ctrl.select.closest('.app-language-control, [data-lock-keep]')) panel.setAttribute('data-lock-keep', '')
   document.body.append(panel)
   Object.assign(ctrl, { panel, input, list, open: true, query: '' })
@@ -127,7 +145,7 @@ function openPanel(ctrl) {
   ctrl.wrapper.classList.add('is-open')
   renderList(ctrl)
   placePanel(ctrl)
-  input.addEventListener('input', () => { ctrl.query = input.value; renderList(ctrl, true) })
+  if (input) input.addEventListener('input', () => { ctrl.query = input.value; renderList(ctrl, true) })
   list.addEventListener('mousedown', (event) => event.preventDefault())
   list.addEventListener('click', (event) => {
     const row = event.target.closest('[data-index]')
@@ -142,7 +160,7 @@ function openPanel(ctrl) {
   document.addEventListener('keydown', onKeyDown, true)
   window.addEventListener('resize', onReposition)
   window.addEventListener('scroll', onReposition, true)
-  if (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) input.focus({ preventScroll: true })
+  if (input && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) input.focus({ preventScroll: true })
 }
 
 let active = null
@@ -198,9 +216,9 @@ function paintActive(ctrl, scroll) {
   const row = ctrl.active >= 0 ? list.querySelector(`[data-index="${ctrl.active}"]`) : null
   if (row) {
     row.classList.add('is-active')
-    input.setAttribute('aria-activedescendant', row.id)
+    input?.setAttribute('aria-activedescendant', row.id)
     if (scroll) row.scrollIntoView({ block: 'nearest' })
-  } else input.removeAttribute('aria-activedescendant')
+  } else input?.removeAttribute('aria-activedescendant')
 }
 
 function setActive(ctrl, index, scroll = true) {
