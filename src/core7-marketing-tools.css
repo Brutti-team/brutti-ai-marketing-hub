@@ -238,6 +238,59 @@ button[hidden] {
 .kol-directory > .panel-heading { justify-content: center; text-align: center; }
 .kol-directory > .panel-heading > div { width: 100%; text-align: center; }
 
+/* KOL cards: 7 across on laptop (Michelle, 26 Nov 2026). Same look, smaller frames. */
+.kol-directory .kol-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.kol-directory .kol-card {
+  padding: 8px;
+  gap: 6px;
+  border-radius: 12px;
+}
+.kol-directory .kol-photo { border-radius: 10px; }
+.kol-directory .kol-photo span { font-size: 1.35em; }
+.kol-directory .kol-card header {
+  min-height: 2.5em;
+  max-height: 2.5em;
+  justify-content: center;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.kol-directory .kol-card header strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+.kol-directory .kol-card footer .button.small {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+@media (max-width: 1199px) {
+  .kol-directory .kol-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+  .kol-directory .kol-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 699px) {
+  .kol-directory .kol-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .kol-directory .kol-card { padding: 6px; gap: 5px; }
+  .kol-directory .kol-card header { min-height: 2.4em; max-height: 2.4em; }
+  .kol-directory .kol-card header strong { font-size: 11px; }
+  .kol-directory .kol-card footer .button.small { min-height: 26px; font-size: 10px; padding: 3px 6px; }
+}
+@media (max-width: 359px) {
+  .kol-directory .kol-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Product Library shopping grid */
 .product-browse .product-grid,
 .product-grid {
