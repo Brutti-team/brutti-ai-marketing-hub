@@ -871,3 +871,31 @@ html[data-theme='dark'] .brutti-notification-count {
   .hero-content h2 { font-size: clamp(22px, 7vw, 28px) !important; }
   .historical-posting-time strong { font-size: 18px !important; }
 }
+
+/* Empty notifications state: no bullet dot */
+.brutti-notification-item.is-empty {
+  grid-template-columns: minmax(0, 1fr);
+  cursor: default;
+}
+
+.brutti-notification-item.is-empty .brutti-notification-dot {
+  display: none;
+}
+
+/* Empty notifications state: hide the helper line, show only the title */
+.brutti-notification-item.is-empty .brutti-empty-hint {
+  display: none;
+}
+
+/* Empty notifications state: center the "No reminder" text */
+.brutti-notification-item.is-empty {
+  padding: 18px 9px;
+  text-align: center;
+}
+
+.brutti-notification-item.is-empty strong {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: center;
+}

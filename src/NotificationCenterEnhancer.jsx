@@ -235,7 +235,7 @@ export default function NotificationCenterEnhancer() {
               <div className="brutti-notification-heading"><strong>Notifications</strong>{alerts.length ? <button type="button" onClick={markAllRead}>Mark all read</button> : null}</div>
               {alerts.length
                 ? alerts.map((alert) => <NotificationItem key={alert.id} alert={alert} onSelect={handleSelect} onRead={markRead} />)
-                : <div className="brutti-notification-item"><span className="brutti-notification-dot" /><span><strong>Tiada reminder urgent sekarang</strong><small>{prefs.enabled ? 'Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.' : 'Notifikasi dimatikan dalam Tetapan.'}</small></span></div>}
+                : <div className="brutti-notification-item is-empty"><span className="brutti-notification-dot" /><span><strong>No reminder</strong><small className={prefs.enabled ? 'brutti-empty-hint' : undefined}>{prefs.enabled ? 'Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.' : 'Notifikasi dimatikan dalam Tetapan.'}</small></span></div>}
             </div>
           ) : null}
         </div>,

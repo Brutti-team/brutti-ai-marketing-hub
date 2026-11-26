@@ -750,3 +750,15 @@ html[data-theme='dark'] .settings-list-icon {
     flex: 1;
   }
 }
+
+/* KOL cards: hover lift + soft shadow on devices with a real mouse (Michelle, 26 Nov 2026). */
+@media (hover: hover) and (pointer: fine) {
+  .kol-directory .kol-card { transition: transform .2s ease, box-shadow .2s ease; }
+  .kol-directory .kol-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 24px rgba(0, 0, 0, .28); position: relative; z-index: 1; }
+}
+
+/* Product Library cards: hover lift + soft shadow on devices with a real mouse (Michelle, 26 Nov 2026). */
+@media (hover: hover) and (pointer: fine) {
+  .product-card { transition: transform .2s ease, box-shadow .2s ease; }
+  .product-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 24px rgba(0, 0, 0, .28) !important; position: relative; z-index: 1; }
+}
