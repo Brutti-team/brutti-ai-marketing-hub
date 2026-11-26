@@ -1,0 +1,38 @@
+/* Windows-style notifications card (Settings → Notification) */
+.notif-settings { display: grid; gap: 8px; width: 100%; max-width: 720px; margin-inline: auto; }
+.notif-card { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); overflow: hidden; }
+.notif-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 72px; padding: 14px 16px; }
+.notif-controls { display: flex; align-items: center; gap: 10px; }
+.notif-state { color: var(--ink); font-size: 13px; font-weight: 600; min-width: 2.2em; text-align: right; }
+.notif-switch { position: relative; width: 44px; height: 24px; flex: none; padding: 0; border: 1.5px solid var(--muted); border-radius: 999px; background: transparent; cursor: pointer; transition: background .15s, border-color .15s; }
+.notif-switch i { position: absolute; top: 50%; left: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transform: translateY(-50%); transition: left .15s, background .15s, width .15s, height .15s; }
+.notif-switch.is-on { background: var(--forest); border-color: var(--forest); }
+.notif-switch.is-on i { left: 24px; width: 14px; height: 14px; background: #fff; }
+.notif-chevron { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; }
+.notif-chevron svg { transition: transform .15s; }
+.notif-chevron.is-open svg { transform: rotate(180deg); }
+.notif-chevron:hover { background: rgba(18, 55, 42, 0.08); }
+.notif-options { border-top: 1px solid var(--line); }
+.notif-options.is-disabled { opacity: .55; }
+.notif-option { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 12px 16px 12px 74px; border-top: 1px solid var(--line); color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer; }
+.notif-option:first-child { border-top: 0; }
+.notif-option input[type='checkbox'] { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--forest); cursor: pointer; }
+.notif-option input[type='checkbox']:disabled { cursor: not-allowed; }
+.notif-switch:focus-visible, .notif-chevron:focus-visible, .notif-option input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+html[data-theme='dark'] .notif-card { border-color: rgba(198, 214, 205, 0.16); }
+html[data-theme='dark'] .notif-options, html[data-theme='dark'] .notif-option { border-color: rgba(198, 214, 205, 0.16); }
+html[data-theme='dark'] .notif-switch.is-on { background: #d5e2da; border-color: #d5e2da; }
+html[data-theme='dark'] .notif-switch.is-on i { background: #12372a; }
+html[data-theme='dark'] .notif-chevron:hover { background: rgba(143, 168, 154, 0.14); }
+@media (max-width: 720px) {
+  .notif-card { border-radius: 12px; }
+  .notif-row { grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 12px 14px; min-height: 68px; }
+  .notif-row .settings-list-icon { width: 40px; height: 40px; }
+  .notif-controls { grid-column: 1 / -1; justify-content: flex-end; }
+  .notif-option { padding: 12px 14px; min-height: 52px; }
+}
+
+/* Beat the global label/checkbox layout rules so each option stays one left-aligned row. */
+.notif-settings .notif-option { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; text-align: left !important; gap: 14px !important; width: 100%; }
+.notif-settings .notif-option span { text-align: left; }
+.notif-settings .notif-option input[type='checkbox'] { width: 20px !important; height: 20px !important; min-height: 0 !important; padding: 0 !important; }
