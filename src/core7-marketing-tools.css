@@ -531,6 +531,24 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
   color: var(--ink);
 }
 
+/* Phone only: title stays centered on the first row; Back sits left underneath. */
+@media (max-width: 980px) {
+  .settings-subhead {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .settings-section-title { order: 1; }
+
+  .settings-back {
+    order: 2;
+    align-self: start;
+  }
+}
+
 .settings-section-access .settings-grid {
   margin-top: 16px;
 }
