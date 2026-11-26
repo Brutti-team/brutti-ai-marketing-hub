@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { dateFromKey, localDateKey, monthGridKeys } from './lib/dateUtils'
 
-// Modern month calendar for the Campaign Planner (Michelle, 26 Nov). The Previous / Today / Next
+// Modern month calendar for the Calendar Planner (Michelle, 26 Nov). The Previous / Today / Next
 // buttons stay in App.jsx. Notes are normal planner plans: they are saved through the same savePlan()
 // flow as "Add content plan" (Daily Planner sheet when the workspace is connected, local storage otherwise).
 // The optional time is stored as a leading "@HH:MM " in the plan's Objective field because the sheet has no time column.
@@ -57,9 +57,9 @@ function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
       <form className="modal plan-modal pcal-form" onSubmit={submit}>
         <div className="modal-head"><div><h2>{initial.id ? 'Edit note' : 'Add note'}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
         <label>Title<input required autoFocus value={form.title} onChange={update('title')} data-user-content/></label>
-        <div className="two-fields"><label>Date<input required type="date" value={form.date} onChange={update('date')}/></label><label>Time (optional)<input type="time" value={form.time} onChange={update('time')}/></label></div>
+        <div className="two-fields"><label>Date<input required type="date" value={form.date} onChange={update('date')}/></label><label>Time<input type="time" value={form.time} onChange={update('time')}/></label></div>
         {SHOW_NOTE_TYPE ? <label>Type<select value={form.type} onChange={update('type')}>{[...new Set([...NOTE_TYPES, form.type])].map((type) => <option key={type} value={type}>{type}</option>)}</select></label> : null}
-        <label>Notes (optional)<textarea rows="3" value={form.note} onChange={update('note')}/></label>
+        <label>Notes<textarea rows="3" value={form.note} onChange={update('note')}/></label>
         <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}<button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: joinPlanNote(form.time, form.note) })}>More options</button></div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
       </form>
     </div>

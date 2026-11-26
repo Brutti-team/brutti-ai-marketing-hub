@@ -68,7 +68,7 @@ function preloadForPage(label) {
     loadContentStudioUi()
     loadSoulCaption()
   }
-  if (label === 'Campaign Planner') {
+  if (label === 'Calendar Planner') {
     loadHistoricalTiming()
   }
   if (label === 'Product Library') {
@@ -136,7 +136,7 @@ export function DeferredEnhancers() {
       {backgroundReady ? <NotificationCenterEnhancer /> : null}
       {backgroundReady ? <BrandCasingEnhancer /> : null}
 
-      {page === 'Dashboard' || page === 'Campaign Planner' ? <HistoricalPostingTimeEnhancer /> : null}
+      {page === 'Dashboard' || page === 'Calendar Planner' ? <HistoricalPostingTimeEnhancer /> : null}
       {page === 'Content Studio' ? <ContentStudioUiSimplifier /> : null}
       {page === 'Content Studio' ? <SoulCaptionStabilizer /> : null}
       {page === 'Product Library' ? <ProductImageEnhancer /> : null}

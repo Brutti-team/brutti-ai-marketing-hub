@@ -358,7 +358,7 @@ function mountDashboardMatch(page) {
   const open = button('Open Idea Vault')
   open.addEventListener('click', () => {
     window.sessionStorage.setItem(FOCUS_KEY, best.idea.id)
-    findNavButton('Campaign Planner')?.click()
+    findNavButton('Calendar Planner')?.click()
   })
   match.append(copy, open)
   const buttons = hero.querySelector('.hero-buttons')
@@ -373,8 +373,8 @@ export default function IdeaVaultEnhancer({ page }) {
     let retry = 0
 
     const sync = () => {
-      if (page === 'Campaign Planner') {
-        const planner = findActivePage('Campaign Planner')
+      if (page === 'Calendar Planner') {
+        const planner = findActivePage('Calendar Planner')
         if (planner) mountVault(planner)
         else if (retry < 8) { retry += 1; timer = window.setTimeout(sync, 60) }
         return

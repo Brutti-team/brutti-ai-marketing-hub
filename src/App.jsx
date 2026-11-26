@@ -81,7 +81,7 @@ const SHOW_STUDIO_TAB_BAR = false
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
-  { id: 'planner', label: 'Campaign Planner', icon: 'calendar' },
+  { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'marketing-tools', label: 'Marketing Tools', icon: 'box' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
   { id: 'products', label: 'Product Library', icon: 'box' },
@@ -233,7 +233,7 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
 const mobileNavigation = [
   { id: 'dashboard', label: 'Home', icon: 'dashboard' },
   { id: 'studio', label: 'Content', icon: 'sparkles' },
-  { id: 'planner', label: 'Planner', icon: 'calendar' },
+  { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'products', label: 'Product Library', icon: 'box' },
 ]
 
@@ -768,7 +768,7 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan, savePlan }) {
   const moveMonth = (step) => setMonthAnchor((current) => addMonths(current, step))
   return (
     <div className="page planner-month-page">
-      <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Monthly content calendar for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
+      <PageHeader eyebrow="Calendar Planner" title="Calendar Planner" description="Calendar for marketing work: events, important posts and reminders." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
       <div className="planner-summary dynamic-planner-summary"><div><strong className="month-title-big">{formatMonthTitle(monthAnchor)}</strong></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button><button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
       {!SHOW_CLASSIC_MONTH_GRID ? <PlannerMonthCalendar plans={plans} monthAnchor={monthAnchor} onSavePlan={savePlan} onDeletePlan={deletePlan} onMoreOptions={openPlan}/> : null}
       {SHOW_CLASSIC_MONTH_GRID ? <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section> : null}
@@ -1455,7 +1455,7 @@ function PlanEditor({ item, onClose, onSave, onDelete, productOptions }) {
         <div className="two-fields"><label>Date<input required type="date" value={draft.date} onChange={update('date')}/></label><label>Status<select value={draft.status} onChange={update('status')}><option>Idea</option><option>Draft</option><option>Review</option><option>Approved</option><option>Scheduled</option><option>Published</option></select></label></div>
         {SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <><div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option></select></label><label>Channel<select value={draft.channel} onChange={update('channel')}><option>Facebook</option></select></label></div>
         <label>Product<select value={draft.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label></> : null}
-        {!SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <label>Notes (optional)<textarea rows="4" value={String(draft.objective || '').replace(/^@\d{2}:\d{2}\s?/, '')} onChange={(event) => { const time = String(draft.objective || '').match(/^@\d{2}:\d{2}\s?/)?.[0] || ''; const value = event.target.value; setDraft((current) => ({ ...current, objective: time + value })) }} data-user-content/></label> : null}
+        {!SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <label>Notes<textarea rows="4" value={String(draft.objective || '').replace(/^@\d{2}:\d{2}\s?/, '')} onChange={(event) => { const time = String(draft.objective || '').match(/^@\d{2}:\d{2}\s?/)?.[0] || ''; const value = event.target.value; setDraft((current) => ({ ...current, objective: time + value })) }} data-user-content/></label> : null}
         <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit">Save plan</button></div></div>
       </form>
     </div>

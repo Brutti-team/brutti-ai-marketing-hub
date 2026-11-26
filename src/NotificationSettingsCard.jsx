@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { notificationPermission, requestNotificationPermission } from './lib/calendarReminders'
 import {
   NOTIFICATION_PREFS_EVENT,
   readNotificationPrefs,
@@ -9,6 +10,7 @@ const OPTIONS = [
   { key: 'review', label: 'Content waiting for review' },
   { key: 'plan', label: 'Today’s posting plan' },
   { key: 'workspace', label: 'Google workspace not connected' },
+  { key: 'calendar', label: 'Reminder Calendar Planner' },
   { key: 'showBell', label: 'Show notification bell icon' },
 ]
 
@@ -40,6 +42,8 @@ function Toggle({ checked, onChange, label }) {
 export default function NotificationSettingsCard() {
   const [prefs, setPrefs] = useState(readNotificationPrefs)
   const [expanded, setExpanded] = useState(true)
+  const [permission, setPermission] = useState(notificationPermission)
+  const allow = async () => setPermission(await requestNotificationPermission())
 
   useEffect(() => {
     const sync = () => setPrefs(readNotificationPrefs())
@@ -80,6 +84,18 @@ export default function NotificationSettingsCard() {
             ))}
           </div>
         ) : null}
+      </section>
+      <section className="notif-card">
+        <div className="notif-row notif-main">
+          <span className="settings-list-icon"><BellGlyph /></span>
+          <span className="settings-list-copy">
+            <strong>System notifications</strong>
+            <small>{permission === 'granted' ? 'Calendar Planner reminders pop up on this device while the app is open.' : permission === 'denied' ? 'Blocked in the browser settings. Allow notifications for this site there.' : permission === 'unsupported' ? 'This browser does not support notifications. On iPhone, add the app to the Home Screen first.' : 'Allow pop-up reminders for Calendar Planner notes on this device.'}</small>
+          </span>
+          <span className="notif-controls">
+            {permission === 'granted' ? <span className="notif-state">Allowed</span> : permission === 'default' ? <button type="button" className="button secondary small notif-allow" onClick={allow}>Allow notifications</button> : <span className="notif-state">{permission === 'denied' ? 'Blocked' : 'Not supported'}</span>}
+          </span>
+        </div>
       </section>
       <section className="notif-card">
         <div className="notif-row notif-main">

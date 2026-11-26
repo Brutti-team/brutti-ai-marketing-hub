@@ -7,6 +7,7 @@ export const NOTIFICATION_DEFAULTS = {
   review: true, // alert id: review-queue
   plan: true, // alert id: today-plan
   workspace: true, // alert id: workspace-local
+  calendar: true, // alert ids: cal-* (Calendar Planner note reminders, bell + system notification)
   showBell: true, // show the bell icon in the top bar
   dnd: false, // do not disturb: hide the red count, reminders stay in the list
 }

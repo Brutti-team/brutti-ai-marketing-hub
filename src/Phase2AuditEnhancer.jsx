@@ -48,7 +48,7 @@ const auditCopy = {
     description: 'Use one main message, a clear hook, one relevant CTA, 3–5 relevant hashtags and verified facts only. Human approval remains required before publishing.',
     mode: 'rules',
   },
-  'Campaign Planner': {
+  'Calendar Planner': {
     eyebrow: 'FACEBOOK STARTING MIX',
     title: 'Use this mix as a planning guide, not a KPI ranking.',
     description: 'The percentages are a practical starting mix from the current content audit. Adjust them later when verified post-performance data is available.',
