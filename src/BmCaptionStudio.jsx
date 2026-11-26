@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CAPTION_GOALS, generateBmCaptions, isBlankField, productDetails } from './lib/bmCaptionGenerator'
 import { buildGeminiCaptionRequest, finalizeGeminiCaptions } from './lib/bmGeminiCaption'
 import { callMarketingApi } from './lib/googleWorkspace'
+import { USE_GEMINI_ASSIST } from './lib/dataSource.js'
 import './bm-caption-studio.css'
 
 const NO_PRODUCT = ''
@@ -166,7 +167,8 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
     setBusy(true)
     let output = null
     try {
-      const request = buildGeminiCaptionRequest(input)
+      // Gemini assist is off (USE_GEMINI_ASSIST): local template captions only.
+      const request = USE_GEMINI_ASSIST ? buildGeminiCaptionRequest(input) : null
       if (request) {
         const data = await callMarketingApi('generate_bm_caption', { request })
         output = data && data.text ? finalizeGeminiCaptions(data.text, input) : null

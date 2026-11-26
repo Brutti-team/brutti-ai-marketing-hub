@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { listGoogleKolSabah } from './lib/googleWorkspace'
+import { USE_GITHUB_DATA, loadGitHubKols } from './lib/dataSource.js'
 import { filterKols, normalizeKol, sampleKolSabah } from './lib/kolSabah'
 import { PreferWebpImg } from './lib/PreferWebpImg.jsx'
 
@@ -8,9 +9,9 @@ export default function KolSabahDirectory({ workspaceActive }) {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
   useEffect(() => {
-    if (!workspaceActive) return undefined
+    if (!workspaceActive && !USE_GITHUB_DATA) return undefined
     let cancelled = false
-    listGoogleKolSabah()
+    ;(workspaceActive ? listGoogleKolSabah() : loadGitHubKols())
       .then((rows) => { if (!cancelled && Array.isArray(rows) && rows.length) { setKols(rows.map(normalizeKol).filter((k) => k.name)) } })
       .catch(() => { /* Apps Script action not deployed yet: keep bundled sample data. */ })
     return () => { cancelled = true }

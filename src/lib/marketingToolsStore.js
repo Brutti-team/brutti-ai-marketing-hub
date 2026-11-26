@@ -70,6 +70,17 @@ export function deleteMarketingCampaign(list, id) {
   return persist(list.filter((item) => item.id !== id))
 }
 
+// GitHub data mode: fill this device once from the shared marketing-tools.json
+// when it has no campaigns saved yet. Edits after that stay on this device.
+export async function seedMarketingCampaignsFromGitHub() {
+  const store = storage()
+  if (!store || store.getItem(MARKETING_TOOLS_STORAGE_KEY) !== null) return null
+  const { loadGitHubMarketingTools } = await import('./dataSource.js')
+  const list = (await loadGitHubMarketingTools()).filter((item) => MARKETING_TOOLS.includes(item?.tool))
+  if (store.getItem(MARKETING_TOOLS_STORAGE_KEY) !== null) return null
+  return persist(list)
+}
+
 export function clearLocalMarketingCampaigns() {
   storage()?.removeItem(MARKETING_TOOLS_STORAGE_KEY)
 }
