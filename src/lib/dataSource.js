@@ -16,6 +16,14 @@ export const SHOW_MT_FORM_EYEBROW = false
 export const SHOW_MT_COST_NUMBER = false
 // Product Library: show the "VERIFIED PRODUCT SOURCE" / "FUTURE REFERENCE" labels, the "Save a past kiosk or project" heading (new form) and the device-only note in the kiosk/project form. Off: hidden.
 export const SHOW_PRODUCT_LIBRARY_LABELS = false
+// Product Library: the "cards without a photo will show…" note above the grid. Off: hidden.
+export const SHOW_PRODUCT_PHOTO_NOTE = false
+// Product Library detail modal: "PRODUCT LIBRARY" eyebrow above the product name. Off: hidden.
+export const SHOW_PRODUCT_MODAL_EYEBROW = false
+// Product Library: "Photo confirmed" (and similar) badge on product photos. Off: hidden.
+export const SHOW_PRODUCT_PHOTO_BADGE = false
+// Product Library detail modal: "Create product content" link. Off: hidden; Product details list is shown instead.
+export const SHOW_CREATE_PRODUCT_CONTENT = false
 
 export const GITHUB_DATA_BASE = 'https://brutti-team.github.io/brutti-hub-data/'
 

@@ -201,6 +201,7 @@ export const EXTRA_PAIRS = [
   ['Product details', 'Butiran produk'],
   ['Product details: ', 'Butiran produk: '],
   ['Dimensions', 'Dimensi'],
+  ['Materials', 'Bahan'],
   ['Materials & Finishing', 'Bahan & Kemasan'],
   ['Price', 'Harga'],
   ['Material', 'Bahan'],
@@ -287,7 +288,6 @@ export const EXTRA_PAIRS = [
   ['e.g. Jalan Tuaran / Instagram', 'cth. Jalan Tuaran / Instagram'],
   ['e.g. Barter: 1 Sukod Desk, no cash', 'cth. Barter: 1 Meja Sukod, tiada tunai'],
   ['e.g. 012-345 6789', 'cth. 012-345 6789'],
-  ['e.g. SK Kiosk – Rail Station event', 'cth. SK Kiosk – acara Stesen Kereta Api'],
 
   // ── Marketing Tools and KOL Sabah ──
   ['Campaigns', 'Kempen'],
@@ -371,6 +371,9 @@ export const EXTRA_PAIRS = [
   ['Save a past kiosk or project', 'Simpan kiosk atau projek terdahulu'],
   ['Project / kiosk name', 'Nama projek / kiosk'],
   ['Reference type', 'Jenis rujukan'],
+  ['Product name', 'Nama produk'],
+  ['Location', 'Lokasi'],
+  ['Notes', 'Nota'],
   ['Location / customer (optional)', 'Lokasi / pelanggan (pilihan)'],
   ['Notes / direction for posting', 'Nota / arah untuk siaran', 'Nota / arah siaran'],
   ['Reference image (optional)', 'Imej rujukan (pilihan)'],
