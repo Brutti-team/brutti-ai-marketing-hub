@@ -36,6 +36,8 @@ import { preferRepoWebp } from './lib/preferRepoWebp'
 import { PreferWebpImg } from './lib/PreferWebpImg.jsx'
 import { readBruttiSoulStyleProfile, styleLibraryLabel } from './lib/bruttiSoulStyleLibrary'
 import PWAInstallControl from './PWAInstallControl'
+import NotificationSettingsCard from './NotificationSettingsCard.jsx'
+import './notification-settings.css'
 import BmCaptionStudio from './BmCaptionStudio'
 import KolSabahDirectory from './KolSabahDirectory'
 import { contactLinks } from './lib/kolSabah'
@@ -1309,6 +1311,8 @@ function Analytics({ content, plans, productData, integrations, workspaceActive,
 
 // Hidden for now (Michelle, Nov 2026). Set to true to show the Integrations list in Settings again.
 const SHOW_SETTINGS_INTEGRATIONS = false
+// Old static Reminders card, replaced by the notifications panel (Michelle, Nov 2026). Set to true to show it again.
+const SHOW_LEGACY_NOTIFICATION_PANEL = false
 
 function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefreshIntegrations, onConnect, onDisconnect }) {
   const [accessKey, setAccessKey] = useState('')
@@ -1401,7 +1405,8 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
         <div className="settings-access-slot"></div>
       </div>
       <div className="settings-section-notification" hidden={section !== 'notification'}>
-        <section className="panel settings-notification-panel"><div className="panel-heading"><div><span className="eyebrow">ACTION CENTER</span><h3>Reminders</h3></div></div><p className="settings-copy">Reminders for review, today’s plan and workspace connection appear in the bell at the top of the app.</p></section>
+        {SHOW_LEGACY_NOTIFICATION_PANEL ? <section className="panel settings-notification-panel"><div className="panel-heading"><div><span className="eyebrow">ACTION CENTER</span><h3>Reminders</h3></div></div><p className="settings-copy">Reminders for review, today’s plan and workspace connection appear in the bell at the top of the app.</p></section> : null}
+        <NotificationSettingsCard />
       </div>
       <div className="settings-section-language" hidden={section !== 'language'}>
         <div className="settings-language-slot"></div>

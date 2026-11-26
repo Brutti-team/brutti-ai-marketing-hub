@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ALERT_PREF_BY_ID, NOTIFICATION_PREFS_EVENT, readNotificationPrefs } from './lib/notificationPrefs'
 
 const READ_KEY = 'brutti-action-center-read-v1'
 
@@ -118,6 +119,7 @@ export default function NotificationCenterEnhancer() {
   const [alerts, setAlerts] = useState([])
   const [readKeys, setReadKeys] = useState(() => readAlerts())
   const [open, setOpen] = useState(false)
+  const [prefs, setPrefs] = useState(readNotificationPrefs)
   const [topbarTarget, setTopbarTarget] = useState(null)
   const [_BANNER_TARGET, setBannerTarget] = useState(null)
 
@@ -143,7 +145,10 @@ export default function NotificationCenterEnhancer() {
         setBannerTarget((current) => current === null ? current : null)
       }
 
-      const nextAlerts = readDashboardSignals().filter((alert) => !readKeys.has(alertKey(alert)))
+      // Master switch and per-type checkboxes from Settings → Notification.
+      const nextAlerts = prefs.enabled
+        ? readDashboardSignals().filter((alert) => !readKeys.has(alertKey(alert)) && prefs[ALERT_PREF_BY_ID[alert.id]] !== false)
+        : []
       setAlerts((current) => alertsMatch(current, nextAlerts) ? current : nextAlerts)
     }
 
@@ -153,7 +158,17 @@ export default function NotificationCenterEnhancer() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [readKeys])
+  }, [readKeys, prefs])
+
+  useEffect(() => {
+    const sync = () => setPrefs(readNotificationPrefs())
+    window.addEventListener(NOTIFICATION_PREFS_EVENT, sync)
+    window.addEventListener('storage', sync)
+    return () => {
+      window.removeEventListener(NOTIFICATION_PREFS_EVENT, sync)
+      window.removeEventListener('storage', sync)
+    }
+  }, [])
 
   useEffect(() => {
     const close = (event) => {
@@ -185,13 +200,13 @@ export default function NotificationCenterEnhancer() {
     navTo(alert.action)
   }
 
-  const topbarPortal = topbarTarget
+  const topbarPortal = topbarTarget && prefs.showBell
     ? createPortal(
         <div className="brutti-notification-center">
           <button
             type="button"
             className="brutti-notification-trigger"
-            aria-label={alerts.length ? `${alerts.length} reminders need attention` : 'Notifications'}
+            aria-label={alerts.length && !prefs.dnd ? `${alerts.length} reminders need attention` : 'Notifications'}
             aria-expanded={open}
             onClick={(event) => {
               event.stopPropagation()
@@ -199,14 +214,14 @@ export default function NotificationCenterEnhancer() {
             }}
           >
             <BellIcon />
-            {alerts.length ? <span className="brutti-notification-count">{alerts.length}</span> : null}
+            {alerts.length && !prefs.dnd ? <span className="brutti-notification-count">{alerts.length}</span> : null}
           </button>
           {open ? (
             <div className="brutti-notification-popover" role="dialog" aria-label="Marketing reminders" onClick={(event) => event.stopPropagation()}>
               <div className="brutti-notification-heading"><strong>Action Center</strong>{alerts.length ? <button type="button" onClick={markAllRead}>Mark all read</button> : null}</div>
               {alerts.length
                 ? alerts.map((alert) => <NotificationItem key={alert.id} alert={alert} onSelect={handleSelect} onRead={markRead} />)
-                : <div className="brutti-notification-item"><span className="brutti-notification-dot" /><span><strong>Tiada reminder urgent sekarang</strong><small>Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.</small></span></div>}
+                : <div className="brutti-notification-item"><span className="brutti-notification-dot" /><span><strong>Tiada reminder urgent sekarang</strong><small>{prefs.enabled ? 'Action Center akan highlight review, posting hari ini dan connection yang perlukan perhatian.' : 'Notifikasi dimatikan dalam Tetapan.'}</small></span></div>}
             </div>
           ) : null}
         </div>,
