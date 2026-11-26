@@ -86,7 +86,7 @@ const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'studio', label: 'Content Studio', icon: 'sparkles' },
   { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
-  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'box' },
+  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'megaphone' },
   { id: 'brand', label: 'Brand Library', icon: 'brand' },
   { id: 'products', label: 'Product Library', icon: 'box' },
   { id: 'analytics', label: 'Analytics', icon: 'chart' },
@@ -170,6 +170,7 @@ function Icon({ name, size = 18 }) {
     calendar: <><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/></>,
     brand: <><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"/><path d="m8 13 2.5 2.5L16 9"/></>,
     box: <><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8M21 8v8l-9 5-9-5V8"/></>,
+    megaphone: <><path d="m3 11 19-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></>,
     image: <><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 15-4.5-4.5L7 20"/></>,
     wand: <><path d="m15 4 5 5L8 21H3v-5L15 4Z"/><path d="m13 6 5 5M6 3v3M4.5 4.5h3M19 16v4M17 18h4"/></>,
     chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></>,
@@ -239,6 +240,7 @@ const mobileNavigation = [
   { id: 'studio', label: 'Content', icon: 'sparkles' },
   { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'products', label: 'Product Library', icon: 'box' },
+  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'megaphone' },
 ]
 
 function MobileBottomNavigation({ page, setPage }) {

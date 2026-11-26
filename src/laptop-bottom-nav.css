@@ -47,9 +47,9 @@
     right: auto;
     bottom: max(14px, env(safe-area-inset-bottom));
     transform: translateX(-50%);
-    width: min(560px, calc(100% - 48px));
+    width: min(672px, calc(100% - 48px));
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 3px;
     padding: 7px;
     border: 1px solid rgba(255, 255, 255, .1);
