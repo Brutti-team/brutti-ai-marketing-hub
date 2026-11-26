@@ -201,6 +201,7 @@ export const EXTRA_PAIRS = [
   ['Product details', 'Butiran produk'],
   ['Product details: ', 'Butiran produk: '],
   ['Dimensions', 'Dimensi'],
+  ['Materials', 'Bahan'],
   ['Materials & Finishing', 'Bahan & Kemasan'],
   ['Price', 'Harga'],
   ['Material', 'Bahan'],

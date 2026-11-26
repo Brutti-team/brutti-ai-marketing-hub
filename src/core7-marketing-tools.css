@@ -378,7 +378,7 @@ html[data-theme='dark'] .product-modal .product-modal-visual .product-visual-con
   width: auto !important;
   height: auto !important;
   max-width: 100%;
-  max-height: 65vh;
+  max-height: 280px;
   object-fit: contain !important;
   object-position: center;
 }
@@ -762,3 +762,33 @@ html[data-theme='dark'] .settings-list-icon {
   .product-card { transition: transform .2s ease, box-shadow .2s ease; }
   .product-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 24px rgba(0, 0, 0, .28) !important; position: relative; z-index: 1; }
 }
+
+/* Product Library detail modal (Michelle, 26 Nov 2026) */
+.product-modal .modal-head {
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+.product-modal .modal-head > div { flex: 1; text-align: center; }
+.product-modal .modal-head h2 { margin-top: 0; text-align: center; text-transform: none; }
+.product-modal .modal-head .icon-button { position: absolute; right: 0; top: 0; }
+.product-details-block { display: grid; gap: 8px; text-transform: none; }
+.product-details-block h3 {
+  margin: 0;
+  color: var(--charcoal, #202522);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.product-detail-row { display: grid; gap: 2px; }
+.product-detail-row span {
+  color: var(--muted, #626864);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.product-detail-row p { margin: 0; color: var(--charcoal, #202522); font-size: 12px; line-height: 1.5; }
+.product-modal .product-modal-body > div > span { text-transform: none; letter-spacing: normal; }
