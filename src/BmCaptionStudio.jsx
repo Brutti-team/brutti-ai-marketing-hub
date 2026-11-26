@@ -13,6 +13,8 @@ const SHOW_STUDIO_GEMINI_NOTE = false
 const SHOW_STUDIO_EMPTY_RESULT = false
 const SHOW_STUDIO_TOPIC_FIELD = false
 const SHOW_STUDIO_TIP_GOAL = false
+// Product field is a free-text box with the Product Library as suggestions (Michelle, 26 Nov). Set true for the old dropdown.
+const SHOW_STUDIO_PRODUCT_DROPDOWN = false
 const EMPTY_FACT = "not filled, won't be included"
 
 const GOAL_LABELS = {
@@ -109,6 +111,7 @@ function CaptionCard({ platform, text, onChange, onCopy, hint }) {
 
 export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [productId, setProductId] = useState(NO_PRODUCT)
+  const [productText, setProductText] = useState('')
   const [topic, setTopic] = useState('')
   const [goal, setGoal] = useState('highlight')
   const [note, setNote] = useState('')
@@ -117,19 +120,25 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [result, setResult] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const product = productOptions.find((item) => optionValue(item) === productId) || null
+  const typedName = clean(productText)
+  const typedMatch = productOptions.find((item) => item?.name && clean(item.name).toLowerCase() === typedName.toLowerCase()) || null
+  const product = SHOW_STUDIO_PRODUCT_DROPDOWN
+    ? productOptions.find((item) => optionValue(item) === productId) || null
+    : typedMatch
+  // A typed name that is not in the library is used as the product name (no library facts are invented for it).
+  const customName = SHOW_STUDIO_PRODUCT_DROPDOWN || typedMatch ? '' : typedName
   const needsProduct = !SHOW_STUDIO_TOPIC_FIELD
-  const canGenerate = needsProduct ? Boolean(product) : Boolean(product || topic.trim())
+  const canGenerate = needsProduct ? Boolean(product || customName) : Boolean(product || customName || topic.trim())
 
   const clearResult = () => setResult(null)
 
   const run = async (nextVariation) => {
     if (busy) return
-    if (needsProduct && !product) {
+    if (needsProduct && !product && !customName) {
       toast('Choose a product first.')
       return
     }
-    if (!product && !topic.trim()) {
+    if (!product && !customName && !topic.trim()) {
       toast('Choose a product or write a topic first.')
       return
     }
@@ -140,6 +149,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
       note,
       variation: nextVariation,
     }
+    if (!product && customName) input.topic = customName // typed product not in the library
     setBusy(true)
     let output = null
     try {
@@ -182,6 +192,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </div>
           ) : null}
 
+          {SHOW_STUDIO_PRODUCT_DROPDOWN ? (
           <label>
             Product
             <select value={productId} onChange={(event) => { setProductId(event.target.value); clearResult() }}>
@@ -191,6 +202,22 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
               ))}
             </select>
           </label>
+          ) : (
+          <label>
+            Product
+            <input
+              type="text"
+              list="bm-product-suggestions"
+              value={productText}
+              autoComplete="off"
+              onChange={(event) => { setProductText(event.target.value); clearResult() }}
+              placeholder="Type a product name or pick one"
+            />
+            <datalist id="bm-product-suggestions">
+              {productOptions.filter((item) => item?.name).map((item) => <option key={optionValue(item)} value={item.name} />)}
+            </datalist>
+          </label>
+          )}
           <FactPreview product={product} />
 
           {SHOW_STUDIO_TOPIC_FIELD && !product ? (
@@ -232,7 +259,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             <button className="button primary" type="submit" disabled={busy || !canGenerate}>{busy ? 'Generating…' : 'Generate caption'}</button>
             <button className="button secondary" type="button" disabled={busy || !canGenerate} onClick={() => run(result ? variation + 1 : 1)}>Generate another variation</button>
           </div>
-          {needsProduct && !product ? <p className="bm-caption-disclaimer">Choose a product first.</p> : null}
+          {needsProduct && !product && !customName ? <p className="bm-caption-disclaimer">Choose a product first.</p> : null}
           {SHOW_STUDIO_GEMINI_NOTE ? <p className="bm-caption-disclaimer">The generator tries free Gemini first. If Gemini is unavailable, the in-browser template is used. Check the caption before posting. Empty fields are not filled with new numbers or claims.</p> : null}
         </form>
 
