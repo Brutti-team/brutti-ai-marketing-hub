@@ -134,7 +134,11 @@ export default function NotificationCenterEnhancer() {
       const dashboard = document.querySelector('.dashboard-page')
       const header = dashboard?.querySelector('.page-header')
       if (dashboard && header) {
-        let mount = dashboard.querySelector(':scope > .brutti-notification-banner-mount')
+        // The header can sit one level below .dashboard-page (Meta dashboard), so look
+        // under the header's own parent and keep only one mount.
+        const mounts = header.parentElement.querySelectorAll(':scope > .brutti-notification-banner-mount')
+        mounts.forEach((extra, index) => { if (index > 0) extra.remove() })
+        let mount = mounts[0]
         if (!mount) {
           mount = document.createElement('div')
           mount.className = 'brutti-notification-banner-mount'
