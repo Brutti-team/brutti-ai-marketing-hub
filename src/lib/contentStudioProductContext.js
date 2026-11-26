@@ -1,5 +1,6 @@
 import { products as embeddedProducts } from '../data'
 import { googleConfigured, hasWorkspaceKey, loadWorkspace } from './googleWorkspace'
+import { USE_GITHUB_DATA, loadGitHubProducts } from './dataSource.js'
 
 const embeddedByName = new Map(embeddedProducts.map((product) => [product.name, product]))
 const workspaceByName = new Map()
@@ -76,6 +77,15 @@ export async function resolveVerifiedProduct(productName = '') {
     try {
       const workspace = await loadWorkspace()
       cacheWorkspaceProducts(workspace?.products || [])
+    } catch {
+      // Keep Content Studio usable with the embedded verified-name fallback.
+    }
+  }
+
+  if (!workspaceLoaded && USE_GITHUB_DATA && typeof window !== 'undefined') {
+    workspaceLoaded = true
+    try {
+      cacheWorkspaceProducts(await loadGitHubProducts())
     } catch {
       // Keep Content Studio usable with the embedded verified-name fallback.
     }

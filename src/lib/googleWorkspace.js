@@ -1,3 +1,7 @@
+import { USE_GITHUB_DATA, loadGitHubMetaInsights } from './dataSource.js'
+
+export { loadMetaArchivePosts } from './dataSource.js'
+
 const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL
 const workspaceKeyName = 'brutti-google-workspace-key'
 const rememberedWorkspaceKeyName = 'brutti-google-workspace-key-remembered'
@@ -6,9 +10,11 @@ const contentDirectionKey = 'brutti-content-direction-v1'
 let verifiedWorkspaceKey = ''
 let verificationPromise = null
 
-export const googleConfigured = Boolean(appsScriptUrl)
+// With GitHub data on, the Apps Script backend is switched off (code kept as a fallback).
+export const googleConfigured = Boolean(appsScriptUrl) && !USE_GITHUB_DATA
 
 export function hasWorkspaceKey() {
+  if (USE_GITHUB_DATA) return false
   return Boolean(window.sessionStorage.getItem(workspaceKeyName) || window.localStorage.getItem(rememberedWorkspaceKeyName))
 }
 
@@ -148,6 +154,7 @@ async function verifyWorkspaceKey(accessKey) {
 }
 
 export async function callMarketingApi(action, payload = {}) {
+  if (USE_GITHUB_DATA) throw new Error('Data dibaca daripada GitHub (baca sahaja). Simpanan dikongsi tidak tersedia.')
   if (!googleConfigured) throw new Error('Google Apps Script is not configured yet.')
   const accessKey = getWorkspaceKey()
   if (!accessKey) throw new Error('Connect the internal Google workspace first.')
@@ -262,6 +269,12 @@ function saveMetaDashboardSnapshot(data) {
 }
 
 async function downloadPublicMetaInsights() {
+  // GitHub data (public brutti-hub-data repo). The Apps Script path below stays as a fallback.
+  if (USE_GITHUB_DATA) {
+    const data = await loadGitHubMetaInsights()
+    saveMetaDashboardSnapshot(data)
+    return data
+  }
   const requestUrl = metaInsightsRequestUrl()
   if (!requestUrl) throw new Error('Google Apps Script is not configured yet.')
   const response = await fetch(requestUrl, { method: 'GET', redirect: 'follow' })

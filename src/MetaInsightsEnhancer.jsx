@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
+import { loadPublicMetaInsights, metaInsightsRequestUrl, omitMetaTokenDetails } from './lib/googleWorkspace'
+import { USE_GITHUB_DATA } from './lib/dataSource.js'
 import { filterSyncedPosts, normaliseSearchPosts, postImageUrl } from './lib/syncedPostSearch'
 
 // Hidden for now (Michelle, Oct 2026). Set to true to bring the "Find an old post" card back.
@@ -143,6 +144,13 @@ export default function MetaInsightsEnhancer() {
   useEffect(() => { const syncHost = () => setHost(findAnalyticsHost()); syncHost(); const observer = new MutationObserver(syncHost); observer.observe(document.body, { childList: true, subtree: true }); return () => observer.disconnect() }, [])
   useEffect(() => {
     if (!host) return undefined
+    if (USE_GITHUB_DATA) {
+      let live = true
+      loadPublicMetaInsights()
+        .then((data) => { if (live) setState({ loading: false, data, error: '', cached: false }) })
+        .catch((error) => { if (live) setState({ loading: false, data: null, error: error.message || 'Post-level Meta data belum tersedia.', cached: false }) })
+      return () => { live = false }
+    }
     const requestUrl = metaInsightsRequestUrl()
     if (!requestUrl) { setState({ loading: false, data: null, error: 'Apps Script deployment belum dikonfigurasi. Tiada KPI Meta dipaparkan.', cached: false }); return undefined }
     let active = true; const cacheKey = CACHE_PREFIX + localDateKey()

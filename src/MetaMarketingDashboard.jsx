@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { USE_GITHUB_DATA, loadMetaArchivePosts } from './lib/dataSource.js'
 
 // Meta marketing dashboard (read-only). Uses only the post-level fields the
 // existing meta-insights snapshot already returns. Metrics Meta does not sync
@@ -256,7 +257,33 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   const [sortKey, setSortKey] = useState('interactions')
   const [shareOpen, setShareOpen] = useState(false)
   const wasEmpty = useRef(true)
-  const allPosts = useMemo(() => metaDashboardPosts(snapshot), [snapshot])
+  // Older posts live in yearly archive files; fetch them only when the chosen
+  // period (or its comparison period) reaches past the recent window.
+  const [archivePosts, setArchivePosts] = useState([])
+  const [archiveYears, setArchiveYears] = useState([])
+  const recentPosts = useMemo(() => metaDashboardPosts(snapshot), [snapshot])
+  useEffect(() => {
+    if (!USE_GITHUB_DATA || !recentPosts.length) return undefined
+    const dayEnd = startOfDay(Date.now()) + DAY
+    const needFrom = monthKey ? monthRange(monthKey).prevFrom : dayEnd - 2 * days * DAY
+    const oldest = recentPosts.reduce((min, post) => Math.min(min, post.time), Infinity)
+    if (!(needFrom < oldest)) return undefined
+    const years = []
+    for (let year = new Date(needFrom).getFullYear(); year <= new Date(oldest).getFullYear(); year += 1) if (!archiveYears.includes(year)) years.push(year)
+    if (!years.length) return undefined
+    let cancelled = false
+    loadMetaArchivePosts(years).then((posts) => {
+      if (cancelled) return
+      setArchiveYears((current) => [...current, ...years])
+      if (posts.length) setArchivePosts((current) => [...current, ...posts])
+    }).catch(() => { /* dashboard keeps the recent window */ })
+    return () => { cancelled = true }
+  }, [recentPosts, days, monthKey, archiveYears])
+  const allPosts = useMemo(() => {
+    if (!archivePosts.length) return recentPosts
+    const ids = new Set(recentPosts.map((post) => post.id))
+    return [...recentPosts, ...metaDashboardPosts({ facebook: { topPosts: archivePosts } }).filter((post) => !ids.has(post.id))]
+  }, [recentPosts, archivePosts])
   const monthsWithData = useMemo(() => {
     const keys = [...new Set(allPosts.map((post) => monthKeyOf(post.time)))]
     return keys.sort().reverse()

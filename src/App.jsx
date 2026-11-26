@@ -35,6 +35,7 @@ import { buildPlanObjective, parsePlanObjective } from './lib/plannerNote'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
+import { SHOW_GOOGLE_CONNECT, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
 import './meta-marketing-dashboard.css'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { preferRepoWebp } from './lib/preferRepoWebp'
@@ -47,7 +48,7 @@ import BmCaptionStudio from './BmCaptionStudio'
 import KolSabahDirectory from './KolSabahDirectory'
 import { contactLinks } from './lib/kolSabah'
 import { BRIGHTNESS_MAX, BRIGHTNESS_MIN, readBrightness, saveBrightness } from './lib/appBrightness'
-import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign } from './lib/marketingToolsStore'
+import { KOL_CONTACT_FIELDS, MARKETING_TOOLS, MARKETING_TOOL_STATUSES, blankMarketingCampaign, deleteMarketingCampaign, deleteRemoteMarketingCampaign, filterMarketingCampaigns, loadMarketingCampaigns, loadRemoteMarketingCampaigns, seedMarketingCampaignsFromGitHub, moveLocalCampaignsToSheet, saveMarketingCampaign, saveRemoteMarketingCampaign } from './lib/marketingToolsStore'
 
 // Old static snapshot cards on the home page (e.g. 'Facebook followers 12,001').
 // Hidden for now (Michelle, 24 Nov 2026) because the Meta dashboard replaces them.
@@ -144,6 +145,13 @@ const catalogProductRecords = Object.keys(catalogVisualByProduct).map((name, ind
 }))
 
 const stageClass = (value = '') => value.toLowerCase().replaceAll(' ', '-').replaceAll('/', '-')
+
+// True while the list is still empty or only holds the bundled demo rows.
+function deviceListNeedsSeedNow(list, demo) {
+  if (!Array.isArray(list) || !list.length) return true
+  const demoIds = new Set(demo.map((item) => String(item.id)))
+  return list.every((item) => demoIds.has(String(item?.id)))
+}
 
 function useStoredState(key, fallback) {
   const [value, setValue] = useState(() => {
@@ -865,7 +873,13 @@ function MarketingTools({ workspaceActive, toast }) {
   useEffect(() => {
     let cancelled = false
     setLocalCount(loadMarketingCampaigns().length)
-    if (!workspaceActive) { setCampaigns(loadMarketingCampaigns()); return undefined }
+    if (!workspaceActive) {
+      setCampaigns(loadMarketingCampaigns())
+      if (!USE_GITHUB_DATA) return undefined
+      let stopped = false
+      seedMarketingCampaignsFromGitHub().then((list) => { if (!stopped && list) { setCampaigns(list); setLocalCount(list.length) } }).catch(() => { /* keep device list */ })
+      return () => { stopped = true }
+    }
     setBusy(true)
     loadRemoteMarketingCampaigns().then((list) => { if (!cancelled) setCampaigns(list) }).catch((error) => toast?.(error.message || 'Could not load Marketing Tools from Google Sheet.')).finally(() => { if (!cancelled) setBusy(false) })
     return () => { cancelled = true }
@@ -1059,7 +1073,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   const [metaPosts, setMetaPosts] = useState([])
   const [selected, setSelected] = useState(null)
   useEffect(() => {
-    if (!workspaceActive) {
+    if (!workspaceActive && !USE_GITHUB_DATA) {
       setMetaPosts([])
       return undefined
     }
@@ -1213,7 +1227,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
   return (
     <div className="page">
       <PageHeader eyebrow="VERIFIED PRODUCT SOURCE" title="Product Library" description="Use verified product details from BRUTTI sources. Notion sync can load the full product table through the secured backend." actions={<div className="page-actions"><span className="source-count">{productData.length} loaded</span>{SHOW_SYNC_NOTION_PRODUCTS && workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}<button className="button primary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add kiosk / project</button></div>} />
-      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions"><span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : 'Connect Google Workspace to save a shared team reference.'}</span><div><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : reference.id ? 'Save changes' : 'Save reference'}</button></div></div></form></section> : null}
+      {showReferenceForm ? <section className="panel" style={{ marginBottom: 20 }}><div className="panel-heading"><div><span className="eyebrow">FUTURE REFERENCE</span><h3>{reference.id ? 'Edit kiosk or project reference' : 'Save a past kiosk or project'}</h3></div></div><form onSubmit={saveReference}><div className="two-fields"><label>Project / kiosk name<input required value={reference.name} onChange={(event) => setReference((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. SK Kiosk – Rail Station event"/></label><label>Reference type<select value={reference.category} onChange={(event) => setReference((current) => ({ ...current, category: event.target.value }))}><option>Kiosk / Project</option><option>Custom Furniture</option><option>Event Setup</option><option>Past Installation</option></select></label></div><div className="two-fields"><label>Location / client (optional)<input value={reference.location} onChange={(event) => setReference((current) => ({ ...current, location: event.target.value }))} placeholder="e.g. Kota Kinabalu"/></label><label>Notes / posting direction<textarea rows="3" value={reference.notes} onChange={(event) => setReference((current) => ({ ...current, notes: event.target.value }))} placeholder="What was made, useful facts, story angle or details for future posts."/></label></div><label>Reference image (optional)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImage}/></label>{imageError ? <p className="settings-copy" style={{ color: '#a44', marginTop: 8 }}>{imageError}</p> : null}{reference.imageDataUrl || reference.existingImageUrl ? <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}><img src={reference.imageDataUrl || reference.existingImageUrl} alt="Reference preview" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}/><small>{reference.imageName || 'Saved reference image'}</small><button className="button secondary small" type="button" onClick={removeImage}>Remove image</button></div> : null}<div className="modal-actions"><span className="settings-copy">{workspaceActive ? 'Saved to the shared Google Sheet and Drive.' : USE_GITHUB_DATA ? 'Disimpan dalam peranti ini sahaja (tidak dikongsi dengan team).' : 'Connect Google Workspace to save a shared team reference.'}</span><div><button className="button secondary" type="button" onClick={closeReferenceForm}>Cancel</button><button className="button primary" disabled={savingReference} type="submit">{savingReference ? 'Saving…' : reference.id ? 'Save changes' : 'Save reference'}</button></div></div></form></section> : null}
       {SHOW_META_IMAGE_MATCHING ? <section className="panel image-match-panel"><div className="panel-heading"><div><span className="eyebrow">META IMAGE MATCHING</span><h3>Cadangan gambar daripada post Brutti</h3><p className="settings-copy">Hanya padanan nama produk atau SKU yang jelas dipaparkan. Sahkan secara manual sebelum gambar baharu menggantikan sumber katalog atau Notion.</p></div><button className="button secondary small" disabled={!workspaceActive || loadingSuggestions} onClick={loadImageSuggestions}>{loadingSuggestions ? 'Menyemak…' : 'Cari padanan Meta'}</button></div>{strictSuggestions.length ? <div className="image-suggestion-list">{strictSuggestions.map((item) => { const candidate = item.candidates?.[0]; return <article key={item.productId}><div><strong>{item.productName}</strong><small>{candidate ? `${candidate.platform === 'instagram' ? 'Instagram' : 'Facebook'} · Nama atau SKU jelas` : 'Tiada cadangan yakin'}</small><span className="confidence-badge strong">Jelas</span></div>{candidate ? <><img src={candidate.imageUrl} alt="Meta post suggestion"/><button className="button primary small" onClick={() => confirmImage(item.productId, candidate.postId)}>Sahkan gambar</button></> : null}</article>})}</div> : <p className="settings-copy">{imageSuggestions.length ? 'Tiada padanan nama atau SKU yang jelas dalam post yang sudah disync.' : 'Tekan “Cari padanan Meta” untuk scan semua caption Meta yang sudah disync.'}</p>}</section> : null}
       <div className="product-browse"><div className="library-toolbar product-toolbar"><div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div><select className="category-list" aria-label="Filter by category" size={Math.min(categories.length, 10)} value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value} value={value}>{value}</option>)}</select></div><div className="product-browse-main">
       <p className="settings-copy">Kad tanpa gambar akan paparkan foto daripada post Facebook atau Instagram yang sudah disync, hanya jika kapsyen menyebut nama produk atau SKU dengan jelas. Padanan yang tidak jelas kekal placeholder.</p>
@@ -1351,7 +1365,7 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
   const [brightness, setBrightness] = useState(readBrightness)
   const settingsSections = [
     { id: 'display', title: 'Display', description: 'Brightness and light or dark mode', icon: 'monitor' },
-    { id: 'access', title: 'Access', description: 'Workspace key, connection and review rules', icon: 'key' },
+    { id: 'access', title: 'Access', description: SHOW_GOOGLE_CONNECT ? 'Workspace key, connection and review rules' : 'Data source and review rules', icon: 'key' },
     { id: 'notification', title: 'Notification', description: 'Action Center reminders', icon: 'bell' },
     { id: 'language', title: 'Language', description: 'Bahasa Melayu / English', icon: 'globe' },
   ]
@@ -1413,10 +1427,10 @@ function Settings({ toast, resetWorkspace, workspaceActive, integrations, onRefr
         </div>
       </div>
       <div className="settings-section-access" hidden={section !== 'access'}>
-        <section className="panel cloud-access-panel">
+        {SHOW_GOOGLE_CONNECT ? <section className="panel cloud-access-panel">
         <div className="panel-heading"><div><span className="eyebrow">INTERNAL ACCESS</span><h3 className="system-copy-hidden">{workspaceActive ? 'Google workspace connected' : googleConfigured ? 'Enter the BRUTTI workspace key' : 'Apps Script deployment required'}</h3></div><span className={`status-chip ${workspaceActive ? 'connected' : 'pending'}`}><span/>{workspaceActive ? 'Connected' : 'Setup required'}</span></div>
         {workspaceActive ? <div className="cloud-session"><div><strong>BRUTTI Google operations</strong><p>Shared content, planner records, Drive assets and Free Assist tools are available.</p></div><div><button className="button secondary" onClick={onRefreshIntegrations}>Refresh status</button><button className="button danger-subtle" onClick={onDisconnect}>Disconnect</button></div></div> : googleConfigured ? <form className="cloud-login-form" onSubmit={connect}><label>Internal workspace key<input type="password" required value={accessKey} onChange={(event) => setAccessKey(event.target.value)} autoComplete="off" placeholder="Enter key for this session"/></label><label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Remember this device</label><small className="settings-copy">Use this only on your own device. The workspace key will stay saved here until you disconnect.</small><button className="button primary" disabled={connecting}>{connecting ? 'Connecting…' : 'Connect Google workspace'}</button></form> : <p className="settings-copy">Deploy the included Apps Script and add its public deployment URL as VITE_APPS_SCRIPT_URL. No paid AI credential is required; Meta credentials remain optional in Apps Script Properties.</p>}
-      </section>
+      </section> : <section className="panel cloud-access-panel"><div className="panel-heading"><div><span className="eyebrow">DATA</span><h3>Sumber data</h3></div><span className="status-chip connected"><span/>GitHub</span></div><p className="settings-copy">Data Meta, produk, KOL dan Marketing Tools dibaca daripada repo GitHub Brutti (brutti-hub-data) dan dikemas kini secara automatik setiap 6 jam. Nota planner dan content disimpan dalam peranti ini sahaja.</p></section>}
         <div className="settings-grid">
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WORKFLOW RULES</span><h3>Review-first controls</h3></div></div><div className="setting-row"><div><strong>Human approval required</strong><p>Content must be approved before scheduling or publishing.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Block unsupported facts</strong><p>Flag prices, promotions, delivery dates and KPI without sources.</p></div><span className="switch on"><i/></span></div><div className="setting-row"><div><strong>Facebook-only operations</strong><p>Other platforms remain disabled until data and connections exist.</p></div><span className="switch on"><i/></span></div></section>
         <section className="panel"><div className="panel-heading"><div><span className="eyebrow">{workspaceActive ? 'GOOGLE DATA' : 'LOCAL DATA'}</span><h3>{workspaceActive ? 'Shared internal workspace' : 'Browser workspace'}</h3></div></div><p className="settings-copy">{workspaceActive ? 'Content and planner edits are stored in BRUTTI Google Sheets. Assets remain in the existing Google Drive structure.' : 'Until Apps Script is connected, content and planner edits stay in this browser only.'}</p>{!workspaceActive ? <button className="button danger" onClick={resetWorkspace}><Icon name="trash"/>Reset local demo data</button> : null}<div className="logo-pending"><div className="logo-mark brutti-logo-forced" data-brutti-static-logo="true" data-brutti-official-logo="true" style={{ padding: 0, overflow: 'hidden', background: '#fff' }}><img className="brutti-static-brand-logo" src={`${import.meta.env.BASE_URL}icons/brutti-official-logo.svg`} alt="BRUTTI" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /></div><div><strong>Drive-first assets</strong><p>Official logo and product files remain in their approved BRUTTI Drive folders.</p></div></div></section>
@@ -1498,6 +1512,8 @@ function App() {
   const [output, setOutput] = useState('')
   const [workspaceActive, setWorkspaceActive] = useState(false)
   const [integrations, setIntegrations] = useState({ appsScript:false, sheets:false, drive:false, notion:false, meta:false })
+  // Checked before the first save so a device that already has notes is never overwritten.
+  const [seedNeeded] = useState(() => (USE_GITHUB_DATA ? { plans: deviceListNeedsSeed('brutti-plans-v2', initialPlans), content: deviceListNeedsSeed('brutti-content-v2', initialContent) } : { plans: false, content: false }))
 
   const toast = useCallback((message) => {
     setToastMessage(message)
@@ -1506,6 +1522,16 @@ function App() {
   }, [])
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
+
+  // GitHub data: products for everyone; planner/content seeded once on an empty device.
+  useEffect(() => {
+    if (!USE_GITHUB_DATA) return undefined
+    let cancelled = false
+    loadGitHubProducts().then((list) => { if (!cancelled && list.length) setProductData((current) => (current === products ? list : current)) }).catch(() => { /* keep bundled product names */ })
+    if (seedNeeded.plans) loadGitHubSeed('plans').then((list) => { if (cancelled) return; markDeviceListSeeded('brutti-plans-v2'); if (list.length) setPlans((current) => (deviceListNeedsSeedNow(current, initialPlans) ? list : current)) }).catch(() => {})
+    if (seedNeeded.content) loadGitHubSeed('content').then((list) => { if (cancelled) return; markDeviceListSeeded('brutti-content-v2'); if (list.length) setContent((current) => (deviceListNeedsSeedNow(current, initialContent) ? list : current)) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [seedNeeded, setPlans, setContent])
 
   const refreshIntegrations = useCallback(async () => {
     if (!hasWorkspaceKey()) {
