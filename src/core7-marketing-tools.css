@@ -546,6 +546,16 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
   .settings-back {
     order: 2;
     align-self: start;
+    min-height: 40px;
+    padding: 8px 8px 8px 0;
+    gap: 6px;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .settings-back svg {
+    width: 22px;
+    height: 22px;
   }
 }
 
