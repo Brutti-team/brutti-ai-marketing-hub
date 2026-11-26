@@ -764,6 +764,8 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   )
 }
 
+// Success toasts after saving or deleting a planner note are hidden (Michelle, 26 Nov). Error toasts always show. Set true to bring them back.
+const SHOW_PLANNER_SAVE_TOAST = false
 // Old month grid is kept (hidden, not deleted). Set to true to bring it back instead of the modern calendar.
 const SHOW_CLASSIC_MONTH_GRID = false
 const MONTH_CELL_LIMIT = 3
@@ -1667,7 +1669,7 @@ function App() {
       if (workspaceActive) next = await saveGooglePlan(next)
       setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? next : item) : [...items, next])
       setActivePlan(null)
-      toast(workspaceActive ? 'Planner saved to BRUTTI DAILY CONTENT PLANNER.' : 'Planner updated locally.')
+      if (SHOW_PLANNER_SAVE_TOAST) toast(workspaceActive ? 'Planner saved to BRUTTI DAILY CONTENT PLANNER.' : 'Planner updated locally.')
       return true
     } catch (error) { toast(error.message); return false }
   }
@@ -1676,7 +1678,7 @@ function App() {
       if (workspaceActive) await deleteGooglePlan(id)
       setPlans((items) => items.filter((item) => item.id !== id))
       setActivePlan(null)
-      toast('Plan deleted.')
+      if (SHOW_PLANNER_SAVE_TOAST) toast('Plan deleted.')
     } catch (error) { toast(error.message) }
   }
   const saveContent = async (item) => {
