@@ -340,6 +340,19 @@ const PAIRS = [
   ["Synced posts could not be read.", "Post yang diselaraskan belum boleh dibaca."],
   ["No synced posts to search yet.", "Belum ada post yang diselaraskan untuk dicari."],
 
+  ['Mon', 'Isn'], ['Tue', 'Sel'], ['Wed', 'Rab'], ['Thu', 'Kha'], ['Fri', 'Jum'], ['Sat', 'Sab'], ['Sun', 'Ahd'],
+  ['Add note', 'Tambah nota'],
+  ['Edit note', 'Sunting nota'],
+  ['Save note', 'Simpan nota'],
+  ['Title', 'Tajuk'],
+  ['Date', 'Tarikh'],
+  ['Time (optional)', 'Masa (pilihan)'],
+  ['Type', 'Jenis'],
+  ['Notes (optional)', 'Nota (pilihan)'],
+  ['More options', 'Lebih banyak pilihan'],
+  ['more...', 'lagi...'],
+  ['No notes yet.', 'Belum ada nota.'],
+  ['Content calendar', 'Kalendar kandungan'],
 ]
 
 const BM = Object.fromEntries(PAIRS)

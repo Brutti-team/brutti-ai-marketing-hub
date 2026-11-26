@@ -27,6 +27,7 @@ import {
   confirmProductImageMatch,
   setWorkspaceKey,
 } from './lib/googleWorkspace'
+import PlannerMonthCalendar from './PlannerMonthCalendar'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
@@ -752,10 +753,12 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
   )
 }
 
+// Old month grid is kept (hidden, not deleted). Set to true to bring it back instead of the modern calendar.
+const SHOW_CLASSIC_MONTH_GRID = false
 const MONTH_CELL_LIMIT = 3
 const MONTH_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
+function CampaignPlanner({ plans, openPlan, newPlan, deletePlan, savePlan }) {
   const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()))
   const [expandedDay, setExpandedDay] = useState('')
   const today = localDateKey()
@@ -767,7 +770,8 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan }) {
     <div className="page planner-month-page">
       <PageHeader eyebrow="CONTENT CALENDAR" title="Campaign Planner" description="Monthly content calendar for daily BRUTTI marketing operations." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
       <div className="planner-summary dynamic-planner-summary"><div><strong className="month-title-big">{formatMonthTitle(monthAnchor)}</strong></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button><button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
-      <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section>
+      {!SHOW_CLASSIC_MONTH_GRID ? <PlannerMonthCalendar plans={plans} monthAnchor={monthAnchor} onSavePlan={savePlan} onDeletePlan={deletePlan} onMoreOptions={(plan) => (plan.id ? openPlan(plan) : newPlan(plan.date))}/> : null}
+      {SHOW_CLASSIC_MONTH_GRID ? <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section> : null}
       <div className="planner-bottom-grid"><section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">SMART CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea,index) => <article key={idea.title}><span className="campaign-index">{String(index+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(today, idea)}>Plan idea</button></article>)}</div></section><section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} total items</h3></div></div><div className="compact-plan-list">{[...plans].sort((a,b) => a.date.localeCompare(b.date)).map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{dateFromKey(plan.date).toLocaleDateString('en-MY',{day:'2-digit',month:'short'})}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section></div>
     </div>
   )
@@ -1648,7 +1652,8 @@ function App() {
       setPlans((items) => plan.id ? items.map((item) => item.id === plan.id ? next : item) : [...items, next])
       setActivePlan(null)
       toast(workspaceActive ? 'Planner saved to BRUTTI DAILY CONTENT PLANNER.' : 'Planner updated locally.')
-    } catch (error) { toast(error.message) }
+      return true
+    } catch (error) { toast(error.message); return false }
   }
   const deletePlan = async (id) => {
     try {
@@ -1700,7 +1705,7 @@ function App() {
   const pages = useMemo(() => ({
     dashboard: <Dashboard content={content} plans={plans} navigate={setPage} openContent={setActiveContent} newContent={newContent} newPlan={() => openNewPlan()} workspaceActive={workspaceActive} integrations={integrations} onUseIdea={usePerformanceIdea} toast={toast} />,
     studio: <ContentStudio content={content} deleteContent={deleteContent} generator={generator} setGenerator={setGenerator} output={output} setOutput={setOutput} generate={generate} saveDraft={saveGeneratedDraft} openContent={setActiveContent} workspaceActive={workspaceActive} toast={toast} productOptions={allProductData} />,
-    planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} />,
+    planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} savePlan={savePlan} />,
     'marketing-tools': <MarketingTools workspaceActive={workspaceActive} toast={toast} />,
     brand: <BrandLibrary />,
     products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} toast={toast} />,

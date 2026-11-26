@@ -27,6 +27,7 @@ import './content-studio-v2.css'
 import './low-risk-safe-ui.css'
 import './dark-mode-contrast-pass-3.css'
 import './campaign-planner-month.css'
+import './planner-calendar-modern.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
 const loadAnalyticsCopy = () => import('./AnalyticsCopyPolish.jsx')
