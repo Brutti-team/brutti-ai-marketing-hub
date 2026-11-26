@@ -1,5 +1,5 @@
 // Local Bahasa Malaysia captions for Content Studio. No network, no paid model.
-// Voice: Brutti Soul Master, checked against Brutti's own Sep–Oct 2026 posts.
+// Voice: Brutti Soul Master, plus src/data/brutti-caption-style.json (7,198 FB/IG captions, Oct 2020–Nov 2026).
 // Captions open on a short question, tease, or open loop, never on POV, and never on the bare product name.
 // A name that is stored in capitals is written in title case, such as Ayyash.
 // Dialect that actually shows up: ni, ngam, ja, kan, sudah, boleh, bikin, kasi,
@@ -12,6 +12,8 @@
 // Line 4 is the design line, from the design note, name descriptors, or colour.
 // Price, size and material stay out of those lines. When a field has a value,
 // a Product Details list follows the 4-line caption. Blank fields are omitted.
+
+import { bruttiCaptionStyle, styleHookOpeners } from './bruttiCaptionStyle.js'
 
 const HUMOUR = {
   wardrobe: 'Baju banyak, tapi bilik masih boleh nampak kemas. 😆',
@@ -644,5 +646,10 @@ export function generateBmCaptions({ product = null, topic = '', goal = 'highlig
     variation: index,
     structureId: `${selectedGoal}-${kind}-${index}`,
     usedFacts: colour ? [...details.used, 'colour'] : details.used,
+    styleVersion: bruttiCaptionStyle.meta.version,
   }
 }
+
+// Style hooks are available to the Gemini path and to any later variation banks.
+export const STYLE_HOOK_OPENERS = styleHookOpeners()
+
