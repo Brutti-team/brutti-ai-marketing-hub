@@ -1,10 +1,10 @@
+import { parsePlanObjective } from './plannerNote'
 // Calendar Planner reminders (Michelle, 26 Nov). Reads the same planner notes the calendar saves
 // (localStorage 'brutti-plans-v2', mirrored from the Daily Planner sheet when connected). The time of a note is
 // stored as a leading "@HH:MM " in its Objective text. No server push: reminders fire while the app is open
 // (or its PWA is alive in the background); see PR notes for the true background push options.
 const PLANS_KEY = 'brutti-plans-v2'
 const NOTIFIED_KEY = 'brutti-cal-notified-v1'
-const TIME_PREFIX = /^@(\d{2}):(\d{2})\s?/
 const DEFAULT_HOUR = 8 // notes with no time remind at 08:00 on the day
 const EVE_HOUR = 18 // and at 18:00 the evening before
 const WINDOW_MS = 12 * 3600 * 1000
@@ -21,9 +21,9 @@ function readPlans() {
 }
 
 function splitNote(plan) {
-  const raw = String(plan.objective || '')
-  const match = raw.match(TIME_PREFIX)
-  return { time: match ? `${match[1]}:${match[2]}` : '', hour: match ? Number(match[1]) : DEFAULT_HOUR, minute: match ? Number(match[2]) : 0, note: match ? raw.slice(match[0].length) : raw }
+  const { time, note } = parsePlanObjective(plan.objective)
+  const [h, m] = time ? time.split(':').map(Number) : [DEFAULT_HOUR, 0]
+  return { time, hour: h, minute: m, note }
 }
 
 // Bell items for today / tomorrow and anything whose time has passed in the last 24 hours.

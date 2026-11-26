@@ -217,9 +217,13 @@ function syncDashboardTiming() {
   setMarkup(card, timingCardMarkup(timing))
 }
 
+// Hidden (Michelle, 26 Nov): the "Recommended posting time" box inside the planner form. Set true to show it again.
+const SHOW_PLAN_MODAL_TIMING = false
+
 function syncPlanModalTiming() {
   const modal = document.querySelector('#root .plan-modal')
   if (!modal) return
+  if (!SHOW_PLAN_MODAL_TIMING) { modal.querySelector('.plan-modal-smart-timing')?.remove(); return }
   const dateInput = [...modal.querySelectorAll('label')]
     .find((label) => label.textContent?.trim().startsWith('Date'))
     ?.querySelector('input[type="date"]')

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { dateFromKey, localDateKey, monthGridKeys } from './lib/dateUtils'
+import { buildPlanObjective, checklistProgress, parsePlanObjective } from './lib/plannerNote'
+import PlannerChecklist from './PlannerChecklist'
 
 // Modern month calendar for the Calendar Planner (Michelle, 26 Nov). The Previous / Today / Next
 // buttons stay in App.jsx. Notes are normal planner plans: they are saved through the same savePlan()
@@ -20,37 +22,31 @@ const toneFor = (plan) => {
   return TONES[hash % TONES.length]
 }
 const clock = (time) => { if (!time) return ''; const [h, m] = time.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}` }
-const TIME_PREFIX = /^@(\d{2}:\d{2})\s?/
-
-function splitPlanNote(plan) {
-  const raw = String(plan?.objective || '')
-  const match = raw.match(TIME_PREFIX)
-  return { time: match ? match[1] : '', note: match ? raw.slice(match[0].length) : raw }
-}
-const joinPlanNote = (time, note) => `${time ? `@${time} ` : ''}${note.trim()}`.trim()
+const splitPlanNote = (plan) => parsePlanObjective(plan?.objective)
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches
 const dayLabel = (key) => dateFromKey(key).toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
 function Chip({ plan, onOpen }) {
-  const { time } = splitPlanNote(plan)
+  const { time, items } = splitPlanNote(plan)
+  const progress = checklistProgress(items)
   return (
     <button type="button" className={`pcal-chip tone-${toneFor(plan)}`} onClick={(event) => { event.stopPropagation(); onOpen(plan) }} title={`${time ? `${clock(time)} · ` : ''}${plan.title}`}>
       <strong data-user-content>{plan.title}</strong>
-      {time ? <small data-user-content>{clock(time)}</small> : null}
+      {time || progress.total ? <small className={progress.total ? 'has-progress' : ''}>{progress.total ? <span className={`pcal-progress ${progress.done === progress.total ? 'is-complete' : ''}`}>✓ {progress.done}/{progress.total}</span> : null}{time ? <span data-user-content>{clock(time)}</span> : null}</small> : null}
     </button>
   )
 }
 
 function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
   const start = splitPlanNote(initial)
-  const [form, setForm] = useState({ title: initial.title || '', date: initial.date, time: start.time, type: initial.type || 'Brand Awareness', note: start.note })
+  const [form, setForm] = useState({ title: initial.title || '', date: initial.date, time: start.time, type: initial.type || 'Brand Awareness', note: start.note, items: start.items })
   const [saving, setSaving] = useState(false)
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const submit = async (event) => {
     event.preventDefault()
     if (saving) return
     setSaving(true)
-    await onSave({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: joinPlanNote(form.time, form.note) })
+    await onSave({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })
     setSaving(false)
   }
   return (
@@ -61,18 +57,19 @@ function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
         <div className="two-fields"><label>Date<input required type="date" value={form.date} onChange={update('date')}/></label><label>Time<input type="time" value={form.time} onChange={update('time')}/></label></div>
         {SHOW_NOTE_TYPE ? <label>Type<select value={form.type} onChange={update('type')}>{[...new Set([...NOTE_TYPES, form.type])].map((type) => <option key={type} value={type}>{type}</option>)}</select></label> : null}
         <label>Notes<textarea rows="3" value={form.note} onChange={update('note')}/></label>
-        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}<button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: joinPlanNote(form.time, form.note) })}>More options</button></div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
+        <PlannerChecklist items={form.items} onChange={(items) => setForm((current) => ({ ...current, items }))}/>
+        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}<button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })}>More options</button></div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
       </form>
     </div>
   )
 }
 
-function DaySheet({ date, items, onClose, onOpen, onAdd }) {
+function DaySheet({ date, items, onClose, onOpen, onAdd, onToggle }) {
   return (
     <div className="modal-backdrop pcal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal plan-modal pcal-form pcal-daysheet">
         <div className="modal-head"><div><h2 data-user-content>{dayLabel(date)}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
-        <div className="pcal-daylist">{items.length ? items.map((plan) => <Chip key={plan.id} plan={plan} onOpen={onOpen}/>) : <p className="pcal-empty">No notes yet.</p>}</div>
+        <div className="pcal-daylist">{items.length ? items.map((plan) => <div className="pcal-dayitem" key={plan.id}><Chip plan={plan} onOpen={onOpen}/>{splitPlanNote(plan).items.map((item, index) => <label className={`pcal-daycheck ${item.done ? 'is-done' : ''}`} key={index}><input type="checkbox" checked={item.done} onChange={() => onToggle(plan, index)}/><span data-user-content>{item.text}</span></label>)}</div>) : <p className="pcal-empty">No notes yet.</p>}</div>
         <div className="modal-actions"><div/><div><button type="button" className="button secondary" onClick={onClose}>Close</button><button type="button" className="button primary" onClick={() => onAdd(date)}>Add note</button></div></div>
       </div>
     </div>
@@ -89,6 +86,7 @@ export default function PlannerMonthCalendar({ plans, monthAnchor, onSavePlan, o
   const addNote = (date) => { setDaySheet(''); setForm({ id: null, title: '', date, channel: 'Facebook', type: 'Brand Awareness', status: 'Idea', product: 'General / No Product', objective: '' }) }
   const openNote = (plan) => { setDaySheet(''); setForm(plan) }
   const save = async (plan) => { if ((await onSavePlan(plan)) !== false) setForm(null) }
+  const toggleItem = (plan, index) => { const parts = splitPlanNote(plan); onSavePlan({ ...plan, objective: buildPlanObjective({ ...parts, items: parts.items.map((item, at) => (at === index ? { ...item, done: !item.done } : item)) }) }) }
   const remove = async (id) => { await onDeletePlan(id); setForm(null) }
   const more = (plan) => { setForm(null); onMoreOptions(plan) }
   const cellClick = (date) => (isPhone() ? setDaySheet(date) : addNote(date))
@@ -114,7 +112,7 @@ export default function PlannerMonthCalendar({ plans, monthAnchor, onSavePlan, o
           })}
         </div>
       </section>
-      {daySheet ? <DaySheet date={daySheet} items={sorted(daySheet)} onClose={() => setDaySheet('')} onOpen={openNote} onAdd={addNote}/> : null}
+      {daySheet ? <DaySheet date={daySheet} items={sorted(daySheet)} onClose={() => setDaySheet('')} onOpen={openNote} onAdd={addNote} onToggle={toggleItem}/> : null}
       {form ? <NoteForm key={form.id || 'new'} initial={form} onClose={() => setForm(null)} onSave={save} onDelete={remove} onMore={more}/> : null}
     </>
   )

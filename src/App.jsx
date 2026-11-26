@@ -30,6 +30,8 @@ import {
   setWorkspaceKey,
 } from './lib/googleWorkspace'
 import PlannerMonthCalendar from './PlannerMonthCalendar'
+import PlannerChecklist from './PlannerChecklist'
+import { buildPlanObjective, parsePlanObjective } from './lib/plannerNote'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
@@ -1459,16 +1461,17 @@ const SHOW_PLAN_TYPE_CHANNEL_PRODUCT = false
 
 function PlanEditor({ item, onClose, onSave, onDelete, productOptions }) {
   const [draft, setDraft] = useState(item)
+  const [parts, setParts] = useState(() => parsePlanObjective(item.objective))
   const update = (field) => (event) => setDraft((current) => ({ ...current, [field]: event.target.value }))
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <form className="modal plan-modal" onSubmit={(event) => { event.preventDefault(); onSave(draft) }}>
+      <form className="modal plan-modal" onSubmit={(event) => { event.preventDefault(); onSave({ ...draft, objective: buildPlanObjective(parts) }) }}>
         <div className="modal-head"><div><span className="eyebrow">CAMPAIGN PLANNER</span><h2>{draft.id ? 'Edit content plan' : 'Add content plan'}</h2></div><button type="button" className="icon-button" onClick={onClose}><Icon name="close"/></button></div>
         <label>Plan title<input required value={draft.title} onChange={update('title')} placeholder="e.g. AHTAM XL product highlight"/></label>
         <div className="two-fields"><label>Date<input required type="date" value={draft.date} onChange={update('date')}/></label><label>Status<select value={draft.status} onChange={update('status')}><option>Idea</option><option>Draft</option><option>Review</option><option>Approved</option><option>Scheduled</option><option>Published</option></select></label></div>
         {SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <><div className="two-fields"><label>Content type<select value={draft.type} onChange={update('type')}><option>Brand Awareness</option><option>Product Highlight</option><option>Educational</option><option>Behind the Scenes</option><option>Customer Story</option></select></label><label>Channel<select value={draft.channel} onChange={update('channel')}><option>Facebook</option></select></label></div>
         <label>Product<select value={draft.product} onChange={update('product')}><option>General / No Product</option>{productOptions.map((product) => <option key={product.id || product.name} value={product.name}>{product.name}</option>)}</select></label></> : null}
-        {!SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <label>Notes<textarea rows="4" value={String(draft.objective || '').replace(/^@\d{2}:\d{2}\s?/, '')} onChange={(event) => { const time = String(draft.objective || '').match(/^@\d{2}:\d{2}\s?/)?.[0] || ''; const value = event.target.value; setDraft((current) => ({ ...current, objective: time + value })) }} data-user-content/></label> : null}
+        {!SHOW_PLAN_TYPE_CHANNEL_PRODUCT ? <><label>Notes<textarea rows="4" value={parts.note} onChange={(event) => setParts((current) => ({ ...current, note: event.target.value }))} data-user-content/></label><PlannerChecklist items={parts.items} onChange={(items) => setParts((current) => ({ ...current, items }))}/></> : null}
         <div className="modal-actions"><div>{draft.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(draft.id)}>Delete</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit">Save plan</button></div></div>
       </form>
     </div>
