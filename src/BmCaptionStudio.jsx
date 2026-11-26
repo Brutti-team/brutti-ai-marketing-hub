@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CAPTION_GOALS, generateBmCaptions, isBlankField, productDetails } from './lib/bmCaptionGenerator'
 import { buildGeminiCaptionRequest, finalizeGeminiCaptions } from './lib/bmGeminiCaption'
 import { callMarketingApi } from './lib/googleWorkspace'
@@ -22,6 +22,11 @@ const SHOW_STUDIO_PRODUCT_HINT = false
 // Product details checklist under Note (Michelle, 26 Nov). Rows are editable; nothing is prefilled except the labels.
 const SHOW_STUDIO_PRODUCT_DETAILS = true
 const DEFAULT_DETAIL_ROWS = ['Dimensions', 'Materials & Finishing', 'Price']
+// The prefilled row names follow the App language setting. The text sent to the caption generator always uses the English names.
+const DETAIL_ROW_LABELS_BM = { Dimensions: 'Dimensi', 'Materials & Finishing': 'Bahan & Kemasan', Price: 'Harga' }
+const uiLanguage = () => { try { return window.localStorage.getItem('brutti-ui-language-v1') === 'en' ? 'en' : 'bm' } catch { return 'bm' } }
+const defaultRowLabel = (label, language = uiLanguage()) => (language === 'bm' ? DETAIL_ROW_LABELS_BM[label] || label : label)
+const canonicalRowLabel = (label) => Object.keys(DETAIL_ROW_LABELS_BM).find((key) => DETAIL_ROW_LABELS_BM[key] === label) || label
 const EMPTY_FACT = "not filled, won't be included"
 
 const GOAL_LABELS = {
@@ -122,7 +127,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [topic, setTopic] = useState('')
   const [goal, setGoal] = useState('highlight')
   const [note, setNote] = useState('')
-  const [detailRows, setDetailRows] = useState(() => DEFAULT_DETAIL_ROWS.map((label) => ({ label, value: '', done: false })))
+  const [detailRows, setDetailRows] = useState(() => DEFAULT_DETAIL_ROWS.map((label) => ({ label: defaultRowLabel(label), value: '', done: false })))
   const [showTikTok, setShowTikTok] = useState(false)
   const [variation, setVariation] = useState(0)
   const [result, setResult] = useState(null)
@@ -138,11 +143,24 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const needsProduct = !SHOW_STUDIO_TOPIC_FIELD
   const canGenerate = needsProduct ? Boolean(product || customName) : Boolean(product || customName || topic.trim())
 
+  // Switching the App language renames only the prefilled rows that were not edited.
+  useEffect(() => {
+    const onLanguageChange = (event) => {
+      const language = event.detail?.language === 'en' ? 'en' : 'bm'
+      setDetailRows((rows) => rows.map((row) => {
+        const base = canonicalRowLabel(row.label)
+        return DEFAULT_DETAIL_ROWS.includes(base) ? { ...row, label: defaultRowLabel(base, language) } : row
+      }))
+    }
+    window.addEventListener('brutti:languagechange', onLanguageChange)
+    return () => window.removeEventListener('brutti:languagechange', onLanguageChange)
+  }, [])
+
   const clearResult = () => setResult(null)
   const setRow = (index, patch) => { setDetailRows((rows) => rows.map((row, at) => (at === index ? { ...row, ...patch } : row))); clearResult() }
   // Checked rows with a value are added to the note sent to the generator: "Product details: Dimensions: ..., Price: ...".
   const detailText = SHOW_STUDIO_PRODUCT_DETAILS
-    ? detailRows.filter((row) => row.done && clean(row.value)).map((row) => `${clean(row.label) || 'Detail'}: ${clean(row.value)}`).join(', ')
+    ? detailRows.filter((row) => row.done && clean(row.value)).map((row) => `${canonicalRowLabel(clean(row.label)) || 'Detail'}: ${clean(row.value)}`).join(', ')
     : ''
   const noteForCaption = detailText ? [clean(note), `Product details: ${detailText}`].filter(Boolean).join('. ') : note
 

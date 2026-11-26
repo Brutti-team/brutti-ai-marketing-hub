@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { EXTRA_PAIRS, TEMPLATES, ATTRIBUTE_TEMPLATES, MONTH_PAIRS } from './lib/uiTranslations.js'
 
 const STORAGE_KEY = 'brutti-ui-language-v1'
 const LANGUAGE_EVENT = 'brutti:languagechange'
@@ -371,8 +372,37 @@ const PAIRS = [
   ['Calendar for marketing work: events, important posts and reminders.', 'Kalendar untuk kerja pemasaran: acara, post penting dan reminder.'],
 ]
 
-const BM = Object.fromEntries(PAIRS)
-const EN = Object.fromEntries(PAIRS.map(([english, malay]) => [malay, english]))
+// Standard Bahasa Malaysia wording for the older entries above (they still carried English words).
+const BM_FIXES = [
+  ['posts?', 'siaran'], ['posting', 'siaran'], ['captions?', 'kapsyen'], ['reminders?', 'peringatan'],
+  ['workspace', 'ruang kerja'], ['app', 'aplikasi'], ['team', 'pasukan'], ['insights?', 'wawasan'],
+  ['snapshot', 'tangkapan data'], ['backend', 'bahagian belakang'], ['notifikasi', 'pemberitahuan'],
+  ['pop-up', 'timbul'], ['tag', 'teg'], ['Calendar Planner', 'Perancang Kalendar'], ['Action Center', 'Pusat Tindakan'],
+].map(([word, replacement]) => [new RegExp(`(?<![\\p{L}-])(${word})(?![\\p{L}-])`, 'giu'), replacement])
+function fixBm(text) {
+  return BM_FIXES.reduce((value, [pattern, replacement]) => value.replace(pattern, (match) => (
+    match[0] !== match[0].toLowerCase() ? replacement[0].toUpperCase() + replacement.slice(1) : replacement
+  )), text)
+}
+
+const EN_TO_BM = Object.create(null)
+const BM_TO_EN = Object.create(null)
+const BRAND_CASE = /BRUTTI/g
+function register(english, malay, aliases = []) {
+  // BrandCasingEnhancer rewrites BRUTTI to Brutti in the page, so both spellings must match.
+  const spellings = (text) => (BRAND_CASE.test(text) ? [text, text.replace(BRAND_CASE, 'Brutti')] : [text])
+  BRAND_CASE.lastIndex = 0
+  spellings(english).forEach((key) => { EN_TO_BM[key] = malay })
+  spellings(malay).forEach((key) => { BM_TO_EN[key] = english })
+  aliases.forEach((alias) => { spellings(alias).forEach((key) => { EN_TO_BM[key] = malay; BM_TO_EN[key] = english }) })
+}
+PAIRS.forEach(([english, malay]) => {
+  const fixed = fixBm(malay)
+  register(english, fixed, fixed === malay ? [] : [malay])
+})
+MONTH_PAIRS.forEach(([english, malay]) => register(english, malay))
+EXTRA_PAIRS.forEach(([english, malay, ...aliases]) => register(english, malay, aliases))
+
 const BM_NORMALIZE = {
   'Fakta disahkan / arah kandungan': 'Fakta disahkan / arah kandungan',
   'Simpan idea yang belum ada tarikh. Ia tidak masuk Calendar sehingga kamu sendiri decide bila mahu guna.': 'Simpan idea tanpa tarikh. Idea tidak masuk dalam kalendar sehingga anda memilih bila mahu menggunakannya.',
@@ -380,6 +410,65 @@ const BM_NORMALIZE = {
   'Data Meta terbaru telah diselaraskan; belum ada post ranking untuk hari ini.': 'Data Meta terbaru telah diselaraskan; belum ada siaran bertaraf untuk hari ini.',
   'Belum ada post-level metrics yang boleh dijadikan rujukan harian.': 'Belum ada metrik per siaran yang boleh dijadikan rujukan harian.',
   'Pilih satu bahasa untuk paparan Brutti AI. Nama produk dan kandungan yang kamu tulis tidak akan diubah.': 'Pilih satu bahasa untuk paparan Brutti AI. Nama produk dan kandungan yang anda tulis tidak akan diubah.',
+}
+
+// Templates: text with {1}, {2} for values (counts, dates, names) that are kept as they are.
+const compileTemplate = (pattern) => {
+  const order = []
+  const source = pattern.split(/(\{\d\})/).map((part) => {
+    const slot = part.match(/^\{(\d)\}$/)
+    if (slot) { order.push(Number(slot[1])); return '(.+?)' }
+    return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }).join('')
+  return { regex: new RegExp(`^${source}$`), order }
+}
+const fillTemplate = (pattern, match, order) => {
+  const values = {}
+  order.forEach((slot, index) => { values[slot] = match[index + 1] })
+  return pattern.replace(/\{(\d)\}/g, (_, slot) => values[slot] ?? '')
+}
+const TO_BM_TEMPLATES = []
+const TO_EN_TEMPLATES = []
+const registerTemplate = ([english, malay, ...aliases], attributesOnly) => {
+  TO_BM_TEMPLATES.push({ ...compileTemplate(english), output: malay, attributesOnly })
+  TO_EN_TEMPLATES.push({ ...compileTemplate(malay), output: english, attributesOnly })
+  aliases.forEach((alias) => {
+    TO_BM_TEMPLATES.push({ ...compileTemplate(alias), output: malay, attributesOnly })
+    TO_EN_TEMPLATES.push({ ...compileTemplate(alias), output: english, attributesOnly })
+  })
+}
+TEMPLATES.forEach((entry) => registerTemplate(entry, false))
+ATTRIBUTE_TEMPLATES.forEach((entry) => registerTemplate(entry, true))
+
+// "November 2026" / "Nov 2025" style month labels.
+const MONTH_LABEL = /^(\p{L}+) (\d{4})$/u
+function translateMonthLabel(core, language) {
+  const match = core.match(MONTH_LABEL)
+  if (!match) return null
+  const dictionary = language === 'bm' ? EN_TO_BM : BM_TO_EN
+  const month = MONTH_PAIRS.some(([english, malay]) => (language === 'bm' ? english : malay) === match[1]) ? dictionary[match[1]] : null
+  return month && month !== match[1] ? `${month} ${match[2]}` : null
+}
+
+const translationCache = new Map()
+function lookup(core, language, isAttribute) {
+  const key = `${language}|${isAttribute ? 'a' : 't'}|${core}`
+  if (translationCache.has(key)) return translationCache.get(key)
+  const dictionary = language === 'bm' ? EN_TO_BM : BM_TO_EN
+  let result = Object.prototype.hasOwnProperty.call(dictionary, core) ? dictionary[core] : null
+  if (result === null && language === 'bm' && BM_NORMALIZE[core]) result = BM_NORMALIZE[core]
+  if (result === null) result = translateMonthLabel(core, language)
+  if (result === null) {
+    const templates = language === 'bm' ? TO_BM_TEMPLATES : TO_EN_TEMPLATES
+    for (const template of templates) {
+      if (template.attributesOnly && !isAttribute) continue
+      const match = core.match(template.regex)
+      if (match) { result = fillTemplate(template.output, match, template.order); break }
+    }
+  }
+  if (translationCache.size > 5000) translationCache.clear()
+  translationCache.set(key, result)
+  return result
 }
 
 function readLanguage() {
@@ -396,37 +485,54 @@ function applyLanguage(language) {
   return next
 }
 
-function replaceText(value, dictionary, language) {
-  const leading = value.match(/^\s*/)?.[0] || ''
-  const trailing = value.match(/\s*$/)?.[0] || ''
+function translateValue(value, language, isAttribute) {
   const original = value.trim()
-  const core = language === 'bm' ? (BM_NORMALIZE[original] || original) : original
-  const translated = Object.prototype.hasOwnProperty.call(dictionary, core) ? dictionary[core] : core
+  if (!original) return value
+  const translated = lookup(original, language, isAttribute)
   // Do not touch unknown text nodes (especially whitespace): rewriting those re-triggers
   // the observer indefinitely and can freeze the browser.
-  if (translated === original) return value
+  if (translated === null || translated === original) return value
+  const leading = value.match(/^\s*/)?.[0] || ''
+  const trailing = value.match(/\s*$/)?.[0] || ''
   return leading + translated + trailing
 }
 
+// Remember the text the page originally had, so switching language always starts from the original wording.
+const textState = new WeakMap()
+const attributeState = new WeakMap()
+const SKIP = 'script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content], [data-lock-keep]'
+
 function translateDocument(language) {
-  const dictionary = language === 'bm' ? BM : EN
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
   const nodes = []
   while (walker.nextNode()) nodes.push(walker.currentNode)
   nodes.forEach((node) => {
     const parent = node.parentElement
-    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content], .bm-caption-studio, [data-lock-keep]')) return
-    const next = replaceText(node.nodeValue || '', dictionary, language)
-    if (next !== node.nodeValue) node.nodeValue = next
+    if (!parent || parent.closest(SKIP)) return
+    const current = node.nodeValue || ''
+    if (!current.trim()) return
+    const record = textState.get(node)
+    const source = record && record.shown === current ? record.source : current
+    const next = translateValue(source, language, false)
+    if (next !== source && parent.tagName === 'OPTION' && !parent.hasAttribute('value')) parent.setAttribute('value', source.trim())
+    if (next !== current) node.nodeValue = next
+    if (next !== source) textState.set(node, { source, shown: next })
+    else textState.delete(node)
   })
   document.querySelectorAll('[placeholder], [aria-label], [title]').forEach((element) => {
-    if (element.closest('.app-language-control, .bm-caption-studio, [data-lock-keep]')) return
+    if (element.closest('.app-language-control, [data-lock-keep]')) return
+    const records = attributeState.get(element) || {}
     ;['placeholder', 'aria-label', 'title'].forEach((attribute) => {
-      const value = element.getAttribute(attribute)
-      if (!value) return
-      const next = replaceText(value, dictionary, language)
-      if (next !== value) element.setAttribute(attribute, next)
+      const current = element.getAttribute(attribute)
+      if (!current) return
+      const record = records[attribute]
+      const source = record && record.shown === current ? record.source : current
+      const next = translateValue(source, language, true)
+      if (next !== current) element.setAttribute(attribute, next)
+      if (next !== source) records[attribute] = { source, shown: next }
+      else delete records[attribute]
     })
+    attributeState.set(element, records)
   })
 }
 
