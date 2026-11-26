@@ -65,9 +65,11 @@ const SHOW_NAV_ANALYTICS = false
 // Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_SIDEBAR_TAGLINE = false
 
-// Pop-up drawer menu and the bottom-bar Settings (ex-More) button that opens it.
-// Hidden for now (Michelle, 25 Nov 2026). Code kept so they can be turned back on.
+// Pop-up drawer menu. Hidden for now (Michelle, 25 Nov 2026). Code kept so it can be turned back on.
 const SHOW_NAV_DRAWER = false
+
+// Bottom-bar Settings button (gear). Opens the Settings page directly, without the drawer.
+const SHOW_SETTINGS_NAV_BUTTON = true
 
 // Content Studio chrome. Hidden for now (Michelle, 25 Nov 2026).
 const SHOW_STUDIO_EYEBROW = false
@@ -232,12 +234,11 @@ const mobileNavigation = [
   { id: 'products', label: 'Product Library', icon: 'box' },
 ]
 
-function MobileBottomNavigation({ page, setPage, openMore }) {
+function MobileBottomNavigation({ page, setPage }) {
   const navigate = (id) => {
     setPage(id)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const primaryPage = mobileNavigation.some((item) => item.id === page)
   return (
     <nav className="mobile-bottom-navigation" aria-label="Mobile navigation">
       {mobileNavigation.map((item) => (
@@ -245,8 +246,8 @@ function MobileBottomNavigation({ page, setPage, openMore }) {
           <Icon name={item.icon}/><small>{item.label}</small>
         </button>
       ))}
-      {SHOW_NAV_DRAWER ? (
-      <button className={!primaryPage ? 'active' : ''} onClick={openMore} aria-label="Settings">
+      {SHOW_SETTINGS_NAV_BUTTON ? (
+      <button className={page === 'settings' ? 'active' : ''} onClick={() => navigate('settings')} aria-label="Settings" aria-current={page === 'settings' ? 'page' : undefined}>
         <Icon name="settings"/><small>Settings</small>
       </button>
       ) : null}
@@ -1705,7 +1706,7 @@ function App() {
     <div className="app-shell">
       {SHOW_NAV_DRAWER ? <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} workspaceActive={workspaceActive} counts={{content:content.length,products:allProductData.length}}/> : null}
       <div className="app-main"><Topbar setOpen={setSidebarOpen} workspaceActive={workspaceActive}/><main>{pages[page]}</main>{SHOW_APP_FOOTER ? <footer><span>BRUTTI AI Marketing Hub</span><span>{workspaceActive ? 'Google workspace · Free Assist · Human-approved publishing' : 'Free Assist local mode · Connect Google to save shared records'}</span></footer> : null}</div>
-      <MobileBottomNavigation page={page} setPage={setPage} openMore={() => setSidebarOpen(true)}/>
+      <MobileBottomNavigation page={page} setPage={setPage}/>
       {activeContent ? <ContentEditor item={activeContent} onClose={() => setActiveContent(null)} onSave={saveContent} toast={toast} workspaceActive={workspaceActive}/> : null}
       {activePlan ? <PlanEditor item={activePlan} onClose={() => setActivePlan(null)} onSave={savePlan} onDelete={deletePlan} productOptions={allProductData}/> : null}
       <div className={`toast ${toastMessage ? 'show' : ''}`}><span className="pulse-dot"/>{toastMessage}</div>

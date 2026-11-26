@@ -351,7 +351,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
         </article>
 
         <article className="panel mmd-card">
-          <div className="mmd-card-head"><div><span className="eyebrow">PECAHAN INTERAKSI</span></div></div>
+          <div className="mmd-card-head"><div><span className="eyebrow mmd-eyebrow-plain">Pecahan Interaksi</span></div></div>
           <div className="mmd-hbars">{view.breakdown.map((b) => <div key={b.name}><span>{b.name}</span><i><b style={{ width: `${Math.round(((b.value || 0) / maxBreak) * 100)}%` }} /></i><strong>{fmt(b.value)}</strong></div>)}</div>
         </article>
 
