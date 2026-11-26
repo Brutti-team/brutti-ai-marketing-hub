@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { dateFromKey, localDateKey, monthGridKeys } from './lib/dateUtils'
+import { formatDisplayDateFromKey, formatDisplayTimeFromHm, formatDisplayWeekdayDate } from './lib/formatDate'
 import { buildPlanObjective, checklistProgress, parsePlanObjective } from './lib/plannerNote'
 import PlannerChecklist from './PlannerChecklist'
 
@@ -21,10 +22,10 @@ const toneFor = (plan) => {
   for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
   return TONES[hash % TONES.length]
 }
-const clock = (time) => { if (!time) return ''; const [h, m] = time.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}` }
+const clock = (time) => formatDisplayTimeFromHm(time)
 const splitPlanNote = (plan) => parsePlanObjective(plan?.objective)
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches
-const dayLabel = (key) => dateFromKey(key).toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+const dayLabel = (key) => formatDisplayWeekdayDate(key)
 
 function Chip({ plan, onOpen }) {
   const { time, items } = splitPlanNote(plan)
@@ -102,7 +103,7 @@ export default function PlannerMonthCalendar({ plans, monthAnchor, onSavePlan, o
             const outside = !date.startsWith(monthPrefix)
             return (
               <div key={date} className={`pcal-cell ${outside ? 'is-outside' : ''} ${date === today ? 'is-today' : ''}`} onClick={() => cellClick(date)}>
-                <div className="pcal-cell-head"><span className="pcal-num">{dateFromKey(date).getDate()}</span><button type="button" className="pcal-plus" title="Add note" aria-label={`Add note ${date}`} onClick={(event) => { event.stopPropagation(); addNote(date) }}>+</button></div>
+                <div className="pcal-cell-head"><span className="pcal-num">{dateFromKey(date).getDate()}</span><button type="button" className="pcal-plus" title="Add note" aria-label={`Add note ${formatDisplayDateFromKey(date)}`} onClick={(event) => { event.stopPropagation(); addNote(date) }}>+</button></div>
                 <div className="pcal-chips">{shown.map((plan) => <Chip key={plan.id} plan={plan} onOpen={openNote}/>)}
                   {extra > 0 ? <button type="button" className="pcal-more" onClick={(event) => { event.stopPropagation(); setDaySheet(date) }}>{extra} more...</button> : null}
                 </div>

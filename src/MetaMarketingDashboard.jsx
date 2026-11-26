@@ -1,3 +1,4 @@
+import { formatDisplayDate, formatDisplayDateTime } from './lib/formatDate'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 // Meta marketing dashboard (read-only). Uses only the post-level fields the
@@ -58,12 +59,8 @@ function contentType(format) {
   return 'Post'
 }
 function startOfDay(time) { const d = new Date(time); d.setHours(0, 0, 0, 0); return d.getTime() }
-function shortDate(time) { return new Date(time).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' }) }
-function postDate(value) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
+function shortDate(time) { return formatDisplayDate(time) }
+function postDate(value) { return formatDisplayDateTime(value) }
 
 function metaDashboardPosts(snapshot) {
   const raw = [
@@ -321,7 +318,7 @@ export default function MetaMarketingDashboard({ snapshot, syncing, onRefresh })
   const topPosts = [...view.current].sort((a, b) => (b[sortKey] ?? -1) - (a[sortKey] ?? -1)).slice(0, 8)
   const maxBreak = Math.max(1, ...view.breakdown.map((b) => b.value || 0))
   const periodLabel = monthKey ? monthLabel(monthKey) : PERIODS.find((p) => p.days === days)?.label
-  const lastSync = snapshot?.sourceUpdatedAt ? new Date(snapshot.sourceUpdatedAt).toLocaleString('ms-MY') : 'Belum ada'
+  const lastSync = snapshot?.sourceUpdatedAt ? formatDisplayDateTime(snapshot.sourceUpdatedAt) : 'Belum ada'
 
   if (!allPosts.length) {
     return (

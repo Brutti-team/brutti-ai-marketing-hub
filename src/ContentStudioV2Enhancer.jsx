@@ -7,6 +7,7 @@ import {
   contentStudioEngineMeta,
 } from './lib/contentStudioEngineV2'
 import { polishContentStudioCaption } from './lib/contentStudioCopyPolish'
+import { formatDisplayTime, formatDisplayWeekdayDate } from './lib/formatDate'
 
 const WEEKDAY_TIMING = {
   0: { label: 'Sunday', slots: [10, 21, 18, 11, 16, 19], confidence: 'Low' },
@@ -102,9 +103,9 @@ function nextPostingTime() {
     if (!candidates.length) continue
     const selected = candidates[0]
     const end = new Date(selected.slot.getTime() + 60 * 60 * 1000)
-    const dateLabel = offset === 0 ? 'Hari ini' : offset === 1 ? 'Esok' : selected.slot.toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'short' })
-    const time = selected.slot.toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit', hour12: true })
-    const endTime = end.toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit', hour12: true })
+    const dateLabel = offset === 0 ? 'Hari ini' : offset === 1 ? 'Esok' : formatDisplayWeekdayDate(selected.slot)
+    const time = formatDisplayTime(selected.slot)
+    const endTime = formatDisplayTime(end)
     return {
       label: `${dateLabel} · ${time}`,
       detail: `${stats.label} historical activity window ${time}–${endTime} · ${stats.confidence} confidence`,

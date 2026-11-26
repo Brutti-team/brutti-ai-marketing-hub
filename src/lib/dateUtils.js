@@ -1,3 +1,5 @@
+import { formatDisplayDateFromKey, formatDisplayDateTime } from './formatDate'
+
 export function localDateKey(value = new Date()) {
   const date = value instanceof Date ? value : new Date(value)
   const year = date.getFullYear()
@@ -33,16 +35,13 @@ export function weekKeys(anchor = new Date()) {
 
 export function formatDateRange(keys) {
   if (!keys?.length) return ''
-  const first = dateFromKey(keys[0])
-  const last = dateFromKey(keys[keys.length - 1])
-  const firstText = first.toLocaleDateString('en-MY', { day: '2-digit', month: first.getMonth() === last.getMonth() ? undefined : 'short' })
-  const lastText = last.toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' })
-  return `${firstText}–${lastText}`
+  const firstText = formatDisplayDateFromKey(keys[0])
+  const lastText = formatDisplayDateFromKey(keys[keys.length - 1])
+  return firstText === lastText ? firstText : `${firstText} – ${lastText}`
 }
 
 export function formatTimestamp(value = new Date()) {
-  const date = value instanceof Date ? value : new Date(value)
-  return date.toLocaleString('en-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+  return formatDisplayDateTime(value)
 }
 
 export function greetingForNow(value = new Date()) {
