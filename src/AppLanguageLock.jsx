@@ -194,6 +194,7 @@ const PAIRS = [
   ['Verified post URL + reach + views + engagements', 'URL siaran disahkan + capaian + tontonan + penglibatan'],
   ['Read-only Google Sheet data. The website caches one verified snapshot per day, so opening Analytics does not create extra Meta API calls.', 'Data Google Sheet baca sahaja. Laman ini menyimpan satu snapshot disahkan setiap hari, jadi membuka Analitik tidak membuat panggilan Meta API tambahan.'],
   ['Settings', 'Tetapan'],
+  ['Marketing Tools', 'Alat Pemasaran'],
   ['Back', 'Kembali'],
   ['Choose a setting to review or update.', 'Pilih satu tetapan untuk semak atau kemaskini.'],
   ['Display', 'Paparan'],
