@@ -22,8 +22,8 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; min-height: 100%; background: var(--ivory); }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--ivory); }
+html { scroll-behavior: auto; overflow-anchor: none; min-height: 100%; background: var(--ivory); }
+body { margin: 0; min-width: 320px; min-height: 100vh; overflow-anchor: none; background: var(--ivory); }
 #app-brightness-veil { position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; background: #fff; opacity: 0; }
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
