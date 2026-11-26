@@ -1,0 +1,360 @@
+/* Colour-only dark theme (BD-30): Deelance-inspired navy + neon green.
+   Layout, fonts, sizes and behaviour are unchanged. Light mode is unchanged. */
+html[data-theme='dark'] {
+  --ng-bg: #0F1420;
+  --ng-card: #1A2030;
+  --ng-card-2: #21283A;
+  --ng-accent: #22D36B;
+  --ng-accent-hover: #2EE67A;
+  --ng-ink: #0B1220;
+  --ng-text: #FFFFFF;
+  --ng-muted: #9AA3B2;
+  --ng-line: #2A3348;
+
+  --ivory: #0F1420;
+  --cream: #0F1420;
+  --paper: #1A2030;
+  --charcoal: #FFFFFF;
+  --muted: #9AA3B2;
+  --sage: #9AA3B2;
+  --line: #2A3348;
+  --line-dark: rgba(255, 255, 255, 0.12);
+  --forest: #E8F5EE;
+  --forest-2: #C5E6D3;
+  --forest-3: #9AA3B2;
+  --terracotta: #22D36B;
+  --tan: #4ADE80;
+  --brown: #9AA3B2;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 16px 34px rgba(0, 0, 0, 0.32);
+
+  --dm-bg: #0F1420;
+  --dm-surface: #1A2030;
+  --dm-surface-2: #21283A;
+  --dm-surface-3: #262E42;
+  --dm-border: #2A3348;
+  --dm-text: #FFFFFF;
+  --dm-text-2: #C5CAD3;
+  --dm-text-3: #9AA3B2;
+  --dm-mint: #22D36B;
+  --dm-sage: #9AA3B2;
+  --dm-cream: #FFFFFF;
+  --dm-peach: #22D36B;
+  --dm-gold: #22D36B;
+  --dm-accent: #22D36B;
+  --dm-accent-strong: #4ADE80;
+  --dm-accent-soft: #9AA3B2;
+  --dm-cream-bright: #FFFFFF;
+  --dm-grey-bright: #C5CAD3;
+  --dm-grey-mid: #9AA3B2;
+  --dm-box: #1A2030;
+  --dm-box-2: #21283A;
+  --dm-box-3: #262E42;
+  --dm-border-strong: #3A4560;
+  --dm-border-soft: #2A3348;
+  --dm3-input: #141A28;
+  --dm3-surface: #1A2030;
+  --dm3-surface-2: #21283A;
+  --dm3-surface-3: #262E42;
+  --dm3-border: #2A3348;
+  --dm3-border-strong: #3A4560;
+  --dm3-text: #FFFFFF;
+  --dm3-text-2: #C5CAD3;
+  --dm3-text-3: #9AA3B2;
+  --dm3-mint: #22D36B;
+  --dm3-mint-strong: #4ADE80;
+  --ui-bg: #0F1420;
+  --ui-surface: #1A2030;
+  --ui-surface-soft: #21283A;
+  --ui-text: #FFFFFF;
+  --ui-muted: #9AA3B2;
+  --ui-line: #2A3348;
+  --ui-primary: #22D36B;
+  --ui-primary-soft: #163328;
+  --ui-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+  color-scheme: dark;
+}
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] .app-shell,
+html[data-theme='dark'] .app-main,
+html[data-theme='dark'] main,
+html[data-theme='dark'] .page,
+html[data-theme='dark'] .mmd-shell {
+  background: #0F1420;
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .topbar,
+html[data-theme='dark'] .sidebar {
+  background: #0F1420;
+  border-color: #2A3348;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .panel,
+html[data-theme='dark'] .stat-card,
+html[data-theme='dark'] .product-card,
+html[data-theme='dark'] .asset-grid article,
+html[data-theme='dark'] .prompt-grid article,
+html[data-theme='dark'] .core7-brand-grid article,
+html[data-theme='dark'] .core7-prompt-grid article,
+html[data-theme='dark'] .compact-plan-list > div,
+html[data-theme='dark'] .phase2-card,
+html[data-theme='dark'] .phase2-rules span,
+html[data-theme='dark'] .phase2-mix div,
+html[data-theme='dark'] .phase3-criteria span,
+html[data-theme='dark'] .phase3-group,
+html[data-theme='dark'] .core7-prompt-groups > section,
+html[data-theme='dark'] .core7-drive-required,
+html[data-theme='dark'] .modal,
+html[data-theme='dark'] .mmd-card,
+html[data-theme='dark'] .settings-list-row,
+html[data-theme='dark'] .bm-caption-form,
+html[data-theme='dark'] .plan-modal,
+html[data-theme='dark'] .pcal-shell,
+html[data-theme='dark'] .mt-card,
+html[data-theme='dark'] .kol-card {
+  background: #1A2030;
+  border-color: #2A3348;
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .core7-prompt-groups > section,
+html[data-theme='dark'] .core7-brand-grid article,
+html[data-theme='dark'] .core7-drive-required {
+  background: #1A2030;
+}
+
+html[data-theme='dark'] h1,
+html[data-theme='dark'] h2,
+html[data-theme='dark'] h3,
+html[data-theme='dark'] h4,
+html[data-theme='dark'] .page-header h1,
+html[data-theme='dark'] .mmd-shell .page-header h1,
+html[data-theme='dark'] .mmd-head h1,
+html[data-theme='dark'] .mmd-head h3,
+html[data-theme='dark'] .mmd-card-head h4,
+html[data-theme='dark'] .product-card-body h3 {
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] p,
+html[data-theme='dark'] small,
+html[data-theme='dark'] .page-header p,
+html[data-theme='dark'] .page p,
+html[data-theme='dark'] .page li,
+html[data-theme='dark'] .settings-copy,
+html[data-theme='dark'] .eyebrow,
+html[data-theme='dark'] .topbar-date,
+html[data-theme='dark'] .mmd-head small,
+html[data-theme='dark'] .mmd-note,
+html[data-theme='dark'] .mmd-legend,
+html[data-theme='dark'] .mmd-chip,
+html[data-theme='dark'] .mmd-hbars small,
+html[data-theme='dark'] .mmd-post-main small,
+html[data-theme='dark'] .mmd-pending li span,
+html[data-theme='dark'] .mmd-post-head,
+html[data-theme='dark'] .mmd-donut li small {
+  color: #9AA3B2;
+}
+
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] .search-box,
+html[data-theme='dark'] .product-toolbar,
+html[data-theme='dark'] .library-toolbar,
+html[data-theme='dark'] .tab-bar,
+html[data-theme='dark'] .smart-rewrite-panel,
+html[data-theme='dark'] .selected-asset,
+html[data-theme='dark'] .mmd-seg,
+html[data-theme='dark'] .mmd-select,
+html[data-theme='dark'] .mmd-refresh {
+  background: #141A28;
+  color: #FFFFFF;
+  border-color: #2A3348;
+}
+
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: #7B8494;
+}
+
+html[data-theme='dark'] .button.primary,
+html[data-theme='dark'] .mmd-seg button.active {
+  background: #22D36B;
+  color: #0B1220;
+  border-color: #22D36B;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .button.primary:hover {
+  background: #2EE67A;
+  color: #0B1220;
+}
+
+html[data-theme='dark'] .button.secondary,
+html[data-theme='dark'] .source-count,
+html[data-theme='dark'] .status-chip,
+html[data-theme='dark'] .status-pill,
+html[data-theme='dark'] .core7-inline-status,
+html[data-theme='dark'] .phase2-status,
+html[data-theme='dark'] .phase3-status,
+html[data-theme='dark'] .mmd-seg button,
+html[data-theme='dark'] .mmd-chip {
+  background: #21283A;
+  border-color: #3A4560;
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .text-button,
+html[data-theme='dark'] .core7-prompt-group-head strong,
+html[data-theme='dark'] a {
+  color: #22D36B;
+}
+
+html[data-theme='dark'] .mobile-bottom-navigation {
+  background: #1A2030;
+  border-color: #2A3348;
+}
+
+html[data-theme='dark'] .mobile-bottom-navigation button {
+  color: #9AA3B2;
+}
+
+html[data-theme='dark'] .mobile-bottom-navigation button.active {
+  color: #FFFFFF;
+  background: rgba(34, 211, 107, 0.16);
+}
+
+html[data-theme='dark'] .mobile-bottom-navigation button.active svg {
+  color: #22D36B;
+}
+
+html[data-theme='dark'] .mobile-logo .logo-lockup strong {
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .mobile-logo .logo-lockup small {
+  color: #9AA3B2;
+}
+
+/* Gold dropdown pills become neon-green pills; panel stays a dark card. */
+html[data-theme='dark'] .dd-trigger {
+  background: #22D36B;
+  border-color: #1AA856;
+  color: #0B1220;
+}
+
+html[data-theme='dark'] .dd-trigger:hover:not(:disabled) {
+  background: #2EE67A;
+}
+
+html[data-theme='dark'] .dd-trigger::after {
+  border-top-color: #0B1220;
+}
+
+html[data-theme='dark'] .dd-hint {
+  color: rgba(11, 18, 32, 0.55);
+}
+
+html[data-theme='dark'] .dd-panel {
+  background: #1A2030;
+  border-color: #2A3348;
+  color: #FFFFFF;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme='dark'] .dd-panel .dd-search-input {
+  background: #141A28;
+  border-color: #2A3348;
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .dd-panel .dd-search-input::placeholder,
+html[data-theme='dark'] .dd-search,
+html[data-theme='dark'] .dd-empty,
+html[data-theme='dark'] .dd-group {
+  color: #9AA3B2;
+}
+
+html[data-theme='dark'] .dd-panel .dd-search-input:focus {
+  border-color: #22D36B;
+  box-shadow: 0 0 0 2px rgba(34, 211, 107, 0.28);
+}
+
+html[data-theme='dark'] .dd-option {
+  color: #FFFFFF;
+}
+
+html[data-theme='dark'] .dd-option.is-active {
+  background: #21283A;
+}
+
+html[data-theme='dark'] .dd-option.is-selected {
+  background: #22D36B;
+  color: #0B1220;
+}
+
+html[data-theme='dark'] .mmd-hbar-split i b,
+html[data-theme='dark'] .mmd-hbars i b,
+html[data-theme='dark'] .mmd-hbars-alt i b {
+  background: linear-gradient(90deg, #1AA856, #22D36B);
+}
+
+html[data-theme='dark'] .mmd-chart .mmd-grid,
+html[data-theme='dark'] .mmd-donut-track {
+  stroke: #2A3348;
+}
+
+html[data-theme='dark'] .mmd-post,
+html[data-theme='dark'] .mmd-pending li,
+html[data-theme='dark'] .mmd-chip {
+  border-color: #2A3348;
+}
+
+html[data-theme='dark'] .notif-switch.is-on i {
+  background: #22D36B;
+}
+
+html[data-theme='dark'] .pcal-weekdays > div {
+  background: #1A2030;
+  border-color: #2A3348;
+  color: #9AA3B2;
+}
+html[data-theme='dark'] .pcal-cell {
+  background: #1A2030;
+  border-color: #2A3348;
+}
+html[data-theme='dark'] .pcal-cell:hover {
+  background: #21283A;
+}
+html[data-theme='dark'] .pcal-cell.is-outside {
+  background: #141A28;
+}
+html[data-theme='dark'] .pcal-cell.is-outside .pcal-num {
+  color: #7B8494;
+}
+html[data-theme='dark'] .pcal-cell.is-today .pcal-num {
+  background: #22D36B;
+  color: #0B1220;
+}
+
+html[data-theme='dark'] .theme-dot-dark {
+  background: #0F1420;
+  box-shadow: inset 0 0 0 1px #22D36B;
+}
+
+html[data-theme='dark'] .toast {
+  background: #1A2030;
+  color: #FFFFFF;
+  border: 1px solid #2A3348;
+}
+
+html[data-theme='dark'] .product-visual {
+  background: linear-gradient(145deg, #21283A, #141A28);
+}
+
+html[data-theme='dark'] .furniture-shape span {
+  background: #3A4560;
+}
