@@ -36,7 +36,7 @@ import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForN
 import { formatDisplayDate, formatDisplayDateFromKey, formatDisplayDateTime, formatDisplayTime } from './lib/formatDate'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
-import { SHOW_GOOGLE_CONNECT, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
+import { SHOW_GOOGLE_CONNECT, SHOW_MT_COST_NUMBER, SHOW_MT_FORM_EYEBROW, SHOW_MT_STATUS_FIELD, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
 import './meta-marketing-dashboard.css'
 import { productPhotoOverride } from './lib/productPhotoOverrides'
 import { preferRepoWebp } from './lib/preferRepoWebp'
@@ -927,7 +927,7 @@ function MarketingTools({ workspaceActive, toast }) {
       {draft ? (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setDraft(null)}>
           <form className="modal plan-modal" onSubmit={save}>
-            <div className="modal-head"><div><span className="eyebrow">MARKETING TOOLS</span><h2>{draft.id ? 'Edit campaign' : 'Add campaign'}</h2></div><button type="button" className="icon-button" onClick={() => setDraft(null)}><Icon name="close"/></button></div>
+            <div className="modal-head"><div>{SHOW_MT_FORM_EYEBROW ? <span className="eyebrow">MARKETING TOOLS</span> : null}<h2>{draft.id ? 'Edit campaign' : 'Add campaign'}</h2></div><button type="button" className="icon-button" onClick={() => setDraft(null)}><Icon name="close"/></button></div>
             <label>Campaign name<input required value={draft.name} onChange={update('name')} placeholder="e.g. Kota Kinabalu roadside billboard"/></label>
             <div className="two-fields"><label>Tool<select value={draft.tool} onChange={update('tool')}>{MARKETING_TOOLS.map((tool) => <option key={tool}>{tool}</option>)}</select></label><label>Brand<input value={draft.brand} onChange={update('brand')}/></label></div>
             {draft.tool === 'KOL' ? null : <label>Location / Platform<input value={draft.location} onChange={update('location')} placeholder="e.g. Jalan Tuaran / Instagram"/></label>}
@@ -937,8 +937,8 @@ function MarketingTools({ workspaceActive, toast }) {
               <div className="two-fields">{KOL_CONTACT_FIELDS.slice(0, 2).map(([field, label]) => <label key={field}>{label} (optional)<input type="url" value={draft[field] || ''} onChange={update(field)} placeholder="https://"/></label>)}</div>
               <div className="two-fields">{KOL_CONTACT_FIELDS.slice(2).map(([field, label]) => <label key={field}>{label} (optional)<input type="url" value={draft[field] || ''} onChange={update(field)} placeholder="https://"/></label>)}</div>
             </>) : (<>
-              <div className="two-fields"><label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label><label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
-              <label>Cost note<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. Barter: 1 Sukod Desk, no cash"/></label>
+              {SHOW_MT_STATUS_FIELD || SHOW_MT_COST_NUMBER ? <div className="two-fields">{SHOW_MT_COST_NUMBER ? <label>Cost (RM)<input type="number" min="0" step="0.01" value={draft.cost} onChange={update('cost')}/></label> : null}{SHOW_MT_STATUS_FIELD ? <label>Status<select value={draft.status} onChange={update('status')}>{MARKETING_TOOL_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label> : null}</div> : null}
+              <label>Kos (RM)<input type="text" value={draft.costNote || ''} onChange={update('costNote')} placeholder="e.g. 500 / Barter: 1 Sukod Desk"/></label>
             </>)}
             {draft.tool === 'KOL' ? (
               <div className="mt-notes-field">
