@@ -495,28 +495,73 @@ html[data-theme='dark'] .marketing-tools-page .tab-bar.mt-view > .mt-add-campaig
   opacity: 0.7;
 }
 
+.settings-subhead {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin: 0 0 16px;
+  min-height: 36px;
+}
+
 .settings-back {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 10px;
-  padding: 0;
+  gap: 6px;
+  grid-column: 1;
+  justify-self: start;
+  margin: 0;
+  padding: 8px 8px 8px 0;
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
+  font-size: 19px;
   font-weight: 650;
+  line-height: 1.2;
+  min-height: 44px;
   cursor: pointer;
 }
 
 .settings-back svg {
+  width: 26px;
+  height: 26px;
   transform: rotate(180deg);
 }
 
 .settings-section-title {
-  margin: 0 0 16px;
+  grid-column: 2;
+  margin: 0;
+  text-align: center;
   font: 600 28px/1.15 'Playfair Display', Georgia, serif;
   color: var(--ink);
+}
+
+/* Phone only: title stays centered on the first row; Back sits left underneath. */
+@media (max-width: 980px) {
+  .settings-subhead {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .settings-section-title { order: 1; }
+
+  .settings-back {
+    order: 2;
+    align-self: start;
+    min-height: 0;
+    padding: 0;
+    gap: 4px;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .settings-back svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .settings-section-access .settings-grid {
