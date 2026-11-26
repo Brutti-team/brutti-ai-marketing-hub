@@ -11,14 +11,15 @@ const CHIP_LIMIT = 2
 // Hidden (Michelle, 26 Nov): the Type dropdown in the add-note form. Set to true to show it again. Existing type is kept on edit.
 const SHOW_NOTE_TYPE = false
 const NOTE_TYPES = ['Brand Awareness', 'Product Highlight', 'Educational', 'Behind the Scenes', 'Customer Story']
-const TYPE_TONE = {
-  'Brand Awareness': 'blue',
-  'Product Highlight': 'green',
-  Educational: 'amber',
-  'Behind the Scenes': 'purple',
-  'Customer Story': 'rose',
+// Chip colours rotate by note id (type is hidden now), so the calendar looks varied like the reference design.
+const TONES = ['blue', 'green', 'purple', 'orange', 'pink']
+const toneFor = (plan) => {
+  const key = String(plan?.id ?? plan?.title ?? '')
+  let hash = 0
+  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
+  return TONES[hash % TONES.length]
 }
-const toneFor = (type) => TYPE_TONE[type] || 'slate'
+const clock = (time) => { if (!time) return ''; const [h, m] = time.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}` }
 const TIME_PREFIX = /^@(\d{2}:\d{2})\s?/
 
 function splitPlanNote(plan) {
@@ -33,9 +34,9 @@ const dayLabel = (key) => dateFromKey(key).toLocaleDateString('ms-MY', { weekday
 function Chip({ plan, onOpen }) {
   const { time } = splitPlanNote(plan)
   return (
-    <button type="button" className={`pcal-chip tone-${toneFor(plan.type)}`} onClick={(event) => { event.stopPropagation(); onOpen(plan) }} title={`${time ? `${time} · ` : ''}${plan.title}`}>
+    <button type="button" className={`pcal-chip tone-${toneFor(plan)}`} onClick={(event) => { event.stopPropagation(); onOpen(plan) }} title={`${time ? `${clock(time)} · ` : ''}${plan.title}`}>
       <strong data-user-content>{plan.title}</strong>
-      {time ? <small data-user-content>{time}</small> : null}
+      {time ? <small data-user-content>{clock(time)}</small> : null}
     </button>
   )
 }
@@ -107,7 +108,7 @@ export default function PlannerMonthCalendar({ plans, monthAnchor, onSavePlan, o
                 <div className="pcal-chips">{shown.map((plan) => <Chip key={plan.id} plan={plan} onOpen={openNote}/>)}
                   {extra > 0 ? <button type="button" className="pcal-more" onClick={(event) => { event.stopPropagation(); setDaySheet(date) }}>{extra} more...</button> : null}
                 </div>
-                {items.length ? <div className="pcal-dots" aria-hidden="true">{items.slice(0, 4).map((plan) => <i key={plan.id} className={`tone-${toneFor(plan.type)}`}/>)}</div> : null}
+                {items.length ? <div className="pcal-dots" aria-hidden="true">{items.slice(0, 4).map((plan) => <i key={plan.id} className={`tone-${toneFor(plan)}`}/>)}</div> : null}
               </div>
             )
           })}
