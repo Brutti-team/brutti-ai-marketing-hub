@@ -330,6 +330,8 @@ export const EXTRA_PAIRS = [
   ['MARKETING TOOLS', 'ALAT PEMASARAN'],
   ['Search KOLs', 'Cari KOL'],
   ['Search', 'Cari'],
+  ['Search…', 'Cari…'],
+  ['No results', 'Tiada hasil'],
   ['No KOLs match.', 'Tiada KOL yang sepadan.'],
   ['Details', 'Butiran'],
   ['Filter by category', 'Tapis mengikut kategori'],

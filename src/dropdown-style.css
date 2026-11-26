@@ -1,0 +1,35 @@
+/* Shared dropdown look (Michelle, 26 Nov 2026): golden pill when closed, white search panel when open. */
+.dd { position: relative; display: block; width: 100%; min-width: 0; font-family: 'Poppins', 'Manrope', 'DM Sans', sans-serif; }
+select.dd-native { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; opacity: 0 !important; pointer-events: none !important; overflow: hidden !important; clip-path: inset(50%); }
+.dd-trigger { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 40px; padding: 8px 16px; border: 1px solid #E2B84A; border-radius: 999px; background: #F3D27A; color: #111; font: 500 13px/1.3 'Poppins', 'Manrope', 'DM Sans', sans-serif; text-align: left; cursor: pointer; transition: box-shadow .15s, background .15s; }
+.dd-trigger:hover:not(:disabled) { background: #F5D886; }
+.dd-trigger:focus-visible, .dd.is-open .dd-trigger { outline: 0; box-shadow: 0 0 0 3px rgba(226,184,74,.35); }
+.dd-trigger:disabled { opacity: .55; cursor: not-allowed; }
+.dd-value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-trigger::after { content: ''; flex: 0 0 auto; width: 0; height: 0; border-left: 4.5px solid transparent; border-right: 4.5px solid transparent; border-top: 6px solid #111; }
+
+.dd-panel { position: fixed; z-index: 2147483000; display: flex; flex-direction: column; box-sizing: border-box; padding: 8px; background: #fff; border: 1px solid #E2B84A; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.16); font-family: 'Poppins', 'Manrope', 'DM Sans', sans-serif; color: #1c1c1c; }
+.dd-search { position: relative; flex: 0 0 auto; display: flex; align-items: center; margin-bottom: 6px; color: #8a8a8a; }
+.dd-search svg { position: absolute; left: 11px; pointer-events: none; }
+.dd-panel .dd-search-input { width: 100%; min-height: 36px; height: 36px; padding: 0 12px 0 34px; border: 1px solid #F0DFAE; border-radius: 10px; background: #fff; color: #1c1c1c; font: 400 13px/1 'Poppins', 'Manrope', 'DM Sans', sans-serif; outline: 0; box-shadow: none; }
+.dd-panel .dd-search-input::placeholder { color: #9a9a9a; }
+.dd-panel .dd-search-input:focus { border-color: #E2B84A; outline: 0; box-shadow: 0 0 0 2px rgba(226,184,74,.25); }
+.dd-list { flex: 1 1 auto; min-height: 0; margin: 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; }
+.dd-option { display: flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 400; color: #1c1c1c; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-option.is-active { background: #FBF0CC; }
+.dd-option.is-selected { background: #F3D27A; font-weight: 700; }
+.dd-option.is-disabled { opacity: .45; cursor: not-allowed; }
+.dd-empty { padding: 10px 12px; color: #8a8a8a; font-size: 13px; }
+
+/* Where the old native select had its own width */
+.product-library-top .dd { flex: 0 0 220px; width: 220px; min-width: 180px; max-width: 260px; }
+.library-toolbar > .dd { width: 170px; flex: 0 0 auto; }
+.notif-controls .dd { width: auto; min-width: 150px; }
+.mmd-controls .dd, .mmd-shell .dd { width: auto; min-width: 0; display: inline-block; }
+.app-language-control .dd { flex: 0 0 210px; width: 210px; }
+.kol-controls .dd { flex: 0 1 260px; }
+@media (max-width: 720px) {
+  .product-library-top .dd { flex: 1 1 100%; width: 100%; max-width: none; }
+  .library-toolbar > .dd { width: 100%; }
+}
+@media (max-width: 650px) { .app-language-control .dd { flex-basis: auto; width: 100%; } }

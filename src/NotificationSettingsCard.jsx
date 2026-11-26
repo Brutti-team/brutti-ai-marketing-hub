@@ -41,7 +41,8 @@ function Toggle({ checked, onChange, label }) {
 
 export default function NotificationSettingsCard() {
   const [prefs, setPrefs] = useState(readNotificationPrefs)
-  const [expanded, setExpanded] = useState(true)
+  // Collapsed on every page load (Michelle, 26 Nov 2026); the sub-list opens only from the chevron.
+  const [expanded, setExpanded] = useState(false)
   const [permission, setPermission] = useState(notificationPermission)
   const systemChoice = prefs.systemOptOut || permission !== 'granted' ? 'deny' : 'allow'
   const onSystemChoice = async (event) => {
