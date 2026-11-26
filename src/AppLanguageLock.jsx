@@ -194,6 +194,7 @@ const PAIRS = [
   ['Verified post URL + reach + views + engagements', 'URL siaran disahkan + capaian + tontonan + penglibatan'],
   ['Read-only Google Sheet data. The website caches one verified snapshot per day, so opening Analytics does not create extra Meta API calls.', 'Data Google Sheet baca sahaja. Laman ini menyimpan satu snapshot disahkan setiap hari, jadi membuka Analitik tidak membuat panggilan Meta API tambahan.'],
   ['Settings', 'Tetapan'],
+  ['Marketing Tools', 'Alat Pemasaran'],
   ['Back', 'Kembali'],
   ['Choose a setting to review or update.', 'Pilih satu tetapan untuk semak atau kemaskini.'],
   ['Display', 'Paparan'],
@@ -414,12 +415,12 @@ function translateDocument(language) {
   while (walker.nextNode()) nodes.push(walker.currentNode)
   nodes.forEach((node) => {
     const parent = node.parentElement
-    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content], .bm-caption-studio')) return
+    if (!parent || parent.closest('script, style, textarea, [contenteditable="true"], .app-language-control, [data-user-content], .bm-caption-studio, [data-lock-keep]')) return
     const next = replaceText(node.nodeValue || '', dictionary, language)
     if (next !== node.nodeValue) node.nodeValue = next
   })
   document.querySelectorAll('[placeholder], [aria-label], [title]').forEach((element) => {
-    if (element.closest('.app-language-control, .bm-caption-studio')) return
+    if (element.closest('.app-language-control, .bm-caption-studio, [data-lock-keep]')) return
     ;['placeholder', 'aria-label', 'title'].forEach((attribute) => {
       const value = element.getAttribute(attribute)
       if (!value) return
