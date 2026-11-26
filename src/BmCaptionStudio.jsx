@@ -15,6 +15,12 @@ const SHOW_STUDIO_TOPIC_FIELD = false
 const SHOW_STUDIO_TIP_GOAL = false
 // Product field is a free-text box with the Product Library as suggestions (Michelle, 26 Nov). Set true for the old dropdown.
 const SHOW_STUDIO_PRODUCT_DROPDOWN = false
+// Hidden (Michelle, 26 Nov): the 'Generate another variation' button and the 'Choose a product first.' hint. Set true to bring them back.
+const SHOW_STUDIO_VARIATION_BUTTON = false
+const SHOW_STUDIO_PRODUCT_HINT = false
+// Product details checklist under Note (Michelle, 26 Nov). Rows are editable; nothing is prefilled except the labels.
+const SHOW_STUDIO_PRODUCT_DETAILS = true
+const DEFAULT_DETAIL_ROWS = ['Dimensions', 'Materials & Finishing', 'Price']
 const EMPTY_FACT = "not filled, won't be included"
 
 const GOAL_LABELS = {
@@ -115,6 +121,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const [topic, setTopic] = useState('')
   const [goal, setGoal] = useState('highlight')
   const [note, setNote] = useState('')
+  const [detailRows, setDetailRows] = useState(() => DEFAULT_DETAIL_ROWS.map((label) => ({ label, value: '', done: false })))
   const [showTikTok, setShowTikTok] = useState(false)
   const [variation, setVariation] = useState(0)
   const [result, setResult] = useState(null)
@@ -131,6 +138,12 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
   const canGenerate = needsProduct ? Boolean(product || customName) : Boolean(product || customName || topic.trim())
 
   const clearResult = () => setResult(null)
+  const setRow = (index, patch) => { setDetailRows((rows) => rows.map((row, at) => (at === index ? { ...row, ...patch } : row))); clearResult() }
+  // Checked rows with a value are added to the note sent to the generator: "Product details: Dimensions: ..., Price: ...".
+  const detailText = SHOW_STUDIO_PRODUCT_DETAILS
+    ? detailRows.filter((row) => row.done && clean(row.value)).map((row) => `${clean(row.label) || 'Detail'}: ${clean(row.value)}`).join(', ')
+    : ''
+  const noteForCaption = detailText ? [clean(note), `Product details: ${detailText}`].filter(Boolean).join('. ') : note
 
   const run = async (nextVariation) => {
     if (busy) return
@@ -146,7 +159,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
       product,
       topic: product ? '' : topic,
       goal,
-      note,
+      note: noteForCaption,
       variation: nextVariation,
     }
     if (!product && customName) input.topic = customName // typed product not in the library
@@ -239,7 +252,7 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </label>
 
           <label>
-            Note (optional)
+            Note
             <textarea
               rows="4"
               value={note}
@@ -248,6 +261,21 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
             />
           </label>
 
+          {SHOW_STUDIO_PRODUCT_DETAILS ? (
+          <div className="bm-details">
+            <span className="bm-details-title">Product details</span>
+            {detailRows.map((row, index) => (
+              <div className={`bm-details-row ${row.done ? 'is-done' : ''}`} key={index}>
+                <input type="checkbox" checked={row.done} onChange={(event) => setRow(index, { done: event.target.checked })} aria-label="Include" />
+                <input type="text" className="bm-details-label" value={row.label} onChange={(event) => setRow(index, { label: event.target.value })} aria-label="Detail name" />
+                <input type="text" className="bm-details-value" value={row.value} placeholder="Fill in" onChange={(event) => setRow(index, { value: event.target.value, done: event.target.value.trim() ? true : row.done })} aria-label="Detail value" />
+                <button type="button" className="bm-details-remove" aria-label="Remove item" title="Remove item" onClick={() => { setDetailRows((rows) => rows.filter((_, at) => at !== index)); clearResult() }}>×</button>
+              </div>
+            ))}
+            <button type="button" className="button secondary small bm-details-add" onClick={() => { setDetailRows((rows) => [...rows, { label: '', value: '', done: false }]); clearResult() }}>+ Add item</button>
+          </div>
+          ) : null}
+
           {SHOW_STUDIO_TIKTOK_CHECKBOX ? (
           <label className="checkbox-row bm-caption-check">
             <input type="checkbox" checked={showTikTok} onChange={(event) => setShowTikTok(event.target.checked)} />
@@ -255,11 +283,11 @@ export default function BmCaptionStudio({ productOptions = [], toast }) {
           </label>
           ) : null}
 
-          <div className="bm-caption-actions">
+          <div className={`bm-caption-actions ${SHOW_STUDIO_VARIATION_BUTTON ? '' : 'is-single'}`}>
             <button className="button primary" type="submit" disabled={busy || !canGenerate}>{busy ? 'Generating…' : 'Generate caption'}</button>
-            <button className="button secondary" type="button" disabled={busy || !canGenerate} onClick={() => run(result ? variation + 1 : 1)}>Generate another variation</button>
+            {SHOW_STUDIO_VARIATION_BUTTON ? <button className="button secondary" type="button" disabled={busy || !canGenerate} onClick={() => run(result ? variation + 1 : 1)}>Generate another variation</button> : null}
           </div>
-          {needsProduct && !product && !customName ? <p className="bm-caption-disclaimer">Choose a product first.</p> : null}
+          {SHOW_STUDIO_PRODUCT_HINT && needsProduct && !product && !customName ? <p className="bm-caption-disclaimer">Choose a product first.</p> : null}
           {SHOW_STUDIO_GEMINI_NOTE ? <p className="bm-caption-disclaimer">The generator tries free Gemini first. If Gemini is unavailable, the in-browser template is used. Check the caption before posting. Empty fields are not filled with new numbers or claims.</p> : null}
         </form>
 
