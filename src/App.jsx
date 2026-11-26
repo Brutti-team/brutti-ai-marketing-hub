@@ -174,7 +174,9 @@ function useStoredState(key, fallback) {
 function Icon({ name, size = 18 }) {
   const props = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
   const shapes = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
+    dashboard: <><path d="M4 20h16"/><path d="M6.2 20V14.2"/><path d="M11.2 20V10.2"/><path d="M16.2 20V7.4"/><path d="M5.8 12.2 9.2 8.4 12.4 10.2 19 4.2"/><path d="M16.1 4.6 19.2 3.8 17.8 6.8"/></>,
+    notepad: <><rect x="5.6" y="6.2" width="12.6" height="14.6" rx="1.6"/><path d="M8.15 6.2c0-1.55 2.05-1.55 2.05 0"/><path d="M11 6.2c0-1.55 2.05-1.55 2.05 0"/><path d="M13.85 6.2c0-1.55 2.05-1.55 2.05 0"/><path d="M7.5 8.25h8.8"/><path d="M7.8 11.05h8.2"/><path d="M7.8 13.7h8.2"/><path d="M7.8 16.35h5.6"/><path d="M15 20.4 21.1 14.3"/><path d="M15 20.4l-1.45.4.4-1.45"/></>,
+    marketing: <><rect x="8.6" y="7.4" width="7" height="11.2" rx="1.4"/><path d="M11.1 16.9h2.1"/><path d="M15.6 11.05 20.2 8.7v8l-4.6-2.35"/><path d="m20.7 9.35 1.3-.8"/><path d="m20.7 15.85 1.3.8"/><rect x="13" y="1.45" width="6" height="3.7" rx=".85"/><rect x="1.5" y="2.15" width="5.8" height="4.15" rx=".75"/><path d="M3.45 3.2v2.05l2.05-1.02Z"/><circle cx="4.25" cy="13.75" r="2.7"/><path d="M4.25 15.1c-1.15-.95-1.45-1.6-1.45-2.1a.88.88 0 0 1 1.5-.6c.2.16.35.3.35.3s.15-.14.35-.3a.88.88 0 0 1 1.5.6c0 .5-.3 1.15-1.45 2.1z"/><rect x="16.6" y="17.25" width="5.5" height="3.65" rx=".8"/></>,
     sparkles: <><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z"/><path d="m5 14 .8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14Z"/><path d="m19 13 .8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13Z"/></>,
     calendar: <><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/></>,
     brand: <><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"/><path d="m8 13 2.5 2.5L16 9"/></>,
@@ -245,11 +247,11 @@ function Sidebar({ page, setPage, open, setOpen, workspaceActive, counts }) {
 }
 
 const mobileNavigation = [
-  { id: 'dashboard', label: 'Home', icon: 'dashboard' },
-  { id: 'studio', label: 'Content', icon: 'sparkles' },
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { id: 'studio', label: 'Content', icon: 'notepad' },
   { id: 'planner', label: 'Calendar Planner', icon: 'calendar' },
   { id: 'products', label: 'Product Library', icon: 'box' },
-  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'megaphone' },
+  { id: 'marketing-tools', label: 'Marketing Tools', icon: 'marketing' },
 ]
 
 function MobileBottomNavigation({ page, setPage }) {
@@ -784,6 +786,10 @@ function ContentStudio({ content, deleteContent, generator, setGenerator, output
 const SHOW_PLANNER_SAVE_TOAST = false
 // Old month grid is kept (hidden, not deleted). Set to true to bring it back instead of the modern calendar.
 const SHOW_CLASSIC_MONTH_GRID = false
+// Eyebrow above the Calendar Planner page title. Hidden (Michelle, 26 Nov 2026) so the h1 matches Marketing Dashboard. Set true to show it again.
+const SHOW_PLANNER_HEADER_EYEBROW = false
+// Today button on the planner month nav. Hidden for now (Michelle, 26 Nov 2026). Set true to show it again.
+const SHOW_PLANNER_TODAY_BUTTON = false
 const MONTH_CELL_LIMIT = 3
 const MONTH_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -797,8 +803,8 @@ function CampaignPlanner({ plans, openPlan, newPlan, deletePlan, savePlan }) {
   const moveMonth = (step) => setMonthAnchor((current) => addMonths(current, step))
   return (
     <div className="page planner-month-page">
-      <PageHeader eyebrow="Calendar Planner" title="Calendar Planner" description="Calendar for marketing work: events, important posts and reminders." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
-      <div className="planner-summary dynamic-planner-summary"><div><strong className="month-title-big">{formatMonthTitle(monthAnchor)}</strong></div><div className="planner-nav"><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button><button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button><button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
+      <PageHeader eyebrow={SHOW_PLANNER_HEADER_EYEBROW ? "Calendar Planner" : undefined} title="Calendar Planner" description="Calendar for marketing work: events, important posts and reminders." actions={<button className="button primary" onClick={() => newPlan(today)}><Icon name="plus"/>Add content</button>} />
+      <div className="planner-summary dynamic-planner-summary"><div><strong className="month-title-big">{formatMonthTitle(monthAnchor)}</strong></div><div className={`planner-nav${SHOW_PLANNER_TODAY_BUTTON ? '' : ' is-pair'}`}><button className="button secondary small" onClick={() => moveMonth(-1)}>← Previous</button>{SHOW_PLANNER_TODAY_BUTTON ? <button className="button secondary small" onClick={() => setMonthAnchor(startOfMonth(new Date()))}>Today</button> : null}<button className="button secondary small" onClick={() => moveMonth(1)}>Next →</button></div></div>
       {!SHOW_CLASSIC_MONTH_GRID ? <PlannerMonthCalendar plans={plans} monthAnchor={monthAnchor} onSavePlan={savePlan} onDeletePlan={deletePlan} onMoreOptions={openPlan}/> : null}
       {SHOW_CLASSIC_MONTH_GRID ? <section className="week-calendar month-calendar">{MONTH_WEEKDAYS.map((name) => <div className="month-weekday" key={`wd-${name}`}>{name}</div>)}{monthDays.map((date) => { const items = plansByDate[date] || []; const day = dateFromKey(date); const outside = !date.startsWith(monthPrefix); const expanded = expandedDay === date; const shown = expanded ? items : items.slice(0, MONTH_CELL_LIMIT); const extra = items.length - shown.length; return <div className={`calendar-day month-day ${date === today ? 'is-today' : ''} ${outside ? 'is-outside' : ''}`} key={date}><div className="calendar-day-head month-day-head"><strong>{day.getDate()}</strong></div><div className="calendar-items month-items">{shown.map((plan) => <button type="button" className={`calendar-item month-item ${stageClass(plan.status)}`} key={plan.id} onClick={() => openPlan(plan)} title={`${plan.title} · ${plan.type} · ${plan.status}`}><i className="month-dot" aria-hidden="true"/><strong data-user-content>{plan.title}</strong></button>)}{extra > 0 ? <button type="button" className="month-more" onClick={() => setExpandedDay(date)}>+{extra} more</button> : null}{expanded && items.length > MONTH_CELL_LIMIT ? <button type="button" className="month-more" onClick={() => setExpandedDay('')}>Show less</button> : null}</div></div>})}</section> : null}
       <div className="planner-bottom-grid"><section className="panel campaign-section"><div className="panel-heading"><div><span className="eyebrow">SMART CAMPAIGN IDEAS</span><h3>Ready for planning</h3></div></div><div className="campaign-list">{campaignIdeas.map((idea,index) => <article key={idea.title}><span className="campaign-index">{String(index+1).padStart(2,'0')}</span><div><strong>{idea.title}</strong><p>{idea.objective}</p><small>{idea.pillar}</small></div><button className="button secondary small" onClick={() => newPlan(today, idea)}>Plan idea</button></article>)}</div></section><section className="panel plan-list-section"><div className="panel-heading"><div><span className="eyebrow">ALL PLANS</span><h3>{plans.length} total items</h3></div></div><div className="compact-plan-list">{[...plans].sort((a,b) => a.date.localeCompare(b.date)).map((plan) => <div key={plan.id}><button onClick={() => openPlan(plan)}><time>{formatDisplayDateFromKey(plan.date)}</time><span><strong>{plan.title}</strong><small>{plan.type}</small></span><StatusPill>{plan.status}</StatusPill></button><button className="delete-plan" onClick={() => deletePlan(plan.id)} aria-label={`Delete ${plan.title}`}><Icon name="trash" size={15}/></button></div>)}</div></section></div>

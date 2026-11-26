@@ -27,6 +27,8 @@ function readOptions(select) {
     index: option.index,
     text: (option.textContent || '').trim(),
     disabled: option.disabled,
+    group: option.parentElement?.tagName === 'OPTGROUP' ? String(option.parentElement.label || '').trim() : '',
+    lock: option.hasAttribute('data-lock-keep') || option.hasAttribute('data-user-content') || Boolean(option.closest('[data-lock-keep], [data-user-content]')),
   }))
 }
 
@@ -42,15 +44,17 @@ function createControl(select) {
   trigger.setAttribute('aria-controls', `${id}-panel`)
   const value = document.createElement('span')
   value.className = 'dd-value'
-  value.setAttribute('data-lock-keep', '')
-  trigger.append(value)
+  const hint = document.createElement('span')
+  hint.className = 'dd-hint'
+  hint.hidden = true
+  trigger.append(value, hint)
   wrapper.append(trigger)
   select.after(wrapper)
   select.classList.add('dd-native')
   select.tabIndex = -1
   select.setAttribute('aria-hidden', 'true')
 
-  const ctrl = { id, select, wrapper, trigger, value, panel: null, open: false, query: '', active: -1, shown: [], signature: '' }
+  const ctrl = { id, select, wrapper, trigger, value, hint, panel: null, open: false, query: '', active: -1, shown: [], signature: '' }
   trigger.addEventListener('click', () => (ctrl.open ? closePanel(ctrl, true) : openPanel(ctrl)))
   trigger.addEventListener('keydown', (event) => {
     if (ctrl.open) return
@@ -65,11 +69,22 @@ function createControl(select) {
 }
 
 function syncControl(ctrl) {
-  const { select, trigger, value, wrapper } = ctrl
+  const { select, trigger, value, hint, wrapper } = ctrl
   const selected = select.options[select.selectedIndex]
   const text = selected ? (selected.textContent || '').trim() : ''
+  const group = selected?.parentElement?.tagName === 'OPTGROUP' ? String(selected.parentElement.label || '').trim() : ''
   if (value.textContent !== text) value.textContent = text
-  trigger.title = text
+  if (group) {
+    hint.textContent = group
+    hint.hidden = false
+  } else {
+    hint.textContent = ''
+    hint.hidden = true
+  }
+  const lock = selected && (selected.hasAttribute('data-lock-keep') || selected.hasAttribute('data-user-content') || selected.closest('[data-lock-keep], [data-user-content]'))
+  if (lock) { value.setAttribute('data-lock-keep', ''); hint.setAttribute('data-lock-keep', '') }
+  else { value.removeAttribute('data-lock-keep'); hint.removeAttribute('data-lock-keep') }
+  trigger.title = group ? `${text} ${group}`.trim() : text
   const name = labelText(select)
   if (name && trigger.getAttribute('aria-label') !== name) trigger.setAttribute('aria-label', name)
   if (trigger.disabled !== select.disabled) trigger.disabled = select.disabled
@@ -136,7 +151,7 @@ function renderList(ctrl, keepActive) {
   const { select, list } = ctrl
   const query = ctrl.query.trim().toLowerCase()
   const options = readOptions(select)
-  ctrl.shown = options.filter((option) => !query || option.text.toLowerCase().includes(query))
+  ctrl.shown = options.filter((option) => !query || option.text.toLowerCase().includes(query) || option.group.toLowerCase().includes(query))
   list.textContent = ''
   if (!ctrl.shown.length) {
     const empty = document.createElement('li')
@@ -146,12 +161,21 @@ function renderList(ctrl, keepActive) {
     ctrl.active = -1
     return
   }
+  let lastGroup = null
   ctrl.shown.forEach((option) => {
+    if (option.group && option.group !== lastGroup) {
+      const header = document.createElement('li')
+      header.className = 'dd-group'
+      header.setAttribute('aria-hidden', 'true')
+      header.textContent = option.group
+      list.append(header)
+      lastGroup = option.group
+    }
     const row = document.createElement('li')
     row.className = 'dd-option'
     row.id = `${ctrl.id}-o${option.index}`
     row.setAttribute('role', 'option')
-    row.setAttribute('data-lock-keep', '')
+    if (option.lock) row.setAttribute('data-lock-keep', '')
     row.dataset.index = String(option.index)
     row.textContent = option.text
     const selected = option.index === select.selectedIndex

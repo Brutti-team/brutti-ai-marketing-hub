@@ -9,6 +9,10 @@
 }
 .bm-caption-form { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
 .bm-caption-form label { font-size: 13px; }
+.bm-caption-form > label { text-align: center; }
+.bm-caption-form > label input,
+.bm-caption-form > label select,
+.bm-caption-form > label textarea { text-align: start; }
 .bm-caption-form input,
 .bm-caption-form select,
 .bm-caption-form textarea {
@@ -57,7 +61,7 @@
 
 /* Product details checklist (under Note) */
 .bm-details { display: grid; gap: 8px; }
-.bm-details-title { font-size: 13px; font-weight: 600; }
+.bm-details-title { display: block; width: 100%; text-align: center; font-size: 13px; font-weight: 600; }
 .bm-details-row { display: flex; align-items: center; gap: 8px; }
 .bm-caption-form .bm-details-row input[type=checkbox] { width: 18px; height: 18px; flex: none; padding: 0; accent-color: #111; }
 .bm-caption-form .bm-details-label { flex: 0 1 38%; min-width: 0; font-weight: 600; }
@@ -70,3 +74,4 @@
   .bm-caption-form .bm-details-label { flex: 1 1 calc(100% - 70px); }
   .bm-caption-form .bm-details-value { flex: 1 1 100%; order: 3; }
 }
+

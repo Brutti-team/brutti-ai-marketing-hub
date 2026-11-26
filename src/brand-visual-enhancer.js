@@ -3,9 +3,12 @@ import { callMarketingApi, googleConfigured, hasWorkspaceKey } from './lib/googl
 const LOGO_CACHE_KEY = 'brutti-official-logo-url'
 const BASE_PATH = '/brutti-ai-marketing-hub/'
 
+let platformIconUid = 0
+// Official-style marks (inline SVG, no CDN). Facebook is the blue circle with a white "f";
+// Instagram is the official gradient rounded-square camera glyph (Michelle, 26 Nov 2026).
 const platformSvgs = {
-  Facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#1877F2"/><path fill="#fff" d="M13.6 20v-7h2.45l.37-2.86H13.6V8.3c0-.83.23-1.39 1.42-1.39h1.52V4.36c-.26-.04-1.17-.11-2.22-.11-2.2 0-3.7 1.34-3.7 3.8v2.09H8.14V13h2.48v7h2.98Z"/></svg>',
-  Instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="bruttiIg" x1="2" y1="22" x2="22" y2="2"><stop stop-color="#FFDC80"/><stop offset=".32" stop-color="#F77737"/><stop offset=".58" stop-color="#E1306C"/><stop offset=".78" stop-color="#C13584"/><stop offset="1" stop-color="#405DE6"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#bruttiIg)"/><rect x="5.4" y="5.4" width="13.2" height="13.2" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.25" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.7" cy="7.5" r="1.05" fill="#fff"/></svg>',
+  Facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#0866FF"/><path fill="#fff" d="M15.55 8.18h-1.72c-.22 0-.62.12-.62.7v1.32h2.26l-.3 2.42h-1.96V20h-2.5v-7.38H8.5v-2.42h2.21V8.7c0-2.18 1.2-3.4 3.31-3.4.66 0 1.47.06 1.85.13l.18 2.75z"/></svg>',
+  Instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="bruttiIg" cx="30%" cy="107%" r="150%"><stop offset="0" stop-color="#FDF497"/><stop offset=".05" stop-color="#FDF497"/><stop offset=".45" stop-color="#FD5949"/><stop offset=".6" stop-color="#D6249F"/><stop offset=".9" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="6.5" fill="url(#bruttiIg)"/><rect x="5.15" y="5.15" width="13.7" height="13.7" rx="4.3" fill="none" stroke="#fff" stroke-width="1.7"/><circle cx="12" cy="12" r="3.35" fill="none" stroke="#fff" stroke-width="1.7"/><circle cx="16.85" cy="7.2" r="1.05" fill="#fff"/></svg>',
   TikTok: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#111"/><path d="M14.4 5.2c.45 1.8 1.46 2.87 3.25 3.34v2.3a7 7 0 0 1-3.25-1.02v5.08a4.35 4.35 0 1 1-3.77-4.31v2.36a2.06 2.06 0 1 0 1.52 1.99V5.2h2.25Z" fill="#fff"/><path d="M12.15 5.2h1.08v9.74a2.06 2.06 0 0 1-2.91 1.88 2.06 2.06 0 0 0 3.83-1.06V7.09c.58 1.3 1.55 2.2 2.92 2.69v1.14a7.25 7.25 0 0 1-3.67-1.1V5.2h-1.25Z" fill="#25F4EE" opacity=".8"/><path d="M10.63 10.59v1.18a4.35 4.35 0 0 0-2.05 7.7 4.35 4.35 0 0 1 2.05-8.88Zm3.77-5.39c.11.46.27.88.47 1.25a4.75 4.75 0 0 0 2.78 2.09v1.1a5.18 5.18 0 0 1-3.78-3.24V5.2h.53Z" fill="#FE2C55" opacity=".85"/></svg>',
   Threads: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#111"/><path d="M12 5.15c-3.98 0-6.45 2.5-6.45 6.63 0 4.3 2.55 7.07 6.55 7.07 3.6 0 5.82-1.92 5.82-4.7 0-2.2-1.2-3.55-3.43-4.02-.38-2.04-1.62-3.08-3.66-3.08-1.77 0-3.14.9-3.74 2.45l1.86.7c.33-.82.96-1.27 1.84-1.27.9 0 1.47.43 1.72 1.24-3.17.18-4.92 1.42-4.92 3.48 0 1.79 1.45 3.02 3.53 3.02 2.18 0 3.56-1.23 3.56-3.18 0-.4-.03-.8-.08-1.17.9.37 1.33.98 1.33 1.88 0 1.62-1.4 2.7-3.52 2.7-2.93 0-4.72-1.92-4.72-5.1 0-3.05 1.67-4.72 4.33-4.72 1.86 0 3.13.7 4.12 2.26l1.65-1.02C16.5 6.17 14.58 5.15 12 5.15Zm-.68 9.68c-1.03 0-1.7-.46-1.7-1.2 0-.96.98-1.5 3.08-1.62.03.28.04.59.04.93 0 1.2-.5 1.89-1.42 1.89Z" fill="#fff"/></svg>',
 }
@@ -49,7 +52,9 @@ function injectEnhancerStyles() {
       border-radius: .3em;
       overflow: hidden;
       flex: 0 0 auto;
+      background: transparent;
     }
+    .brutti-platform-facebook { border-radius: 50%; }
     .brutti-platform-icon svg { width: 100%; height: 100%; display: block; }
     [data-brutti-platform-decorated="true"] { display: inline-flex; align-items: center; }
   `
@@ -77,7 +82,8 @@ function createPlatformIcon(name) {
   const span = document.createElement('span')
   span.className = `brutti-platform-icon brutti-platform-${name.toLowerCase()}`
   span.setAttribute('aria-hidden', 'true')
-  span.innerHTML = platformSvgs[name]
+  const uid = `bruttiIg${++platformIconUid}`
+  span.innerHTML = platformSvgs[name].replaceAll('bruttiIg', uid)
   return span
 }
 

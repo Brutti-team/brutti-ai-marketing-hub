@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { dateFromKey, localDateKey, monthGridKeys } from './lib/dateUtils'
 import { formatDisplayDateFromKey, formatDisplayTimeFromHm, formatDisplayWeekdayDate } from './lib/formatDate'
-import { buildPlanObjective, checklistProgress, parsePlanObjective } from './lib/plannerNote'
+import { NOTE_KINDS, buildPlanObjective, checklistProgress, parsePlanObjective } from './lib/plannerNote'
 import PlannerChecklist from './PlannerChecklist'
 
 // Modern month calendar for the Calendar Planner (Michelle, 26 Nov). The Previous / Today / Next
@@ -16,14 +16,23 @@ const SHOW_NOTE_TYPE = false
 // Hidden (Michelle, 26 Nov 2026): "More options" on the add/edit note form. Set true to show it again. It opened the full campaign plan editor.
 const SHOW_PLANNER_MORE_OPTIONS = false
 const NOTE_TYPES = ['Brand Awareness', 'Product Highlight', 'Educational', 'Behind the Scenes', 'Customer Story']
-// Chip colours rotate by note id (type is hidden now), so the calendar looks varied like the reference design.
+// Note kind in the add/edit form (Michelle, 26 Nov 2026): Event, Posting or Task. Colour follows the kind.
+const SHOW_NOTE_KIND = true
+const TONE_BY_KIND = { Event: 'green', Posting: 'purple', Task: 'orange' }
+// Fallback colours for notes that do not yet have a kind. The colour stays stable by note id.
 const TONES = ['blue', 'green', 'purple', 'orange', 'pink']
-const toneFor = (plan) => {
+const hashedTone = (plan) => {
   const key = String(plan?.id ?? plan?.title ?? '')
   let hash = 0
   for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
   return TONES[hash % TONES.length]
 }
+const kindOf = (plan) => {
+  if (NOTE_KINDS.includes(plan?.noteKind)) return plan.noteKind
+  const parsed = parsePlanObjective(plan?.objective).kind
+  return NOTE_KINDS.includes(parsed) ? parsed : ''
+}
+const toneFor = (plan) => TONE_BY_KIND[kindOf(plan)] || hashedTone(plan)
 const clock = (time) => formatDisplayTimeFromHm(time)
 const splitPlanNote = (plan) => parsePlanObjective(plan?.objective)
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches
@@ -42,14 +51,15 @@ function Chip({ plan, onOpen }) {
 
 function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
   const start = splitPlanNote(initial)
-  const [form, setForm] = useState({ title: initial.title || '', date: initial.date, time: start.time, type: initial.type || 'Brand Awareness', note: start.note, items: start.items })
+  const startingKind = kindOf(initial) || (NOTE_KINDS.includes(start.kind) ? start.kind : '') || (initial.id ? '' : 'Event')
+  const [form, setForm] = useState({ title: initial.title || '', date: initial.date, time: start.time, type: initial.type || 'Brand Awareness', kind: startingKind, note: start.note, items: start.items })
   const [saving, setSaving] = useState(false)
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const submit = async (event) => {
     event.preventDefault()
     if (saving) return
     setSaving(true)
-    await onSave({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })
+    await onSave({ ...initial, title: form.title.trim(), date: form.date, type: initial.type || 'Brand Awareness', noteKind: form.kind, objective: buildPlanObjective(form) })
     setSaving(false)
   }
   return (
@@ -58,10 +68,11 @@ function NoteForm({ initial, onClose, onSave, onDelete, onMore }) {
         <div className="modal-head"><div><h2>{initial.id ? 'Edit note' : 'Add note'}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
         <label>Title<input required autoFocus value={form.title} onChange={update('title')} data-user-content/></label>
         <div className="two-fields"><label>Date<input required type="date" value={form.date} onChange={update('date')}/></label><label>Time<input type="time" value={form.time} onChange={update('time')}/></label></div>
-        {SHOW_NOTE_TYPE ? <label>Type<select value={form.type} onChange={update('type')}>{[...new Set([...NOTE_TYPES, form.type])].map((type) => <option key={type} value={type}>{type}</option>)}</select></label> : null}
+        {SHOW_NOTE_KIND ? <label>Type<select aria-label="Type" value={form.kind} onChange={update('kind')}>{form.kind ? null : <option value="">Choose type</option>}{NOTE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
+        {SHOW_NOTE_TYPE ? <label>Content type<select value={form.type} onChange={update('type')}>{[...new Set([...NOTE_TYPES, form.type])].map((type) => <option key={type} value={type}>{type}</option>)}</select></label> : null}
         <label>Notes<textarea rows="3" value={form.note} onChange={update('note')}/></label>
         <PlannerChecklist items={form.items} onChange={(items) => setForm((current) => ({ ...current, items }))}/>
-        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}{SHOW_PLANNER_MORE_OPTIONS ? <button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: form.type, objective: buildPlanObjective(form) })}>More options</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
+        <div className="modal-actions"><div>{initial.id ? <button type="button" className="button danger-subtle" onClick={() => onDelete(initial.id)}>Delete</button> : null}{SHOW_PLANNER_MORE_OPTIONS ? <button type="button" className="button secondary" onClick={() => onMore({ ...initial, title: form.title.trim(), date: form.date, type: initial.type || 'Brand Awareness', noteKind: form.kind, objective: buildPlanObjective(form) })}>More options</button> : null}</div><div><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" type="submit" disabled={saving}>Save note</button></div></div>
       </form>
     </div>
   )
@@ -86,7 +97,7 @@ export default function PlannerMonthCalendar({ plans, monthAnchor, onSavePlan, o
   const monthPrefix = localDateKey(monthAnchor).slice(0, 7)
   const byDate = plans.reduce((map, plan) => { (map[plan.date] = map[plan.date] || []).push(plan); return map }, {})
   const sorted = (date) => [...(byDate[date] || [])].sort((a, b) => (splitPlanNote(a).time || '99:99').localeCompare(splitPlanNote(b).time || '99:99'))
-  const addNote = (date) => { setDaySheet(''); setForm({ id: null, title: '', date, channel: 'Facebook', type: 'Brand Awareness', status: 'Idea', product: 'General / No Product', objective: '' }) }
+  const addNote = (date) => { setDaySheet(''); setForm({ id: null, title: '', date, channel: 'Facebook', type: 'Brand Awareness', noteKind: 'Event', status: 'Idea', product: 'General / No Product', objective: '' }) }
   const openNote = (plan) => { setDaySheet(''); setForm(plan) }
   const save = async (plan) => { if ((await onSavePlan(plan)) !== false) setForm(null) }
   const toggleItem = (plan, index) => { const parts = splitPlanNote(plan); onSavePlan({ ...plan, objective: buildPlanObjective({ ...parts, items: parts.items.map((item, at) => (at === index ? { ...item, done: !item.done } : item)) }) }) }
