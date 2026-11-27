@@ -1,0 +1,76 @@
+/* Colour-only light theme (BD-32): mint accent.
+   Layout, fonts, sizes and behaviour are unchanged. Dark mode is unchanged. */
+html:not([data-theme='dark']) .dd-trigger {
+  background: #A8E6CF;
+  border-color: #7FD1B0;
+  color: #0B0B0B;
+}
+
+html:not([data-theme='dark']) .dd-trigger:hover:not(:disabled) {
+  background: #B8F0DC;
+}
+
+html:not([data-theme='dark']) .dd-trigger:focus-visible,
+html:not([data-theme='dark']) .dd.is-open .dd-trigger {
+  box-shadow: 0 0 0 3px rgba(127, 209, 176, 0.35);
+}
+
+html:not([data-theme='dark']) .dd-trigger::after {
+  border-top-color: #0B0B0B;
+}
+
+html:not([data-theme='dark']) .dd-panel {
+  border-color: #7FD1B0;
+}
+
+html:not([data-theme='dark']) .dd-panel .dd-search-input:focus {
+  border-color: #7FD1B0;
+  box-shadow: 0 0 0 2px rgba(127, 209, 176, 0.25);
+}
+
+html:not([data-theme='dark']) .dd-option.is-active {
+  background: #E8F8F1;
+}
+
+html:not([data-theme='dark']) .dd-option.is-selected {
+  background: #A8E6CF;
+  color: #0B0B0B;
+}
+
+html:not([data-theme='dark']) .button.primary,
+html:not([data-theme='dark']) .mmd-seg button.active {
+  background: #A8E6CF;
+  color: #0B0B0B;
+  border-color: #7FD1B0;
+  box-shadow: none;
+}
+
+html:not([data-theme='dark']) .button.primary:hover {
+  background: #B8F0DC;
+  color: #0B0B0B;
+}
+
+/* Mint on the dark bottom nav; deeper mint for text/links/lines on white. */
+html:not([data-theme='dark']) .mobile-bottom-navigation button.active svg,
+html:not([data-theme='dark']) .nav-link.active svg {
+  color: #A8E6CF;
+}
+
+html:not([data-theme='dark']) .nav-link.active {
+  box-shadow: inset 3px 0 0 #7FD1B0;
+}
+
+html:not([data-theme='dark']) .mmd-link,
+html:not([data-theme='dark']) .text-button:hover {
+  color: #3D9A76;
+}
+
+html:not([data-theme='dark']) .mmd-hbar-toggle:focus-visible {
+  outline-color: #3D9A76;
+}
+
+html:not([data-theme='dark']) .mmd-hbar-split i b,
+html:not([data-theme='dark']) .mmd-hbars i b,
+html:not([data-theme='dark']) .mmd-hbars-alt i b {
+  background: linear-gradient(90deg, #7FD1B0, #A8E6CF);
+}

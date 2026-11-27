@@ -30,6 +30,7 @@ import './dark-mode-contrast-pass-3.css'
 import './campaign-planner-month.css'
 import './planner-calendar-modern.css'
 import './dropdown-style.css'
+import './light-mint-theme.css'
 import './navy-green-theme.css'
 
 const loadProductImage = () => import('./ProductImageEnhancer.jsx')
