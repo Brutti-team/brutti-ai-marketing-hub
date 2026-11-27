@@ -35,6 +35,7 @@ import { buildPlanObjective, parsePlanObjective } from './lib/plannerNote'
 import { addMonths, dateFromKey, formatMonthTitle, formatTimestamp, greetingForNow, localDateKey, monthGridKeys, startOfMonth } from './lib/dateUtils'
 import { formatDisplayDate, formatDisplayDateFromKey, formatDisplayDateTime, formatDisplayTime } from './lib/formatDate'
 import { matchProductPhotos, postsFromSnapshot, productLibraryPhoto } from './lib/metaProductPhoto'
+import { downloadLocalProductEdits } from './lib/exportProductEdits'
 import MetaMarketingDashboard from './MetaMarketingDashboard.jsx'
 import { SHOW_GOOGLE_CONNECT, SHOW_PRODUCT_LIBRARY_LABELS, SHOW_PRODUCT_PHOTO_NOTE, SHOW_PRODUCT_MODAL_EYEBROW, SHOW_PRODUCT_PHOTO_BADGE, SHOW_CREATE_PRODUCT_CONTENT, SHOW_PRODUCT_ID_BADGE, SHOW_MT_COST_NUMBER, SHOW_MT_FORM_EYEBROW, SHOW_MT_STATUS_FIELD, USE_GITHUB_DATA, deviceListNeedsSeed, loadGitHubProducts, loadGitHubSeed, markDeviceListSeeded } from './lib/dataSource.js'
 import './meta-marketing-dashboard.css'
@@ -1095,7 +1096,7 @@ const SHOW_META_IMAGE_MATCHING = false
 // Hidden after the 20 Nov 2026 Product Library wipe. Set to true only after the Apps Script upsert fix is deployed.
 const SHOW_SYNC_NOTION_PRODUCTS = false
 
-function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing, onSaveReference, onDeleteReference, onDeleteProduct, deletedProductIds = [], toast }) {
+function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActive, onSyncNotion, syncing, onSaveReference, onDeleteReference, onDeleteProduct, onExportEdits, deletedProductIds = [], toast }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   const [showReferenceForm, setShowReferenceForm] = useState(false)
@@ -1296,6 +1297,7 @@ function ProductLibrary({ onUseProduct, productData, workspaceActive, notionActi
         <div className="search-box"><Icon name="search"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, category or price…"/></div>
         <select className="category-list" aria-label="Filter by category" value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value} value={value}>{value}</option>)}</select>
         <span className="source-count">{productData.length} loaded</span>
+        <button className="button secondary small" type="button" onClick={onExportEdits}>Export edits</button>
         {SHOW_SYNC_NOTION_PRODUCTS && workspaceActive && notionActive ? <button className="button secondary small" disabled={syncing} onClick={onSyncNotion}>{syncing ? 'Syncing…' : 'Sync Notion products'}</button> : null}
         <button className="button primary small" type="button" onClick={() => { setReference(blankReference()); setImageError(''); setShowReferenceForm((open) => !open) }}><Icon name="plus"/>Add product</button>
       </div>
@@ -1744,6 +1746,14 @@ function App() {
     setDeletedProductIds((ids) => ids.map(String).includes(id) ? ids : [...ids, id])
     toast('Deleted successfully')
   }
+  const exportLocalProductEdits = () => {
+    const result = downloadLocalProductEdits({
+      edits: customProducts,
+      deletedIds: deletedProductIds,
+      catalog: [...productData, ...catalogProductRecords],
+    })
+    toast(result.message)
+  }
   const saveProductReference = async (reference) => {
     // Editing an existing library product (from products.json or the catalog): keep its ID and every field the form does not show,
     // and store the change as an override in this browser. The shared data file is not changed from the app.
@@ -1886,7 +1896,7 @@ function App() {
     planner: <CampaignPlanner plans={plans} openPlan={setActivePlan} newPlan={openNewPlan} deletePlan={deletePlan} savePlan={savePlan} />,
     'marketing-tools': <MarketingTools workspaceActive={workspaceActive} toast={toast} />,
     brand: <BrandLibrary />,
-    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} onDeleteProduct={deleteProductLocally} deletedProductIds={deletedProductIds} toast={toast} />,
+    products: <ProductLibrary onUseProduct={useProduct} productData={allProductData} workspaceActive={workspaceActive} notionActive={integrations.notion} onSyncNotion={syncProducts} syncing={syncingProducts} onSaveReference={saveProductReference} onDeleteReference={deleteProductReference} onDeleteProduct={deleteProductLocally} onExportEdits={exportLocalProductEdits} deletedProductIds={deletedProductIds} toast={toast} />,
     assets: <AssetLibrary toast={toast} workspaceActive={workspaceActive} driveActive={integrations.drive} onUseAsset={useAsset} />,
     'ai-tools': <AITools onUsePrompt={usePrompt} />,
     analytics: <Analytics content={content} plans={plans} productData={allProductData} integrations={integrations} workspaceActive={workspaceActive} onUseIdea={usePerformanceIdea} toast={toast} />,
