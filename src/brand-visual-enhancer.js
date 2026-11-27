@@ -87,10 +87,10 @@ function createPlatformIcon(name) {
   return span
 }
 
-const DASHBOARD_LEGEND_LOGO_SKIP = '.mmd-legend, .mmd-mini-table, .mmd-hbar-split, .mmd-donut, .mmd-hbars'
+const DASHBOARD_LEGEND_LOGO_SKIP = '.mmd-legend, .mmd-mini-table, .mmd-donut'
 
 function decoratePlatforms(root = document) {
-  // Keep colour-square + label in dashboard legends/breakdowns; leave filter-pill logos alone.
+  // Keep colour-square + label in chart legends, donut and platform table; filter pills and breakdown rows keep their logos.
   root.querySelectorAll?.(DASHBOARD_LEGEND_LOGO_SKIP).forEach((host) => {
     host.querySelectorAll('.brutti-platform-icon').forEach((icon) => {
       const parent = icon.parentElement
