@@ -1,93 +1,95 @@
-/* Colour-only dark theme (BD-30): Deelance-inspired navy + neon green.
+/* Colour-only dark theme (BD-32): true black + mint accent.
    Layout, fonts, sizes and behaviour are unchanged. Light mode is unchanged. */
 html[data-theme='dark'] {
-  --ng-bg: #0F1420;
-  --ng-card: #1A2030;
-  --ng-card-2: #21283A;
-  --ng-accent: #22D36B;
-  --ng-accent-hover: #2EE67A;
-  --ng-ink: #0B1220;
+  --ng-bg: #000000;
+  --ng-card: #111111;
+  --ng-card-2: #1A1A1A;
+  --ng-accent: #A8E6CF;
+  --ng-accent-hover: #B8F0DC;
+  --ng-ink: #0B0B0B;
   --ng-text: #FFFFFF;
-  --ng-muted: #9AA3B2;
-  --ng-line: #2A3348;
+  --ng-muted: #9A9A9A;
+  --ng-line: #222222;
 
-  --ivory: #0F1420;
-  --cream: #0F1420;
-  --paper: #1A2030;
+  --ivory: #000000;
+  --cream: #000000;
+  --paper: #111111;
   --charcoal: #FFFFFF;
-  --muted: #9AA3B2;
-  --sage: #9AA3B2;
-  --line: #2A3348;
+  --muted: #9A9A9A;
+  --sage: #9A9A9A;
+  --line: #222222;
   --line-dark: rgba(255, 255, 255, 0.12);
   --forest: #E8F5EE;
   --forest-2: #C5E6D3;
-  --forest-3: #9AA3B2;
-  --terracotta: #22D36B;
-  --tan: #4ADE80;
-  --brown: #9AA3B2;
+  --forest-3: #9A9A9A;
+  --terracotta: #A8E6CF;
+  --tan: #B8F0DC;
+  --brown: #9A9A9A;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 16px 34px rgba(0, 0, 0, 0.32);
 
-  --dm-bg: #0F1420;
-  --dm-surface: #1A2030;
-  --dm-surface-2: #21283A;
-  --dm-surface-3: #262E42;
-  --dm-border: #2A3348;
+  --dm-bg: #000000;
+  --dm-surface: #111111;
+  --dm-surface-2: #1A1A1A;
+  --dm-surface-3: #1A1A1A;
+  --dm-border: #222222;
   --dm-text: #FFFFFF;
-  --dm-text-2: #C5CAD3;
-  --dm-text-3: #9AA3B2;
-  --dm-mint: #22D36B;
-  --dm-sage: #9AA3B2;
+  --dm-text-2: #C6C6C6;
+  --dm-text-3: #9A9A9A;
+  --dm-mint: #A8E6CF;
+  --dm-sage: #9A9A9A;
   --dm-cream: #FFFFFF;
-  --dm-peach: #22D36B;
-  --dm-gold: #22D36B;
-  --dm-accent: #22D36B;
-  --dm-accent-strong: #4ADE80;
-  --dm-accent-soft: #9AA3B2;
+  --dm-peach: #A8E6CF;
+  --dm-gold: #A8E6CF;
+  --dm-accent: #A8E6CF;
+  --dm-accent-strong: #B8F0DC;
+  --dm-accent-soft: #9A9A9A;
   --dm-cream-bright: #FFFFFF;
-  --dm-grey-bright: #C5CAD3;
-  --dm-grey-mid: #9AA3B2;
-  --dm-box: #1A2030;
-  --dm-box-2: #21283A;
-  --dm-box-3: #262E42;
-  --dm-border-strong: #3A4560;
-  --dm-border-soft: #2A3348;
-  --dm3-input: #141A28;
-  --dm3-surface: #1A2030;
-  --dm3-surface-2: #21283A;
-  --dm3-surface-3: #262E42;
-  --dm3-border: #2A3348;
-  --dm3-border-strong: #3A4560;
+  --dm-grey-bright: #C6C6C6;
+  --dm-grey-mid: #9A9A9A;
+  --dm-box: #111111;
+  --dm-box-2: #1A1A1A;
+  --dm-box-3: #1A1A1A;
+  --dm-border-strong: #2A2A2A;
+  --dm-border-soft: #222222;
+  --dm3-input: #0A0A0A;
+  --dm3-surface: #111111;
+  --dm3-surface-2: #1A1A1A;
+  --dm3-surface-3: #1A1A1A;
+  --dm3-border: #222222;
+  --dm3-border-strong: #2A2A2A;
   --dm3-text: #FFFFFF;
-  --dm3-text-2: #C5CAD3;
-  --dm3-text-3: #9AA3B2;
-  --dm3-mint: #22D36B;
-  --dm3-mint-strong: #4ADE80;
-  --ui-bg: #0F1420;
-  --ui-surface: #1A2030;
-  --ui-surface-soft: #21283A;
+  --dm3-text-2: #C6C6C6;
+  --dm3-text-3: #9A9A9A;
+  --dm3-mint: #A8E6CF;
+  --dm3-mint-strong: #B8F0DC;
+  --ui-bg: #000000;
+  --ui-surface: #111111;
+  --ui-surface-soft: #1A1A1A;
   --ui-text: #FFFFFF;
-  --ui-muted: #9AA3B2;
-  --ui-line: #2A3348;
-  --ui-primary: #22D36B;
-  --ui-primary-soft: #163328;
+  --ui-muted: #9A9A9A;
+  --ui-line: #222222;
+  --ui-primary: #A8E6CF;
+  --ui-primary-soft: #0E1612;
   --ui-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
   color-scheme: dark;
+  background: #000000;
 }
 
 html[data-theme='dark'] body,
+html[data-theme='dark'] #root,
 html[data-theme='dark'] .app-shell,
 html[data-theme='dark'] .app-main,
 html[data-theme='dark'] main,
 html[data-theme='dark'] .page,
 html[data-theme='dark'] .mmd-shell {
-  background: #0F1420;
+  background: #000000;
   color: #FFFFFF;
 }
 
 html[data-theme='dark'] .topbar,
 html[data-theme='dark'] .sidebar {
-  background: #0F1420;
-  border-color: #2A3348;
+  background: #000000;
+  border-color: #222222;
   box-shadow: none;
 }
 
@@ -114,15 +116,15 @@ html[data-theme='dark'] .plan-modal,
 html[data-theme='dark'] .pcal-shell,
 html[data-theme='dark'] .mt-card,
 html[data-theme='dark'] .kol-card {
-  background: #1A2030;
-  border-color: #2A3348;
+  background: #111111;
+  border-color: #222222;
   color: #FFFFFF;
 }
 
 html[data-theme='dark'] .core7-prompt-groups > section,
 html[data-theme='dark'] .core7-brand-grid article,
 html[data-theme='dark'] .core7-drive-required {
-  background: #1A2030;
+  background: #111111;
 }
 
 html[data-theme='dark'] h1,
@@ -155,7 +157,7 @@ html[data-theme='dark'] .mmd-post-main small,
 html[data-theme='dark'] .mmd-pending li span,
 html[data-theme='dark'] .mmd-post-head,
 html[data-theme='dark'] .mmd-donut li small {
-  color: #9AA3B2;
+  color: #9A9A9A;
 }
 
 html[data-theme='dark'] input,
@@ -170,27 +172,27 @@ html[data-theme='dark'] .selected-asset,
 html[data-theme='dark'] .mmd-seg,
 html[data-theme='dark'] .mmd-select,
 html[data-theme='dark'] .mmd-refresh {
-  background: #141A28;
+  background: #0A0A0A;
   color: #FFFFFF;
-  border-color: #2A3348;
+  border-color: #222222;
 }
 
 html[data-theme='dark'] input::placeholder,
 html[data-theme='dark'] textarea::placeholder {
-  color: #7B8494;
+  color: #7A7A7A;
 }
 
 html[data-theme='dark'] .button.primary,
 html[data-theme='dark'] .mmd-seg button.active {
-  background: #22D36B;
-  color: #0B1220;
-  border-color: #22D36B;
+  background: #A8E6CF;
+  color: #0B0B0B;
+  border-color: #A8E6CF;
   box-shadow: none;
 }
 
 html[data-theme='dark'] .button.primary:hover {
-  background: #2EE67A;
-  color: #0B1220;
+  background: #B8F0DC;
+  color: #0B0B0B;
 }
 
 html[data-theme='dark'] .button.secondary,
@@ -202,33 +204,33 @@ html[data-theme='dark'] .phase2-status,
 html[data-theme='dark'] .phase3-status,
 html[data-theme='dark'] .mmd-seg button,
 html[data-theme='dark'] .mmd-chip {
-  background: #21283A;
-  border-color: #3A4560;
+  background: #1A1A1A;
+  border-color: #2A2A2A;
   color: #FFFFFF;
 }
 
 html[data-theme='dark'] .text-button,
 html[data-theme='dark'] .core7-prompt-group-head strong,
 html[data-theme='dark'] a {
-  color: #22D36B;
+  color: #A8E6CF;
 }
 
 html[data-theme='dark'] .mobile-bottom-navigation {
-  background: #1A2030;
-  border-color: #2A3348;
+  background: #111111;
+  border-color: #222222;
 }
 
 html[data-theme='dark'] .mobile-bottom-navigation button {
-  color: #9AA3B2;
+  color: #9A9A9A;
 }
 
 html[data-theme='dark'] .mobile-bottom-navigation button.active {
   color: #FFFFFF;
-  background: rgba(34, 211, 107, 0.16);
+  background: rgba(168, 230, 207, 0.16);
 }
 
 html[data-theme='dark'] .mobile-bottom-navigation button.active svg {
-  color: #22D36B;
+  color: #A8E6CF;
 }
 
 html[data-theme='dark'] .mobile-logo .logo-lockup strong {
@@ -236,38 +238,38 @@ html[data-theme='dark'] .mobile-logo .logo-lockup strong {
 }
 
 html[data-theme='dark'] .mobile-logo .logo-lockup small {
-  color: #9AA3B2;
+  color: #9A9A9A;
 }
 
-/* Gold dropdown pills become neon-green pills; panel stays a dark card. */
+/* Accent dropdown pills; panel stays a dark card. */
 html[data-theme='dark'] .dd-trigger {
-  background: #22D36B;
-  border-color: #1AA856;
-  color: #0B1220;
+  background: #A8E6CF;
+  border-color: #7ECFB3;
+  color: #0B0B0B;
 }
 
 html[data-theme='dark'] .dd-trigger:hover:not(:disabled) {
-  background: #2EE67A;
+  background: #B8F0DC;
 }
 
 html[data-theme='dark'] .dd-trigger::after {
-  border-top-color: #0B1220;
+  border-top-color: #0B0B0B;
 }
 
 html[data-theme='dark'] .dd-hint {
-  color: rgba(11, 18, 32, 0.55);
+  color: rgba(11, 11, 11, 0.55);
 }
 
 html[data-theme='dark'] .dd-panel {
-  background: #1A2030;
-  border-color: #2A3348;
+  background: #111111;
+  border-color: #222222;
   color: #FFFFFF;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
 }
 
 html[data-theme='dark'] .dd-panel .dd-search-input {
-  background: #141A28;
-  border-color: #2A3348;
+  background: #0A0A0A;
+  border-color: #222222;
   color: #FFFFFF;
 }
 
@@ -275,12 +277,12 @@ html[data-theme='dark'] .dd-panel .dd-search-input::placeholder,
 html[data-theme='dark'] .dd-search,
 html[data-theme='dark'] .dd-empty,
 html[data-theme='dark'] .dd-group {
-  color: #9AA3B2;
+  color: #9A9A9A;
 }
 
 html[data-theme='dark'] .dd-panel .dd-search-input:focus {
-  border-color: #22D36B;
-  box-shadow: 0 0 0 2px rgba(34, 211, 107, 0.28);
+  border-color: #A8E6CF;
+  box-shadow: 0 0 0 2px rgba(168, 230, 207, 0.28);
 }
 
 html[data-theme='dark'] .dd-option {
@@ -288,73 +290,101 @@ html[data-theme='dark'] .dd-option {
 }
 
 html[data-theme='dark'] .dd-option.is-active {
-  background: #21283A;
+  background: #1A1A1A;
 }
 
 html[data-theme='dark'] .dd-option.is-selected {
-  background: #22D36B;
-  color: #0B1220;
+  background: #A8E6CF;
+  color: #0B0B0B;
 }
 
 html[data-theme='dark'] .mmd-hbar-split i b,
 html[data-theme='dark'] .mmd-hbars i b,
 html[data-theme='dark'] .mmd-hbars-alt i b {
-  background: linear-gradient(90deg, #1AA856, #22D36B);
+  background: linear-gradient(90deg, #7ECFB3, #A8E6CF);
 }
 
 html[data-theme='dark'] .mmd-chart .mmd-grid,
 html[data-theme='dark'] .mmd-donut-track {
-  stroke: #2A3348;
+  stroke: #222222;
 }
 
 html[data-theme='dark'] .mmd-post,
 html[data-theme='dark'] .mmd-pending li,
 html[data-theme='dark'] .mmd-chip {
-  border-color: #2A3348;
+  border-color: #222222;
 }
 
 html[data-theme='dark'] .notif-switch.is-on i {
-  background: #22D36B;
+  background: #A8E6CF;
 }
 
 html[data-theme='dark'] .pcal-weekdays > div {
-  background: #1A2030;
-  border-color: #2A3348;
-  color: #9AA3B2;
+  background: #111111;
+  border-color: #222222;
+  color: #9A9A9A;
 }
 html[data-theme='dark'] .pcal-cell {
-  background: #1A2030;
-  border-color: #2A3348;
+  background: #111111;
+  border-color: #222222;
 }
 html[data-theme='dark'] .pcal-cell:hover {
-  background: #21283A;
+  background: #1A1A1A;
 }
 html[data-theme='dark'] .pcal-cell.is-outside {
-  background: #141A28;
+  background: #0A0A0A;
 }
 html[data-theme='dark'] .pcal-cell.is-outside .pcal-num {
-  color: #7B8494;
+  color: #7A7A7A;
 }
 html[data-theme='dark'] .pcal-cell.is-today .pcal-num {
-  background: #22D36B;
-  color: #0B1220;
+  background: #A8E6CF;
+  color: #0B0B0B;
 }
 
 html[data-theme='dark'] .theme-dot-dark {
-  background: #0F1420;
-  box-shadow: inset 0 0 0 1px #22D36B;
+  background: #000000;
+  box-shadow: inset 0 0 0 1px #A8E6CF;
 }
 
 html[data-theme='dark'] .toast {
-  background: #1A2030;
+  background: #111111;
   color: #FFFFFF;
-  border: 1px solid #2A3348;
+  border: 1px solid #222222;
 }
 
 html[data-theme='dark'] .product-visual {
-  background: linear-gradient(145deg, #21283A, #141A28);
+  background: linear-gradient(145deg, #1A1A1A, #0A0A0A);
 }
 
 html[data-theme='dark'] .furniture-shape span {
-  background: #3A4560;
+  background: #2A2A2A;
+}
+
+/* KPI cards: same dark grey as other cards, no navy/coloured tints. */
+html[data-theme='dark'] .mmd-tone-mint,
+html[data-theme='dark'] .mmd-tone-sky,
+html[data-theme='dark'] .mmd-tone-peach,
+html[data-theme='dark'] .mmd-tone-lilac,
+html[data-theme='dark'] .mmd-tone-butter,
+html[data-theme='dark'] .mmd-kpi {
+  background: #111111;
+  border-color: #222222;
+}
+
+html[data-theme='dark'] .mmd-kpi-label,
+html[data-theme='dark'] .mmd-delta em {
+  color: #9A9A9A;
+}
+
+html[data-theme='dark'] .mmd-up {
+  color: #A8E6CF;
+}
+
+html[data-theme='dark'] .mmd-flat {
+  color: #9A9A9A;
+}
+
+html[data-theme='dark'] .mmd-hbars i {
+  background: #1A1A1A;
 }
