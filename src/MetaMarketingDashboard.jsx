@@ -12,8 +12,8 @@ const SHOW_META_DASHBOARD_EYEBROW = false
 const SHOW_META_SYNC_LINE = false
 const SHOW_META_UNAVAILABLE_CARD = false
 const SHOW_SAVES_BREAKDOWN = false
-// Month and year pickers on the dashboard header. Hidden (Michelle, 26 Nov 2026). Set true to show them again.
-const SHOW_DASHBOARD_MONTH_PICKER = false
+// Month and year pickers on the dashboard header (restored Michelle, 27 Nov 2026).
+const SHOW_DASHBOARD_MONTH_PICKER = true
 
 const PERIODS = [
   { days: 7, label: 'Seminggu lepas' },

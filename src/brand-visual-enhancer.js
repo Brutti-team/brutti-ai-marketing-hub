@@ -87,7 +87,21 @@ function createPlatformIcon(name) {
   return span
 }
 
+const DASHBOARD_LEGEND_LOGO_SKIP = '.mmd-legend, .mmd-mini-table, .mmd-donut'
+
 function decoratePlatforms(root = document) {
+  // Keep colour-square + label in chart legends, donut and platform table; filter pills and breakdown rows keep their logos.
+  root.querySelectorAll?.(DASHBOARD_LEGEND_LOGO_SKIP).forEach((host) => {
+    host.querySelectorAll('.brutti-platform-icon').forEach((icon) => {
+      const parent = icon.parentElement
+      icon.remove()
+      if (parent) {
+        delete parent.dataset.bruttiPlatformDecorated
+        parent.removeAttribute('data-brutti-platform')
+      }
+    })
+  })
+
   const selectors = [
     'button', '[role="button"]', 'label', 'span', 'strong', 'b', 'small',
     'td', 'th', 'h3', 'h4', '.badge', '.pill', '.chip', '.platform',
@@ -95,6 +109,7 @@ function decoratePlatforms(root = document) {
   ].join(',')
 
   root.querySelectorAll?.(selectors).forEach(element => {
+    if (element.closest(DASHBOARD_LEGEND_LOGO_SKIP)) return
     if (element.dataset.bruttiPlatformDecorated === 'true') return
     if (element.querySelector(':scope > .brutti-platform-icon')) return
 
